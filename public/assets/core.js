@@ -52,13 +52,42 @@ const DKCore = (function () {
       });
       const rated = [];
       counts.forEach((c, lvl) => { if (lvl >= 1) for (let k = 0; k < c; k++) rated.push(lvl); });
-      bySub[s.id] = { counts, answered: counts.reduce((a, b) => a + b, 0), mean: mean(rated) };
+      bySub[s.id] = { counts, answered: counts.reduce((a, b) => a + b, 0), mean: mean(rated), sd: sd(rated), box: boxStats(rated) };
     });
-    const areas = items.areas.map((a) => ({
-      id: a.id,
-      mean: mean(a.subareas.map((s) => bySub[s.id].mean).filter((v) => v !== null)),
-    }));
+    const areas = items.areas.map((a) => {
+      // Boxplot pro Bereich: Verteilung der persönlichen Bereichsmittelwerte
+      const personal = records.map((r) => mean(a.subareas.map((s) => r.answers[s.id]).filter((v) => v >= 1))).filter((v) => v !== null);
+      return { id: a.id, mean: mean(a.subareas.map((s) => bySub[s.id].mean).filter((v) => v !== null)), box: boxStats(personal) };
+    });
     return { n: records.length, bySub, areas };
+  }
+
+  /* Kennzahlen für Boxplots. Antennen bewusst 10.–90. Perzentil statt Minimum/Maximum,
+   * weil Extremwerte oft für eine einzelne Person stehen. */
+  function quantile(sorted, p) {
+    if (!sorted.length) return null;
+    const h = (sorted.length - 1) * p, lo = Math.floor(h);
+    return sorted[lo] + (h - lo) * ((sorted[Math.min(lo + 1, sorted.length - 1)]) - sorted[lo]);
+  }
+  function boxStats(vals) {
+    if (!vals.length) return null;
+    const v = vals.slice().sort((a, b) => a - b);
+    return { n: v.length, p10: quantile(v, 0.1), q1: quantile(v, 0.25), median: quantile(v, 0.5), q3: quantile(v, 0.75), p90: quantile(v, 0.9), mean: mean(v) };
+  }
+  function sd(vals) {
+    if (vals.length < 2) return null;
+    const m = mean(vals);
+    return Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / (vals.length - 1));
+  }
+  /* «Wer braucht was?»: Anteile Einstieg (I–II), Vertiefung (III–IV), Weitergeben (V–VI)
+   * sowie Einschätzung der Streuung (einig / gemischt / gespalten). */
+  function needGroups(d) {
+    const rated = d.counts.slice(1).reduce((a, b) => a + b, 0);
+    const g = [d.counts[1] + d.counts[2], d.counts[3] + d.counts[4], d.counts[5] + d.counts[6]];
+    const share = g.map((x) => (rated ? x / rated : 0));
+    let spread = null;
+    if (rated >= 2) spread = share[0] >= 0.25 && share[2] >= 0.25 ? 'gespalten' : d.sd !== null && d.sd <= 0.8 ? 'einig' : 'gemischt';
+    return { rated, counts: g, share, spread };
   }
 
   function toCSV(items, agg) {
@@ -141,6 +170,6 @@ const DKCore = (function () {
     return { themes, multipliers, noOpp };
   }
 
-  return { NO_OPPORTUNITY, FORMAT, MIN_GROUP, SCALE, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, toCSV, aggregateCustom, pdThemeFor, personalThemes, schoolThemes };
+  return { NO_OPPORTUNITY, FORMAT, MIN_GROUP, SCALE, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, boxStats, needGroups, toCSV, aggregateCustom, pdThemeFor, personalThemes, schoolThemes };
 })();
 if (typeof module !== 'undefined') module.exports = DKCore;

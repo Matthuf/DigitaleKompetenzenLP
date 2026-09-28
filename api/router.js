@@ -87,7 +87,22 @@ async function aggregateFor(campaignId, stufe) {
   if (recs.length < MIN) return { n: recs.length, total: all.length, tooFew: true, min: MIN, testMode: MIN < DKCore.MIN_GROUP, stufen };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
   const custom = camp && camp.custom_block ? { block: camp.custom_block, ...aggregateCustom(camp.custom_block, recs.map((r) => r.custom_answers)) } : null;
-  return { n: recs.length, total: all.length, tooFew: false, min: MIN, testMode: MIN < DKCore.MIN_GROUP, stufen, agg, custom };
+  // Stufen nebeneinander: nur ohne Filter, ab zwei Stufen und nur wenn jede Gruppe (auch «ohne Angabe»)
+  // die Mindestgrösse erreicht. Sonst liesse sich eine kleine Gruppe aus der Differenz zum Total berechnen.
+  let byStufe = null;
+  if (!stufe) {
+    const groups = {};
+    all.forEach((r) => { const k = r.stufe || ''; (groups[k] = groups[k] || []).push(r); });
+    const named = Object.keys(groups).filter((k) => k);
+    const allBigEnough = Object.values(groups).every((g) => g.length >= MIN);
+    if (named.length >= 2 && allBigEnough) {
+      byStufe = named.sort((a, b) => a.localeCompare(b)).map((k) => {
+        const g = DKCore.aggregate(ITEMS, groups[k].map((r) => ({ answers: r.answers })));
+        return { stufe: k, n: groups[k].length, areas: g.areas.map((a) => a.mean) };
+      });
+    } else if (named.length >= 2) byStufe = { hidden: true };
+  }
+  return { n: recs.length, total: all.length, tooFew: false, min: MIN, testMode: MIN < DKCore.MIN_GROUP, stufen, agg, custom, byStufe };
 }
 
 // Sitzung der Lehrperson: ohne «angemeldet bleiben» bis zum Schliessen des Browsers (max. 12 h), sonst 90 Tage
