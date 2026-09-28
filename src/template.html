@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digitale Kompetenzen SZ</title>
+<style>
+:root {
+  color-scheme: light;
+  --red: #E2001A;
+  --red-dark: #AF1400;
+  --red-tint: #FDF0EB;
+  --ink: #000000;
+  --ink-2: #464646;
+  --ink-3: #6E6E6E;
+  --line: #D2D2D2;
+  --box: #EBEBEB;
+  --bg: #FFFFFF;
+  --l1: #FAD7C8; --l2: #F5AF96; --l3: #EB694B; --l4: #E2001A; --l5: #AF1400; --l6: #780A00;
+  --l0: #B4B4B4;
+  --font: "Trade Gothic Next", "Trade Gothic", Helvetica, Arial, Geneva, sans-serif;
+  --wrap: 1120px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 600px) { .wrap { padding-inline: 16px; } }
+h1, h2, h3 { line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; }
+a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--red-dark); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.875rem; }
+.eyebrow { font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Header gemäss Webguide: Logo oben rechts auf Weiss, Navigation darunter */
+.site-header { border-bottom: 1px solid var(--line); background: var(--bg); }
+.brand { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-block: 28px 20px; }
+.brand-text .eyebrow { margin-bottom: 4px; }
+.brand-text h1 { font-size: 1.5rem; }
+.logo-link { flex: 0 0 auto; display: block; }
+.logo-link img { display: block; height: 38px; width: auto; }
+@media (max-width: 720px) {
+  .brand { flex-direction: column-reverse; gap: 16px; padding-block: 16px; }
+  .logo-link { align-self: flex-end; }
+  .logo-link img { height: 28px; }
+  .brand-text h1 { font-size: 1.25rem; }
+}
+.nav { display: flex; gap: 4px 28px; flex-wrap: wrap; }
+.nav button { appearance: none; background: none; border: 0; padding: 10px 0 12px; font: inherit; font-weight: 700; color: var(--ink-2); cursor: pointer; border-bottom: 4px solid transparent; }
+.nav button[aria-current="page"] { color: var(--ink); border-bottom-color: var(--red); }
+.nav button:hover { color: var(--ink); }
+
+main { padding-block: 36px 64px; }
+[hidden] { display: none !important; }
+
+/* Buttons */
+.btn { appearance: none; display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 700; padding: 11px 20px; border-radius: 2px; cursor: pointer; border: 2px solid var(--red); background: var(--red); color: #fff; text-decoration: none; }
+.btn:hover { background: var(--red-dark); border-color: var(--red-dark); color: #fff; }
+.btn.secondary { background: var(--bg); color: var(--ink); border-color: var(--ink); }
+.btn.secondary:hover { background: var(--box); color: var(--ink); }
+.btn.quiet { background: none; border-color: transparent; color: var(--ink); text-decoration: underline; padding-inline: 4px; font-weight: 400; }
+.btn.quiet:hover { color: var(--red-dark); }
+.btn.danger { background: var(--bg); color: var(--red-dark); border-color: var(--red-dark); }
+.btn.danger:hover { background: var(--red-tint); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+
+/* Boxen gemäss Webguide */
+.box { background: var(--box); padding: 18px 20px; }
+.box--info { background: #EEF3F8; }
+.box--warning { background: #FFF4D6; }
+.box h3 { margin-bottom: 6px; }
+
+/* Start */
+.start-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 860px) { .start-grid { grid-template-columns: 1fr; gap: 32px; } }
+.lead { font-size: 1.15rem; max-width: 60ch; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; }
+.steps li::before { content: counter(s); width: 32px; height: 32px; display: grid; place-items: center; font-weight: 700; border: 2px solid var(--ink); border-radius: 50%; }
+.panel { border: 1px solid var(--line); padding: 24px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-weight: 700; }
+select, input[type="file"] { font: inherit; }
+select { padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 2px; background: var(--bg); color: var(--ink); width: 100%; }
+.levels-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; }
+.levels-strip div { padding: 8px 6px; font-size: 0.8rem; line-height: 1.25; }
+.levels-strip b { display: block; font-size: 0.95rem; }
+.lv1 { background: var(--l1); color: #000; } .lv2 { background: var(--l2); color: #000; } .lv3 { background: var(--l3); color: #000; }
+.lv4 { background: var(--l4); color: #fff; } .lv5 { background: var(--l5); color: #fff; } .lv6 { background: var(--l6); color: #fff; }
+.lv0 { background: var(--l0); color: #000; }
+@media (max-width: 520px) { .levels-strip { grid-template-columns: repeat(3, 1fr); } }
+
+/* Fragebogen */
+.survey-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .survey-grid { grid-template-columns: 1fr; gap: 24px; } }
+.areanav { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 860px) { .areanav { position: static; display: grid; grid-template-columns: 1fr 1fr; } }
+@media (max-width: 460px) { .areanav { grid-template-columns: 1fr; } }
+.areanav button { appearance: none; text-align: left; font: inherit; background: var(--bg); border: 0; border-left: 4px solid transparent; padding: 10px 12px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; color: var(--ink); }
+.areanav button:hover { background: var(--box); }
+.areanav button[aria-current="step"] { border-left-color: var(--red); background: var(--box); font-weight: 700; }
+.areanav .cnt { font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: 400; }
+.areanav .cnt.done { color: #1f6b33; font-weight: 700; }
+.progressbar { height: 6px; background: var(--box); margin-bottom: 12px; }
+.progressbar span { display: block; height: 100%; background: var(--red); width: 0; transition: width .3s; }
+.area-head { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.q { border: 0; margin: 0; padding: 28px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.q legend { padding: 0; font-size: 1.15rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.q legend .qid { color: var(--red); font-variant-numeric: tabular-nums; }
+.q .hint { margin: 6px 0 14px; color: var(--ink-2); }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; background: var(--bg); }
+.opt:hover { border-color: var(--ink-3); }
+.opt input { margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--red); }
+.opt:has(input:checked) { border-color: var(--red); background: var(--red-tint); box-shadow: inset 0 0 0 1px var(--red); }
+.opt:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.opt.none { margin-top: 6px; border-style: dashed; color: var(--ink-2); }
+.opt.none:has(input:checked) { border-color: var(--ink-3); background: var(--box); box-shadow: inset 0 0 0 1px var(--ink-3); color: var(--ink); }
+.survey-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 28px; }
+
+/* Ergebnis */
+.result-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.8rem; padding: 3px 9px; background: var(--box); border-radius: 12px; }
+.result-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; padding-block: 28px; align-items: start; }
+@media (max-width: 900px) { .result-top { grid-template-columns: 1fr; } }
+.radar-wrap { max-width: 520px; width: 100%; }
+.radar-wrap svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.8rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 5px; }
+.list-plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.focus-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: baseline; }
+.focus-item .next { grid-column: 2; font-size: 0.9rem; color: var(--ink-2); }
+.badge { display: inline-block; min-width: 42px; text-align: center; font-size: 0.8rem; font-weight: 700; padding: 2px 6px; border-radius: 2px; font-variant-numeric: tabular-nums; }
+.area-block { padding-block: 24px; border-top: 1px solid var(--line); }
+.area-block h3 { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; margin-bottom: 12px; }
+.area-block h3 .avg { font-size: 0.9rem; font-weight: 400; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+details.sub { border-bottom: 1px solid var(--box); }
+details.sub summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 240px) 150px; gap: 16px; align-items: center; padding: 10px 0; }
+details.sub summary::-webkit-details-marker { display: none; }
+details.sub summary .t::before { content: "+"; display: inline-block; width: 16px; font-weight: 700; color: var(--red); }
+details.sub[open] summary .t::before { content: "−"; }
+@media (max-width: 620px) { details.sub summary { grid-template-columns: 1fr 96px; } details.sub summary .meter { grid-column: 1 / -1; grid-row: 2; } }
+.meter { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 14px; }
+.meter span { background: var(--box); }
+.meter.none span { background: repeating-linear-gradient(135deg, var(--box) 0 4px, #fff 4px 8px); }
+.sub-body { padding: 4px 0 18px 16px; display: grid; gap: 12px; max-width: 75ch; }
+.sub-body h4 { margin: 0 0 2px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 28px; border-top: 1px solid var(--line); }
+.confirm { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Schulauswertung */
+.dropzone { border: 2px dashed var(--ink-3); padding: 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+.dropzone.drag { border-color: var(--red); background: var(--red-tint); }
+.table-scroll { overflow-x: auto; }
+table.heat { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+table.heat th, table.heat td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; }
+table.heat th:first-child, table.heat td:first-child { text-align: left; }
+table.heat thead th { font-size: 0.8rem; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+table.heat tr.area-row td { background: var(--box); font-weight: 700; text-align: left; }
+table.heat td.cell { min-width: 44px; }
+.stat-row { display: flex; flex-wrap: wrap; gap: 32px; }
+.stat b { display: block; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+
+/* Info */
+.prose { max-width: 70ch; display: flex; flex-direction: column; gap: 14px; }
+.prose h2 { margin-top: 16px; }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; font-size: 0.875rem; color: var(--ink-2); }
+footer .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 40px; }
+footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+@media print {
+  .site-header .nav, footer .links, .no-print, .actions { display: none !important; }
+  .view:not(#view-result) { display: none !important; }
+  #view-result { display: block !important; }
+  main { padding: 0; }
+  details.sub .sub-body { display: grid !important; }
+  details.sub summary .t::before { content: ""; }
+  .area-block { break-inside: avoid; }
+  body { font-size: 11pt; }
+  .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-text">
+        <div class="eyebrow">Amt für Volksschulen und Sport</div>
+        <h1>Digitale Kompetenzen von Lehrpersonen</h1>
+        <p class="muted">Selbsteinschätzung · Prototyp</p>
+      </div>
+      <a class="logo-link" href="#start" data-go="start" aria-label="Kanton Schwyz – zur Startseite des Instruments"><img src="__LOGO__" alt="Kanton Schwyz"></a>
+    </div>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <button type="button" data-go="start">Start</button>
+      <button type="button" data-go="survey">Selbsteinschätzung</button>
+      <button type="button" data-go="result">Ergebnis</button>
+      <button type="button" data-go="school">Schulauswertung</button>
+      <button type="button" data-go="info">Hinweise</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- START -->
+  <section class="view" id="view-start" aria-labelledby="h-start">
+    <div class="start-grid">
+      <div class="stack" style="gap:24px">
+        <h2 id="h-start">Wo stehe ich beim Unterrichten mit digitalen Medien?</h2>
+        <p class="lead">Die Selbsteinschätzung zeigt das eigene Kompetenzprofil in sechs Bereichen. Grundlage ist der europäische Referenzrahmen DigCompEdu. Das Ergebnis dient der persönlichen Standortbestimmung, dem Mitarbeitendengespräch und der Weiterbildungsplanung der Schule.</p>
+        <ol class="steps">
+          <li><div><b>Angaben zum Arbeitsumfeld</b><br><span class="muted">Freiwillig und ohne Namen. Die Angaben helfen bei der Schulauswertung.</span></div></li>
+          <li><div><b>22 Fragen in 6 Bereichen</b><br><span class="muted">Pro Frage die Aussage wählen, die das eigene Handeln am besten beschreibt. Dauer: etwa 20 Minuten.</span></div></li>
+          <li><div><b>Kompetenzprofil und nächste Schritte</b><br><span class="muted">Das Profil lässt sich speichern, drucken und später wieder öffnen.</span></div></li>
+        </ol>
+        <div class="stack" style="gap:8px">
+          <h3>Sechs Kompetenzstufen</h3>
+          <div class="levels-strip" id="levels-strip"></div>
+        </div>
+        <div class="box">
+          <h3>Datenschutz</h3>
+          <p>Alle Antworten bleiben auf diesem Gerät. Es werden keine Daten übermittelt. Wer das Ergebnis mit der Schulleitung teilen möchte, speichert es als Datei und gibt diese selbst weiter.</p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="box box--warning" id="resume-box" hidden>
+          <h3>Auf diesem Gerät sind bereits Antworten gespeichert</h3>
+          <p id="resume-text"></p>
+          <p class="small" style="margin-top:6px">Wird das Gerät gemeinsam genutzt, zuerst die gespeicherten Antworten löschen.</p>
+          <div class="row" style="margin-top:14px">
+            <button class="btn" type="button" id="btn-resume">Fortsetzen</button>
+            <span class="confirm" id="reset-confirm-start"></span>
+          </div>
+        </div>
+        <form class="panel stack" id="context-form">
+          <h3>Angaben zum Arbeitsumfeld</h3>
+          <div class="field">
+            <label for="ctx-stufe">Schulstufe</label>
+            <select id="ctx-stufe" name="stufe">
+              <option value="">Keine Angabe</option>
+              <option>Kindergarten</option>
+              <option>Primarstufe 1.–2. Klasse</option>
+              <option>Primarstufe 3.–6. Klasse</option>
+              <option>Sekundarstufe I</option>
+              <option>Stufenübergreifend</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ctx-funktion">Funktion</label>
+            <select id="ctx-funktion" name="funktion">
+              <option value="">Keine Angabe</option>
+              <option>Klassenlehrperson</option>
+              <option>Fachlehrperson</option>
+              <option>Schulische Heilpädagogin / Schulischer Heilpädagoge</option>
+              <option>Lehrperson Deutsch als Zweitsprache</option>
+              <option>Andere Funktion</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ctx-erfahrung">Berufserfahrung</label>
+            <select id="ctx-erfahrung" name="erfahrung">
+              <option value="">Keine Angabe</option>
+              <option>Weniger als 5 Jahre</option>
+              <option>5 bis 15 Jahre</option>
+              <option>Mehr als 15 Jahre</option>
+            </select>
+          </div>
+          <button class="btn" type="submit" id="btn-start">Selbsteinschätzung starten
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
+        </form>
+        <div class="stack" style="gap:8px">
+          <p class="small"><b>Früheres Ergebnis öffnen</b></p>
+          <p class="small muted">Eine gespeicherte Ergebnisdatei (.json) laden, um das Profil anzusehen oder weiterzubearbeiten.</p>
+          <input type="file" id="file-own" accept=".json,application/json" class="small">
+          <p class="small" id="file-own-msg" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FRAGEBOGEN -->
+  <section class="view" id="view-survey" hidden aria-labelledby="h-area">
+    <div class="survey-grid">
+      <aside>
+        <div class="progressbar" aria-hidden="true"><span id="progress-fill"></span></div>
+        <p class="small muted" id="progress-text" style="margin-bottom:12px"></p>
+        <nav class="areanav" id="areanav" aria-label="Kompetenzbereiche"></nav>
+      </aside>
+      <div>
+        <div class="area-head">
+          <div class="eyebrow" id="area-eyebrow"></div>
+          <h2 id="h-area" tabindex="-1"></h2>
+          <p class="muted" id="area-desc"></p>
+        </div>
+        <div id="questions"></div>
+        <div class="survey-foot">
+          <button class="btn secondary" type="button" id="btn-prev">Zurück</button>
+          <button class="btn" type="button" id="btn-next">Weiter</button>
+        </div>
+        <p class="small muted" id="open-hint" role="status" style="margin-top:12px"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ERGEBNIS -->
+  <section class="view" id="view-result" hidden aria-labelledby="h-result">
+    <div id="result-empty" class="box" hidden>
+      <h3>Noch kein Ergebnis</h3>
+      <p>Sobald Fragen beantwortet sind, erscheint hier das Kompetenzprofil.</p>
+      <div class="row" style="margin-top:12px"><button class="btn" type="button" data-go="survey">Zur Selbsteinschätzung</button></div>
+    </div>
+    <div id="result-content">
+      <div class="result-head">
+        <div class="stack" style="gap:8px">
+          <div class="eyebrow" id="result-date"></div>
+          <h2 id="h-result">Persönliches Kompetenzprofil</h2>
+          <div class="chips" id="result-chips"></div>
+        </div>
+      </div>
+      <div class="box box--warning no-print" id="result-open" hidden style="margin-top:20px"></div>
+      <div class="result-top">
+        <div class="stack">
+          <h3>Profil über die sechs Bereiche</h3>
+          <div class="radar-wrap" id="radar-own"></div>
+          <div class="legend" id="legend-own"></div>
+        </div>
+        <div class="stack" style="gap:28px">
+          <div class="stack" style="gap:12px">
+            <h3>Stärken</h3>
+            <ul class="list-plain" id="list-strengths"></ul>
+          </div>
+          <div class="stack" style="gap:12px">
+            <h3>Entwicklungsfelder und nächster Schritt</h3>
+            <ul class="list-plain" id="list-gaps"></ul>
+          </div>
+          <div class="stack" style="gap:12px" id="noopp-wrap" hidden>
+            <h3>Bisher keine Gelegenheit</h3>
+            <p class="small muted">Hier fehlen möglicherweise Voraussetzungen wie Geräte, Plattformen oder ein Auftrag. Das ist ein Thema für das Gespräch mit der Schulleitung, keine Kompetenzlücke.</p>
+            <ul class="list-plain small" id="list-noopp"></ul>
+          </div>
+        </div>
+      </div>
+      <div id="result-areas"></div>
+      <div class="actions">
+        <button class="btn" type="button" id="btn-save">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
+          Ergebnis als Datei speichern</button>
+        <button class="btn secondary" type="button" id="btn-print">Drucken oder als PDF sichern</button>
+        <button class="btn secondary" type="button" data-go="survey">Antworten bearbeiten</button>
+        <span class="confirm" id="reset-confirm-result"></span>
+      </div>
+      <p class="small muted no-print" style="margin-top:12px">Die Datei enthält nur die Antworten und die freiwilligen Angaben zum Arbeitsumfeld, keinen Namen.</p>
+    </div>
+  </section>
+
+  <!-- SCHULAUSWERTUNG -->
+  <section class="view" id="view-school" hidden aria-labelledby="h-school">
+    <div class="stack" style="gap:24px">
+      <div class="stack" style="gap:8px">
+        <div class="eyebrow">Für Schulleitungen</div>
+        <h2 id="h-school">Schulauswertung</h2>
+        <p class="muted" style="max-width:70ch">Die Ergebnisdateien des Kollegiums zusammenführen und den Weiterbildungsbedarf der Schule erkennen. Einzelne Profile werden nicht angezeigt. In der Serverversion geschieht dieses Zusammenführen automatisch.</p>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div>
+          <p><b>Ergebnisdateien hierher ziehen</b> oder auswählen</p>
+          <p class="small muted">Mehrere .json-Dateien gleichzeitig möglich.</p>
+        </div>
+        <div class="row">
+          <label class="btn secondary" for="file-school">Dateien auswählen</label>
+          <input type="file" id="file-school" accept=".json,application/json" multiple hidden>
+          <button class="btn quiet" type="button" id="btn-school-sample">Beispieldaten anzeigen</button>
+        </div>
+      </div>
+      <p class="small" id="school-msg" role="status"></p>
+      <div id="school-out" class="stack" style="gap:28px"></div>
+    </div>
+  </section>
+
+  <!-- HINWEISE -->
+  <section class="view" id="view-info" hidden aria-labelledby="h-info">
+    <div class="prose">
+      <h2 id="h-info">Hinweise zum Instrument</h2>
+      <p>Das Instrument setzt Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz» um. Es unterstützt Lehrpersonen bei der Standortbestimmung und Schulen bei der Planung der Weiterbildung.</p>
+      <h3>Aufbau</h3>
+      <p>Sechs Kompetenzbereiche mit 22 Teilbereichen. Zu jedem Teilbereich gibt es sechs Aussagen, die den Stufen I bis VI entsprechen. Das Ergebnis ist ein Profil, kein Gesamtwert. Wer in einem Teilbereich bisher keine Gelegenheit hatte, wählt die entsprechende Option. Diese Antworten fliessen nicht in die Mittelwerte ein.</p>
+      <h3>Stufen</h3>
+      <div class="levels-strip" id="levels-strip-2"></div>
+      <h3>Künstliche Intelligenz</h3>
+      <p>Aussagen zu Künstlicher Intelligenz werden in einer nächsten Version in die bestehenden Bereiche integriert.</p>
+      <h3>Datenschutz</h3>
+      <p>Diese Version arbeitet vollständig auf dem eigenen Gerät. Antworten werden nur im Browser dieses Geräts zwischengespeichert, bis sie gelöscht werden. Es findet keine Übermittlung statt.</p>
+      <h3>Quelle</h3>
+      <p>Die Aussagen basieren auf dem Selbsteinschätzungswerkzeug «DigCompEdu Bavaria» der Akademie für Lehrerfortbildung und Personalführung Dillingen und auf dem Referenzrahmen DigCompEdu der Europäischen Kommission. Die Anpassung an den Kanton Schwyz ist in Arbeit.</p>
+      <p class="small muted" id="info-version"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div>
+      <b>Kanton Schwyz</b><br>
+      Bildungsdepartement · Amt für Volksschulen und Sport<br>
+      <a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a>
+    </div>
+    <ul class="links">
+      <li><a href="https://www.sz.ch/impressum" target="_blank" rel="noopener">Impressum</a></li>
+      <li><a href="https://www.sz.ch/services/rechtliches/datenschutzerklaerung.html/8756-8761-10330-10328" target="_blank" rel="noopener">Datenschutz</a></li>
+      <li><a href="https://www.sz.ch/services/rechtliches/nutzungshinweise.html/8756-8761-10330-10329" target="_blank" rel="noopener">Nutzungshinweise</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+__CORE_JS__
+</script>
+<script>
+const ITEMS = __ITEMS_JSON__;
+(function () {
+  'use strict';
+  const STORE_KEY = 'dk-sz-selbsteinschaetzung-v1';
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+  const LV = ITEMS.levels;
+  const roman = (v) => (v >= 1 ? LV[v - 1].roman : '–');
+  const SUBS = DKCore.allSubareas(ITEMS);
+  const subById = Object.fromEntries(SUBS.map((s) => [s.id, s]));
+  const LEVEL_VARS = ['--l0', '--l1', '--l2', '--l3', '--l4', '--l5', '--l6'];
+
+  /* ---------- Zustand ---------- */
+  function newState() {
+    return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: uid(), created: new Date().toISOString(), updated: null, context: {}, answers: {} };
+  }
+  function uid() { return 'r-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+  function load() {
+    try { const raw = localStorage.getItem(STORE_KEY); if (!raw) return null; const s = JSON.parse(raw); return DKCore.validateRecord(s) ? s : null; } catch (e) { return null; }
+  }
+  function persist() {
+    state.updated = new Date().toISOString();
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* Speicher nicht verfügbar: weiter ohne */ }
+  }
+  function wipe() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} state = newState(); }
+  let state = load() || newState();
+  let areaIdx = 0;
+
+  /* ---------- Navigation ---------- */
+  function go(view) {
+    ['start', 'survey', 'result', 'school', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
+    $$('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.go === view ? 'page' : 'false'));
+    if (view === 'start') renderStart();
+    if (view === 'survey') renderSurvey();
+    if (view === 'result') renderResult();
+    if (view === 'school') renderSchool();
+    window.scrollTo({ top: 0 });
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-go]');
+    if (t) { e.preventDefault(); go(t.dataset.go); }
+  });
+
+  /* ---------- Stufenleiste ---------- */
+  function levelsStrip(el) {
+    el.innerHTML = LV.map((l) => `<div class="lv${l.level}"><b>${l.roman}</b>${esc(l.label)}</div>`).join('');
+  }
+  levelsStrip($('#levels-strip'));
+  levelsStrip($('#levels-strip-2'));
+  $('#info-version').textContent = 'Version ' + ITEMS.version + ' · ' + ITEMS.source;
+
+  /* ---------- Löschen mit Bestätigung auf der Seite ---------- */
+  function resetControl(el, label) {
+    el.innerHTML = `<button class="btn danger" type="button">${label}</button>`;
+    el.firstChild.addEventListener('click', () => {
+      el.innerHTML = `<span class="small"><b>Alle Antworten auf diesem Gerät löschen?</b></span>
+        <button class="btn danger" type="button" data-a="yes">Ja, löschen</button>
+        <button class="btn quiet" type="button" data-a="no">Abbrechen</button>`;
+      el.querySelector('[data-a=yes]').addEventListener('click', () => { wipe(); go('start'); });
+      el.querySelector('[data-a=no]').addEventListener('click', () => resetControl(el, label));
+    });
+  }
+
+  /* ---------- Start ---------- */
+  function renderStart() {
+    const p = DKCore.progress(ITEMS, state.answers);
+    const has = p.done > 0;
+    $('#resume-box').hidden = !has;
+    if (has) {
+      const d = state.updated ? new Date(state.updated) : null;
+      $('#resume-text').textContent = `${p.done} von ${p.total} Fragen beantwortet` + (d ? `, zuletzt bearbeitet am ${d.toLocaleDateString('de-CH')} um ${d.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })} Uhr.` : '.');
+      resetControl($('#reset-confirm-start'), 'Löschen und neu beginnen');
+    }
+    ['stufe', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx-' + k).value = state.context[k] || ''; });
+    $('#btn-start').firstChild.textContent = has ? 'Weiter zur Selbsteinschätzung ' : 'Selbsteinschätzung starten ';
+  }
+  $('#context-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    ['stufe', 'funktion', 'erfahrung'].forEach((k) => { state.context[k] = $('#ctx-' + k).value || null; });
+    persist();
+    const p = DKCore.progress(ITEMS, state.answers);
+    const firstOpen = p.open[0];
+    areaIdx = firstOpen ? ITEMS.areas.findIndex((a) => a.id === subById[firstOpen].areaId) : 0;
+    go('survey');
+  });
+  $('#btn-resume').addEventListener('click', () => { $('#context-form').requestSubmit(); });
+
+  $('#file-own').addEventListener('change', async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const obj = JSON.parse(await f.text());
+      if (!DKCore.validateRecord(obj)) throw new Error('format');
+      state = Object.assign(newState(), obj);
+      persist();
+      $('#file-own-msg').textContent = '';
+      go('result');
+    } catch (err) {
+      $('#file-own-msg').textContent = 'Diese Datei ist keine Ergebnisdatei dieses Instruments. Bitte eine mit «Ergebnis als Datei speichern» erstellte .json-Datei wählen.';
+    }
+    e.target.value = '';
+  });
+
+  /* ---------- Fragebogen ---------- */
+  function renderAreaNav() {
+    $('#areanav').innerHTML = ITEMS.areas.map((a, i) => {
+      const done = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
+      const full = done === a.subareas.length;
+      return `<button type="button" data-area="${i}" aria-current="${i === areaIdx ? 'step' : 'false'}">
+        <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>`;
+    }).join('');
+    $$('#areanav button').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
+    const p = DKCore.progress(ITEMS, state.answers);
+    $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
+    $('#progress-text').textContent = `${p.done} von ${p.total} Fragen beantwortet`;
+  }
+  function renderSurvey(focus) {
+    const a = ITEMS.areas[areaIdx];
+    $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
+    $('#h-area').textContent = a.title;
+    $('#area-desc').textContent = a.description;
+    $('#questions').innerHTML = a.subareas.map((s) => {
+      const cur = state.answers[s.id];
+      const opts = s.levels.map((l) => `
+        <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${cur === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('');
+      return `<fieldset class="q">
+        <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
+        <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
+        <div class="opts">${opts}
+          <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${cur === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
+        </div></fieldset>`;
+    }).join('');
+    $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
+      state.answers[r.name.slice(2)] = +r.value;
+      persist();
+      renderAreaNav();
+      $('#open-hint').textContent = '';
+    }));
+    $('#btn-prev').hidden = areaIdx === 0;
+    $('#btn-next').textContent = areaIdx === ITEMS.areas.length - 1 ? 'Zum Ergebnis' : 'Weiter zu «' + ITEMS.areas[areaIdx + 1].title + '»';
+    renderAreaNav();
+    $('#open-hint').textContent = '';
+    if (focus) { window.scrollTo({ top: 0 }); $('#h-area').focus({ preventScroll: true }); }
+  }
+  $('#btn-prev').addEventListener('click', () => { if (areaIdx > 0) { areaIdx--; renderSurvey(true); } });
+  $('#btn-next').addEventListener('click', () => {
+    if (areaIdx < ITEMS.areas.length - 1) { areaIdx++; renderSurvey(true); }
+    else go('result');
+  });
+
+  /* ---------- Netzdiagramm (SVG) ---------- */
+  function radarSVG(series, opts = {}) {
+    const W = 560, H = 470, cx = W / 2, cy = 232, R = 158, n = ITEMS.areas.length;
+    const ang = (i) => -Math.PI / 2 + (2 * Math.PI * i) / n;
+    const pt = (i, v) => [cx + Math.cos(ang(i)) * R * (v / 6), cy + Math.sin(ang(i)) * R * (v / 6)];
+    let g = '';
+    for (let lv = 1; lv <= 6; lv++) {
+      const pts = ITEMS.areas.map((_, i) => pt(i, lv).map((x) => x.toFixed(1)).join(',')).join(' ');
+      g += `<polygon points="${pts}" fill="none" stroke="${lv === 6 ? '#919191' : '#D2D2D2'}" stroke-width="1"/>`;
+    }
+    ITEMS.areas.forEach((a, i) => {
+      const [x, y] = pt(i, 6);
+      g += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#D2D2D2" stroke-width="1"/>`;
+    });
+    for (let lv = 1; lv <= 6; lv++) {
+      const [x, y] = pt(0, lv);
+      g += `<text x="${(x + 6).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="11" fill="#6E6E6E">${LV[lv - 1].roman}</text>`;
+    }
+    ITEMS.areas.forEach((a, i) => {
+      const [x, y] = pt(i, 6.0);
+      const c = Math.cos(ang(i)), s = Math.sin(ang(i));
+      const anchor = Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end';
+      const words = a.short.split(' ');
+      const lines = [];
+      words.forEach((w) => { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= 16) lines[lines.length - 1] += ' ' + w; else lines.push(w); });
+      const val = opts.valueLabels ? series[0].values[i] : null;
+      const nl = lines.length + (opts.valueLabels ? 1 : 0);
+      const lx = x + c * 16;
+      const ly = s < -0.3 ? y - 12 - 15 * (nl - 1) : s > 0.3 ? y + 22 : y + 4 - 7.5 * (nl - 1);
+      g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" font-size="13" fill="#000">` +
+        lines.map((l, k) => `<tspan x="${lx.toFixed(1)}" dy="${k === 0 ? 0 : 15}">${k === 0 ? '<tspan font-weight="700">' + a.id + '</tspan> ' : ''}${esc(l)}</tspan>`).join('') +
+        (val !== null && val !== undefined ? `<tspan x="${lx.toFixed(1)}" dy="15" fill="#464646">Ø ${fmt(val)}</tspan>` : '') + `</text>`;
+    });
+    series.forEach((se) => {
+      const pts = se.values.map((v, i) => pt(i, v || 0).map((x) => x.toFixed(1)).join(',')).join(' ');
+      g += `<polygon points="${pts}" fill="${se.fill}" stroke="${se.stroke}" stroke-width="2.5" stroke-linejoin="round" ${se.dash ? 'stroke-dasharray="6 4"' : ''}/>`;
+      se.values.forEach((v, i) => {
+        if (v === null) return;
+        const [x, y] = pt(i, v);
+        g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${se.stroke}" stroke="#fff" stroke-width="1.5"/>`;
+      });
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || 'Netzdiagramm')}">${g}</svg>`;
+  }
+
+  /* ---------- Ergebnis ---------- */
+  function meter(v) {
+    if (v === 0) return `<div class="meter none" aria-hidden="true">${'<span></span>'.repeat(6)}</div>`;
+    return `<div class="meter" aria-hidden="true">${[1, 2, 3, 4, 5, 6].map((k) => `<span style="${k <= v ? 'background:var(--l' + k + ')' : ''}"></span>`).join('')}</div>`;
+  }
+  function badge(v) {
+    if (v === undefined) return `<span class="badge" style="background:#fff;border:1px solid var(--line)">offen</span>`;
+    if (v === 0) return `<span class="badge lv0" title="Keine Gelegenheit">k. G.</span>`;
+    return `<span class="badge lv${v}">${LV[v - 1].roman}</span>`;
+  }
+  function renderResult() {
+    const p = DKCore.progress(ITEMS, state.answers);
+    const any = p.done > 0;
+    $('#result-empty').hidden = any;
+    $('#result-content').hidden = !any;
+    if (!any) return;
+    const d = new Date(state.updated || state.created);
+    $('#result-date').textContent = 'Stand ' + d.toLocaleDateString('de-CH');
+    const ctx = state.context || {};
+    $('#result-chips').innerHTML = [ctx.stufe, ctx.funktion, ctx.erfahrung].filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
+    const openBox = $('#result-open');
+    openBox.hidden = p.open.length === 0;
+    if (p.open.length) openBox.innerHTML = `<b>${p.open.length} von ${p.total} Fragen sind noch offen</b> (${p.open.join(', ')}). Das Profil ist darum unvollständig. <button class="btn quiet" type="button" data-go="survey">Offene Fragen beantworten</button>`;
+
+    const scores = DKCore.areaScores(ITEMS, state.answers);
+    $('#radar-own').innerHTML = radarSVG([{ values: scores.map((s) => s.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwert der Stufen pro Kompetenzbereich' });
+    $('#legend-own').innerHTML = 'Mittelwert der gewählten Stufen pro Bereich (I = 1 bis VI = 6). Antworten «keine Gelegenheit» zählen nicht.';
+
+    const sg = DKCore.strengthsAndGaps(ITEMS, state.answers, 3);
+    $('#list-strengths').innerHTML = sg.strengths.map((r) => `<li class="focus-item">${badge(r.v)}<span><b>${r.s.id}</b> ${esc(r.s.title)}</span></li>`).join('') || '<li class="muted small">Noch keine Angaben.</li>';
+    $('#list-gaps').innerHTML = sg.gaps.map((r) => `<li class="focus-item">${badge(r.v)}<span><b>${r.s.id}</b> ${esc(r.s.title)}</span>
+      <span class="next">Nächste Stufe ${LV[r.v].roman}: ${esc(r.s.levels[r.v].text)}</span></li>`).join('') || '<li class="muted small">Keine offenen Entwicklungsfelder.</li>';
+    $('#noopp-wrap').hidden = sg.noOpp.length === 0;
+    $('#list-noopp').innerHTML = sg.noOpp.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}</li>`).join('');
+
+    $('#result-areas').innerHTML = ITEMS.areas.map((a, i) => {
+      const sc = scores[i];
+      return `<div class="area-block"><h3><span>${a.id} ${esc(a.title)}</span><span class="avg">Ø ${fmt(sc.mean)}${sc.mean ? ' · ' + LV[Math.round(sc.mean) - 1].label : ''}</span></h3>
+        ${a.subareas.map((s) => {
+          const v = state.answers[s.id];
+          let body = '';
+          if (v === undefined) body = `<p class="muted">Noch nicht beantwortet.</p>`;
+          else if (v === 0) body = `<p>Bisher keine Gelegenheit. Zu klären: Sind die Voraussetzungen an der Schule gegeben, etwa Geräte, Plattformen oder ein entsprechender Auftrag?</p>`;
+          else {
+            body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${esc(s.levels[v - 1].text)}</p></div>`;
+            if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${esc(s.levels[v].text)}</p></div>`;
+          }
+          return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
+        }).join('')}</div>`;
+    }).join('');
+    resetControl($('#reset-confirm-result'), 'Alle Daten auf diesem Gerät löschen');
+  }
+
+  function download(name, text, type) {
+    const blob = new Blob([text], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const today = () => new Date().toISOString().slice(0, 10);
+  $('#btn-save').addEventListener('click', () => download(`Kompetenzprofil_SZ_${today()}.json`, JSON.stringify(state, null, 1), 'application/json'));
+  $('#btn-print').addEventListener('click', () => {
+    $$('details.sub').forEach((d) => { d.dataset.wasOpen = d.open; d.open = true; });
+    window.print();
+    $$('details.sub').forEach((d) => { d.open = d.dataset.wasOpen === 'true'; });
+  });
+
+  /* ---------- Schulauswertung ---------- */
+  let school = { records: [], sample: false, filter: '' };
+  function sampleRecords() {
+    let seed = 20260928;
+    const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const base = { '1': 3.4, '2': 3.1, '3': 2.8, '4': 2.1, '5': 2.4, '6': 2.6 };
+    const stufen = ['Kindergarten', 'Primarstufe 1.–2. Klasse', 'Primarstufe 3.–6. Klasse', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
+    return Array.from({ length: 14 }, (_, k) => {
+      const skill = (rnd() - 0.5) * 2.2;
+      const answers = {};
+      SUBS.forEach((s) => {
+        if ((s.id === '5.1' || s.areaId === '4') && rnd() < 0.12) { answers[s.id] = 0; return; }
+        answers[s.id] = Math.max(1, Math.min(6, Math.round(base[s.areaId] + skill + (rnd() - 0.5) * 1.6)));
+      });
+      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[Math.floor(rnd() * stufen.length)] }, answers };
+    });
+  }
+  async function addFiles(files) {
+    const msg = [];
+    if (school.sample) { school.records = []; school.sample = false; }
+    let added = 0, bad = 0, dup = 0;
+    for (const f of files) {
+      try {
+        const obj = JSON.parse(await f.text());
+        if (!DKCore.validateRecord(obj)) { bad++; continue; }
+        if (school.records.some((r) => r.id === obj.id)) { dup++; continue; }
+        school.records.push(obj); added++;
+      } catch (e) { bad++; }
+    }
+    msg.push(`${added} Ergebnis${added === 1 ? '' : 'se'} hinzugefügt.`);
+    if (dup) msg.push(`${dup} doppelt, nicht übernommen.`);
+    if (bad) msg.push(`${bad} Datei${bad === 1 ? '' : 'en'} nicht lesbar.`);
+    $('#school-msg').textContent = msg.join(' ');
+    renderSchool();
+  }
+  $('#file-school').addEventListener('change', (e) => { addFiles(Array.from(e.target.files)); e.target.value = ''; });
+  const dz = $('#dropzone');
+  ['dragenter', 'dragover'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', (e) => addFiles(Array.from(e.dataTransfer.files)));
+  $('#btn-school-sample').addEventListener('click', () => { school = { records: sampleRecords(), sample: true, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+
+  function heatCell(count, total) {
+    if (!total) return `<td class="cell">–</td>`;
+    const share = count / total;
+    const bg = count === 0 ? 'transparent' : `rgba(226,0,26,${(0.08 + share * 0.82).toFixed(2)})`;
+    const fg = share > 0.62 ? '#fff' : '#000';
+    return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
+  }
+  function renderSchool() {
+    const out = $('#school-out');
+    if (!school.records.length && !school.sample) { school = { records: sampleRecords(), sample: true, filter: '' }; }
+    const stufen = [...new Set(school.records.map((r) => (r.context && r.context.stufe) || '').filter(Boolean))].sort();
+    const recs = school.filter ? school.records.filter((r) => r.context && r.context.stufe === school.filter) : school.records;
+    const agg = DKCore.aggregate(ITEMS, recs);
+    const tooFew = agg.n < DKCore.MIN_GROUP;
+    const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
+    const noOppTop = SUBS.filter((s) => agg.bySub[s.id].counts[0] > 0).sort((a, b) => agg.bySub[b.id].counts[0] - agg.bySub[a.id].counts[0]).slice(0, 3);
+
+    out.innerHTML = `
+      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> 14 fiktive Lehrpersonen zur Veranschaulichung. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
+      ${tooFew && agg.n > 0 ? `<div class="box box--warning"><b>Weniger als ${DKCore.MIN_GROUP} Ergebnisse.</b> Bei so kleinen Gruppen lassen sich Rückschlüsse auf einzelne Personen ziehen. Die Auswertung ist nur zur Kontrolle gedacht.</div>` : ''}
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div class="stat-row">
+          <div class="stat"><span class="small muted">Ergebnisse</span><b>${agg.n}</b></div>
+          ${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small muted">Bereich ${a.id}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}
+        </div>
+        <div class="row">
+          <div class="field" style="min-width:220px"><label for="school-filter" class="small">Schulstufe</label>
+            <select id="school-filter"><option value="">Alle Stufen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
+        </div>
+      </div>
+      <div class="result-top" style="padding-block:0">
+        <div class="stack"><h3>Profil der Schule</h3><div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>
+          <p class="small muted">Mittelwert der Teilbereiche pro Bereich, Stufen I = 1 bis VI = 6.</p></div>
+        <div class="stack" style="gap:28px">
+          <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3>
+            <ul class="list-plain">${sorted.slice(0, 4).map((s) => `<li class="focus-item"><span class="badge lv${Math.max(1, Math.round(agg.bySub[s.id].mean))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
+          <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3>
+            <ul class="list-plain">${sorted.slice(-3).reverse().map((s) => `<li class="focus-item"><span class="badge lv${Math.round(agg.bySub[s.id].mean)}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
+          ${noOppTop.length ? `<div class="stack" style="gap:12px"><h3>Häufig keine Gelegenheit</h3><p class="small muted">Hinweis auf fehlende Voraussetzungen an der Schule.</p>
+            <ul class="list-plain small">${noOppTop.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}: ${agg.bySub[s.id].counts[0]} Nennung${agg.bySub[s.id].counts[0] === 1 ? '' : 'en'}</li>`).join('')}</ul></div>` : ''}
+        </div>
+      </div>
+      <div class="stack" style="gap:12px">
+        <h3>Verteilung pro Teilbereich</h3>
+        <p class="small muted">Anzahl Lehrpersonen pro Stufe. Je dunkler, desto grösser der Anteil.</p>
+        <div class="table-scroll"><table class="heat">
+          <thead><tr><th scope="col">Teilbereich</th>${LV.map((l) => `<th scope="col">${l.roman}<br><span style="font-weight:400">${esc(l.label)}</span></th>`).join('')}<th scope="col">Keine<br>Gelegenheit</th><th scope="col">Ø</th></tr></thead>
+          <tbody>${ITEMS.areas.map((a) => `<tr class="area-row"><td colspan="9">${a.id} ${esc(a.title)}</td></tr>` + a.subareas.map((s) => {
+            const d = agg.bySub[s.id];
+            return `<tr><td>${s.id} ${esc(s.title)}</td>${[1, 2, 3, 4, 5, 6].map((k) => heatCell(d.counts[k], d.answered)).join('')}<td class="cell">${d.counts[0] || ''}</td><td><b>${fmt(d.mean)}</b></td></tr>`;
+          }).join('')).join('')}</tbody></table></div>
+      </div>
+      <div class="actions" style="border-top:0;padding-top:0">
+        <button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button>
+        ${!school.sample ? '<button class="btn quiet" type="button" id="btn-school-clear">Geladene Dateien entfernen</button>' : ''}
+      </div>`;
+    $('#school-filter').addEventListener('change', (e) => { school.filter = e.target.value; renderSchool(); });
+    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg), 'text/csv;charset=utf-8'));
+    const clr = $('#btn-school-clear');
+    if (clr) clr.addEventListener('click', () => { school = { records: [], sample: false, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+  }
+
+  go(location.hash === '#school' ? 'school' : location.hash === '#result' ? 'result' : 'start');
+})();
+</script>
+</body>
+</html>

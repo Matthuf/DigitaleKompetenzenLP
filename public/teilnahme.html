@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Selbsteinschätzung · Digitale Kompetenzen SZ</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-text">
+        <div class="eyebrow" id="school-name">Amt für Volksschulen und Sport</div>
+        <h1>Digitale Kompetenzen von Lehrpersonen</h1>
+        <p class="muted" id="campaign-name">Selbsteinschätzung</p>
+      </div>
+      <a class="logo-link" href="/" aria-label="Kanton Schwyz – zur Startseite"><img src="/assets/logo-kanton-schwyz.png" alt="Kanton Schwyz"></a>
+    </div>
+    <div class="topbar-user" id="userbar" hidden style="padding-bottom:14px">
+      <span>Angemeldet mit persönlichem Code</span>
+      <button class="btn quiet" type="button" id="btn-logout">Abmelden</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="v-loading"><p class="muted">Wird geladen …</p></section>
+
+  <section class="view" id="v-error" hidden>
+    <div class="box box--warning stack" style="gap:10px">
+      <h2 id="error-title">Dieser Link funktioniert nicht</h2>
+      <p id="error-text"></p>
+      <div class="row" id="error-actions"></div>
+    </div>
+  </section>
+
+  <!-- Einstieg über Link der Schulleitung -->
+  <section class="view" id="v-welcome" hidden aria-labelledby="h-welcome">
+    <div class="stack" style="gap:28px">
+      <div class="stack" style="gap:10px">
+        <h2 id="h-welcome">Wo stehe ich beim Unterrichten mit digitalen Medien?</h2>
+        <p class="lead">Die Selbsteinschätzung zeigt das eigene Kompetenzprofil in sechs Bereichen. Sie dauert etwa 20 Minuten und lässt sich jederzeit unterbrechen.</p>
+      </div>
+      <div class="two-col">
+        <form class="panel stack" id="form-start">
+          <h3>Zum ersten Mal hier</h3>
+          <p class="small muted">Nach dem Start gibt es einen persönlichen Code. Damit lässt sich die Selbsteinschätzung später fortsetzen, das Profil wieder ansehen und bei einer nächsten Erhebung vergleichen. Der Code ist nicht mit dem Namen verknüpft.</p>
+          <div class="field"><label for="ctx-stufe">Schulstufe <span class="muted small">(freiwillig)</span></label><select id="ctx-stufe"></select></div>
+          <div class="field"><label for="ctx-funktion">Funktion <span class="muted small">(freiwillig)</span></label><select id="ctx-funktion"></select></div>
+          <div class="field"><label for="ctx-erfahrung">Berufserfahrung <span class="muted small">(freiwillig)</span></label><select id="ctx-erfahrung"></select></div>
+          <button class="btn" type="submit">Selbsteinschätzung starten</button>
+          <p class="error small" id="start-msg" role="alert"></p>
+        </form>
+        <div class="stack">
+          <form class="panel stack" id="form-code">
+            <h3>Ich habe bereits einen persönlichen Code</h3>
+            <div class="field"><label for="code-in">Persönlicher Code</label>
+              <input type="text" id="code-in" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+            <button class="btn secondary" type="submit">Weiter mit Code</button>
+            <p class="error small" id="code-msg" role="alert"></p>
+          </form>
+          <div class="box">
+            <h3>Datenschutz</h3>
+            <p class="small">Die Schulleitung sieht keine einzelnen Profile, sondern nur zusammengefasste Werte der ganzen Schule, und dies erst ab fünf abgeschlossenen Teilnahmen. Das eigene Profil lässt sich mit dem Code jederzeit vollständig löschen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code anzeigen -->
+  <section class="view" id="v-code" hidden aria-labelledby="h-code">
+    <div class="stack" style="gap:20px;max-width:680px">
+      <div class="eyebrow">Wichtig</div>
+      <h2 id="h-code">Persönlichen Code notieren</h2>
+      <p>Mit diesem Code lässt sich die Selbsteinschätzung fortsetzen und das Profil später wieder öffnen. Er wird nur jetzt angezeigt. Niemand sonst kennt ihn, auch die Schulleitung nicht.</p>
+      <div class="row"><span class="code-display" id="code-out"></span><button class="btn secondary" type="button" id="btn-copy-code">Code kopieren</button></div>
+      <label class="check"><input type="checkbox" id="code-ack"><span>Ich habe den Code notiert oder sicher gespeichert.</span></label>
+      <div><button class="btn" type="button" id="btn-code-continue" disabled>Weiter zu den Fragen</button></div>
+    </div>
+  </section>
+
+  <!-- Fragebogen -->
+  <section class="view" id="v-survey" hidden aria-labelledby="h-area">
+    <div class="survey-grid">
+      <aside>
+        <div class="progressbar" aria-hidden="true"><span id="progress-fill"></span></div>
+        <p class="small muted" id="progress-text" style="margin-bottom:6px"></p>
+        <p class="save-state" id="save-state" role="status" style="margin-bottom:12px"></p>
+        <nav class="areanav" id="areanav" aria-label="Kompetenzbereiche"></nav>
+      </aside>
+      <div>
+        <details class="box" id="ctx-details" style="margin-bottom:20px">
+          <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted" id="ctx-summary"></span></summary>
+          <div class="stack" style="margin-top:14px">
+            <div class="field"><label for="ctx2-stufe">Schulstufe</label><select id="ctx2-stufe"></select></div>
+            <div class="field"><label for="ctx2-funktion">Funktion</label><select id="ctx2-funktion"></select></div>
+            <div class="field"><label for="ctx2-erfahrung">Berufserfahrung</label><select id="ctx2-erfahrung"></select></div>
+          </div>
+        </details>
+        <div class="area-head">
+          <div class="eyebrow" id="area-eyebrow"></div>
+          <h2 id="h-area" tabindex="-1"></h2>
+          <p class="muted" id="area-desc"></p>
+        </div>
+        <div id="questions"></div>
+        <div class="survey-foot">
+          <button class="btn secondary" type="button" id="btn-prev">Zurück</button>
+          <button class="btn" type="button" id="btn-next">Weiter</button>
+        </div>
+        <p class="small" id="open-hint" role="alert" style="margin-top:12px"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ergebnis -->
+  <section class="view" id="v-result" hidden aria-labelledby="h-result">
+    <div class="result-head">
+      <div class="stack" style="gap:8px">
+        <div class="eyebrow" id="result-date"></div>
+        <h2 id="h-result">Persönliches Kompetenzprofil</h2>
+        <div class="chips" id="result-chips"></div>
+      </div>
+      <div class="tabs-inline no-print" id="history"></div>
+    </div>
+    <div class="box box--warning no-print" id="result-note" hidden style="margin-top:20px"></div>
+    <div class="result-top">
+      <div class="stack">
+        <h3>Profil über die sechs Bereiche</h3>
+        <div class="radar-wrap" id="radar"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="stack" style="gap:28px">
+        <div class="stack" style="gap:12px"><h3>Stärken</h3><ul class="list-plain" id="list-strengths"></ul></div>
+        <div class="stack" style="gap:12px"><h3>Entwicklungsfelder und nächster Schritt</h3><ul class="list-plain" id="list-gaps"></ul></div>
+        <div class="stack" style="gap:12px" id="noopp-wrap" hidden>
+          <h3>Bisher keine Gelegenheit</h3>
+          <p class="small muted">Hier fehlen möglicherweise Voraussetzungen wie Geräte, Plattformen oder ein Auftrag. Das ist ein Thema für das Gespräch mit der Schulleitung, keine Kompetenzlücke.</p>
+          <ul class="list-plain small" id="list-noopp"></ul>
+        </div>
+      </div>
+    </div>
+    <div id="result-areas"></div>
+    <div class="actions">
+      <button class="btn secondary" type="button" id="btn-edit">Antworten bearbeiten</button>
+      <button class="btn secondary" type="button" id="btn-print">Drucken oder als PDF sichern</button>
+      <button class="btn secondary" type="button" id="btn-save">Profil als Datei speichern</button>
+      <span class="confirm" id="delete-me"></span>
+    </div>
+  </section>
+
+  <!-- Mein Profil ohne Erhebungslink -->
+  <section class="view" id="v-home" hidden aria-labelledby="h-home">
+    <div class="stack" style="gap:24px;max-width:720px">
+      <h2 id="h-home">Mein Profil</h2>
+      <form class="panel stack" id="form-code-home">
+        <p>Mit dem persönlichen Code lassen sich frühere Selbsteinschätzungen ansehen.</p>
+        <div class="field"><label for="code-in-home">Persönlicher Code</label>
+          <input type="text" id="code-in-home" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+        <button class="btn" type="submit">Anmelden</button>
+        <p class="error small" id="code-msg-home" role="alert"></p>
+      </form>
+      <div id="home-list" hidden class="stack"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div><b>Kanton Schwyz</b><br>Bildungsdepartement · Amt für Volksschulen und Sport<br><a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a></div>
+    <ul class="links">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="https://www.sz.ch/impressum" target="_blank" rel="noopener">Impressum</a></li>
+      <li><a href="https://www.sz.ch/services/rechtliches/datenschutzerklaerung.html/8756-8761-10330-10328" target="_blank" rel="noopener">Datenschutz</a></li>
+    </ul>
+  </div>
+</footer>
+<script src="/assets/items.js"></script>
+<script src="/assets/core.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/teilnahme.js"></script>
+</body>
+</html>

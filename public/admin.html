@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>AVS-Verwaltung · Digitale Kompetenzen SZ</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-text">
+        <div class="eyebrow" id="school-name">Amt für Volksschulen und Sport</div>
+        <h1>Digitale Kompetenzen von Lehrpersonen</h1>
+        <p class="muted">Verwaltung der Schulen und Zugänge</p>
+      </div>
+      <a class="logo-link" href="/" aria-label="Kanton Schwyz – zur Startseite"><img src="/assets/logo-kanton-schwyz.png" alt="Kanton Schwyz"></a>
+    </div>
+    <div class="topbar-user" id="userbar" hidden style="padding-bottom:14px">
+      <span id="user-name"></span>
+      <button class="btn quiet" type="button" id="btn-pw-open">Passwort ändern</button>
+      <button class="btn quiet" type="button" id="btn-logout">Abmelden</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="v-loading"><p class="muted">Wird geladen …</p></section>
+
+  <section class="view" id="v-login" hidden aria-labelledby="h-login">
+    <form class="panel stack" id="form-login" style="max-width:460px">
+      <h2 id="h-login">Anmeldung AVS-Verwaltung</h2>
+      <div class="field"><label for="login-user">Benutzername</label><input type="text" id="login-user" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="field"><label for="login-pw">Passwort</label><input type="password" id="login-pw" autocomplete="current-password"></div>
+      <button class="btn" type="submit">Anmelden</button>
+      <p class="error small" id="login-msg" role="alert"></p>
+      
+    </form>
+  </section>
+
+  <section class="view" id="v-password" hidden aria-labelledby="h-pw">
+    <form class="panel stack" id="form-pw" style="max-width:460px">
+      <h2 id="h-pw">Passwort ändern</h2>
+      <p class="small muted" id="pw-intro">Mindestens 10 Zeichen.</p>
+      <div class="field"><label for="pw-old">Bisheriges Passwort</label><input type="password" id="pw-old" autocomplete="current-password"></div>
+      <div class="field"><label for="pw-new">Neues Passwort</label><input type="password" id="pw-new" autocomplete="new-password"></div>
+      <div class="field"><label for="pw-new2">Neues Passwort wiederholen</label><input type="password" id="pw-new2" autocomplete="new-password"></div>
+      <div class="row"><button class="btn" type="submit">Passwort speichern</button><button class="btn quiet" type="button" id="btn-pw-cancel">Abbrechen</button></div>
+      <p class="error small" id="pw-msg" role="alert"></p>
+    </form>
+  </section>
+
+  <section class="view" id="v-dash" hidden>
+    <div class="stack" style="gap:40px">
+      <div class="stack" style="gap:16px">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <div class="stack" style="gap:6px">
+            <h2>Schulen</h2>
+            <p class="muted small" style="max-width:70ch">Jede Schule erhält eigene Zugänge für die Schulleitung. Die AVS-Verwaltung sieht nur Anzahlen, keine Antworten und keine Auswertungen.</p>
+          </div>
+          <form class="row" id="form-school">
+            <label for="school-new" class="small"><b>Neue Schule</b></label>
+            <input type="text" id="school-new" placeholder="z. B. Schule Musterdorf" style="width:240px">
+            <button class="btn" type="submit">Erfassen</button>
+          </form>
+        </div>
+        <p class="error small" id="school-msg" role="alert"></p>
+        <div class="table-scroll"><table class="list" id="school-table"></table></div>
+      </div>
+      <div class="stack" style="gap:16px" id="users-panel" hidden>
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <div class="stack" style="gap:6px"><div class="eyebrow">Zugänge Schulleitung</div><h2 id="users-title"></h2></div>
+          <form class="row" id="form-user">
+            <div class="field"><label for="user-new" class="small">Benutzername</label><input type="text" id="user-new" placeholder="vorname.nachname" autocapitalize="none" spellcheck="false" style="width:200px"></div>
+            <div class="field"><label for="user-new-name" class="small">Name (freiwillig)</label><input type="text" id="user-new-name" style="width:200px"></div>
+            <button class="btn" type="submit">Zugang erstellen</button>
+          </form>
+        </div>
+        <p class="error small" id="user-msg" role="alert"></p>
+        <div class="box box--success" id="pw-once" hidden></div>
+        <div class="table-scroll"><table class="list" id="user-table"></table></div>
+        <div class="confirm" id="school-delete"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div><b>Kanton Schwyz</b><br>Bildungsdepartement · Amt für Volksschulen und Sport<br><a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a></div>
+    <ul class="links">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="https://www.sz.ch/impressum" target="_blank" rel="noopener">Impressum</a></li>
+      <li><a href="https://www.sz.ch/services/rechtliches/datenschutzerklaerung.html/8756-8761-10330-10328" target="_blank" rel="noopener">Datenschutz</a></li>
+    </ul>
+  </div>
+</footer>
+<script src="/assets/items.js"></script>
+<script src="/assets/core.js"></script>
+<script src="/assets/ui.js"></script>
+<script src="/assets/staff.js"></script>
+<script src="/assets/admin.js"></script>
+</body>
+</html>

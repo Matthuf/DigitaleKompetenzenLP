@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digitale Kompetenzen SZ</title>
+<style>
+:root {
+  color-scheme: light;
+  --red: #E2001A;
+  --red-dark: #AF1400;
+  --red-tint: #FDF0EB;
+  --ink: #000000;
+  --ink-2: #464646;
+  --ink-3: #6E6E6E;
+  --line: #D2D2D2;
+  --box: #EBEBEB;
+  --bg: #FFFFFF;
+  --l1: #FAD7C8; --l2: #F5AF96; --l3: #EB694B; --l4: #E2001A; --l5: #AF1400; --l6: #780A00;
+  --l0: #B4B4B4;
+  --font: "Trade Gothic Next", "Trade Gothic", Helvetica, Arial, Geneva, sans-serif;
+  --wrap: 1120px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 600px) { .wrap { padding-inline: 16px; } }
+h1, h2, h3 { line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; }
+a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--red-dark); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.875rem; }
+.eyebrow { font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Header gemäss Webguide: Logo oben rechts auf Weiss, Navigation darunter */
+.site-header { border-bottom: 1px solid var(--line); background: var(--bg); }
+.brand { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-block: 28px 20px; }
+.brand-text .eyebrow { margin-bottom: 4px; }
+.brand-text h1 { font-size: 1.5rem; }
+.logo-link { flex: 0 0 auto; display: block; }
+.logo-link img { display: block; height: 38px; width: auto; }
+@media (max-width: 720px) {
+  .brand { flex-direction: column-reverse; gap: 16px; padding-block: 16px; }
+  .logo-link { align-self: flex-end; }
+  .logo-link img { height: 28px; }
+  .brand-text h1 { font-size: 1.25rem; }
+}
+.nav { display: flex; gap: 4px 28px; flex-wrap: wrap; }
+.nav button { appearance: none; background: none; border: 0; padding: 10px 0 12px; font: inherit; font-weight: 700; color: var(--ink-2); cursor: pointer; border-bottom: 4px solid transparent; }
+.nav button[aria-current="page"] { color: var(--ink); border-bottom-color: var(--red); }
+.nav button:hover { color: var(--ink); }
+
+main { padding-block: 36px 64px; }
+[hidden] { display: none !important; }
+
+/* Buttons */
+.btn { appearance: none; display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 700; padding: 11px 20px; border-radius: 2px; cursor: pointer; border: 2px solid var(--red); background: var(--red); color: #fff; text-decoration: none; }
+.btn:hover { background: var(--red-dark); border-color: var(--red-dark); color: #fff; }
+.btn.secondary { background: var(--bg); color: var(--ink); border-color: var(--ink); }
+.btn.secondary:hover { background: var(--box); color: var(--ink); }
+.btn.quiet { background: none; border-color: transparent; color: var(--ink); text-decoration: underline; padding-inline: 4px; font-weight: 400; }
+.btn.quiet:hover { color: var(--red-dark); }
+.btn.danger { background: var(--bg); color: var(--red-dark); border-color: var(--red-dark); }
+.btn.danger:hover { background: var(--red-tint); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+
+/* Boxen gemäss Webguide */
+.box { background: var(--box); padding: 18px 20px; }
+.box--info { background: #EEF3F8; }
+.box--warning { background: #FFF4D6; }
+.box h3 { margin-bottom: 6px; }
+
+/* Start */
+.start-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 860px) { .start-grid { grid-template-columns: 1fr; gap: 32px; } }
+.lead { font-size: 1.15rem; max-width: 60ch; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; }
+.steps li::before { content: counter(s); width: 32px; height: 32px; display: grid; place-items: center; font-weight: 700; border: 2px solid var(--ink); border-radius: 50%; }
+.panel { border: 1px solid var(--line); padding: 24px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-weight: 700; }
+select, input[type="file"] { font: inherit; }
+select { padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 2px; background: var(--bg); color: var(--ink); width: 100%; }
+.levels-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; }
+.levels-strip div { padding: 8px 6px; font-size: 0.8rem; line-height: 1.25; }
+.levels-strip b { display: block; font-size: 0.95rem; }
+.lv1 { background: var(--l1); color: #000; } .lv2 { background: var(--l2); color: #000; } .lv3 { background: var(--l3); color: #000; }
+.lv4 { background: var(--l4); color: #fff; } .lv5 { background: var(--l5); color: #fff; } .lv6 { background: var(--l6); color: #fff; }
+.lv0 { background: var(--l0); color: #000; }
+@media (max-width: 520px) { .levels-strip { grid-template-columns: repeat(3, 1fr); } }
+
+/* Fragebogen */
+.survey-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .survey-grid { grid-template-columns: 1fr; gap: 24px; } }
+.areanav { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 860px) { .areanav { position: static; display: grid; grid-template-columns: 1fr 1fr; } }
+@media (max-width: 460px) { .areanav { grid-template-columns: 1fr; } }
+.areanav button { appearance: none; text-align: left; font: inherit; background: var(--bg); border: 0; border-left: 4px solid transparent; padding: 10px 12px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; color: var(--ink); }
+.areanav button:hover { background: var(--box); }
+.areanav button[aria-current="step"] { border-left-color: var(--red); background: var(--box); font-weight: 700; }
+.areanav .cnt { font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: 400; }
+.areanav .cnt.done { color: #1f6b33; font-weight: 700; }
+.progressbar { height: 6px; background: var(--box); margin-bottom: 12px; }
+.progressbar span { display: block; height: 100%; background: var(--red); width: 0; transition: width .3s; }
+.area-head { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.q { border: 0; margin: 0; padding: 28px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.q legend { padding: 0; font-size: 1.15rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.q legend .qid { color: var(--red); font-variant-numeric: tabular-nums; }
+.q .hint { margin: 6px 0 14px; color: var(--ink-2); }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; background: var(--bg); }
+.opt:hover { border-color: var(--ink-3); }
+.opt input { margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--red); }
+.opt:has(input:checked) { border-color: var(--red); background: var(--red-tint); box-shadow: inset 0 0 0 1px var(--red); }
+.opt:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.opt.none { margin-top: 6px; border-style: dashed; color: var(--ink-2); }
+.opt.none:has(input:checked) { border-color: var(--ink-3); background: var(--box); box-shadow: inset 0 0 0 1px var(--ink-3); color: var(--ink); }
+.survey-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 28px; }
+
+/* Ergebnis */
+.result-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.8rem; padding: 3px 9px; background: var(--box); border-radius: 12px; }
+.result-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; padding-block: 28px; align-items: start; }
+@media (max-width: 900px) { .result-top { grid-template-columns: 1fr; } }
+.radar-wrap { max-width: 520px; width: 100%; }
+.radar-wrap svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.8rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 5px; }
+.list-plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.focus-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: baseline; }
+.focus-item .next { grid-column: 2; font-size: 0.9rem; color: var(--ink-2); }
+.badge { display: inline-block; min-width: 42px; text-align: center; font-size: 0.8rem; font-weight: 700; padding: 2px 6px; border-radius: 2px; font-variant-numeric: tabular-nums; }
+.area-block { padding-block: 24px; border-top: 1px solid var(--line); }
+.area-block h3 { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; margin-bottom: 12px; }
+.area-block h3 .avg { font-size: 0.9rem; font-weight: 400; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+details.sub { border-bottom: 1px solid var(--box); }
+details.sub summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 240px) 150px; gap: 16px; align-items: center; padding: 10px 0; }
+details.sub summary::-webkit-details-marker { display: none; }
+details.sub summary .t::before { content: "+"; display: inline-block; width: 16px; font-weight: 700; color: var(--red); }
+details.sub[open] summary .t::before { content: "−"; }
+@media (max-width: 620px) { details.sub summary { grid-template-columns: 1fr 96px; } details.sub summary .meter { grid-column: 1 / -1; grid-row: 2; } }
+.meter { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 14px; }
+.meter span { background: var(--box); }
+.meter.none span { background: repeating-linear-gradient(135deg, var(--box) 0 4px, #fff 4px 8px); }
+.sub-body { padding: 4px 0 18px 16px; display: grid; gap: 12px; max-width: 75ch; }
+.sub-body h4 { margin: 0 0 2px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 28px; border-top: 1px solid var(--line); }
+.confirm { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Schulauswertung */
+.dropzone { border: 2px dashed var(--ink-3); padding: 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+.dropzone.drag { border-color: var(--red); background: var(--red-tint); }
+.table-scroll { overflow-x: auto; }
+table.heat { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+table.heat th, table.heat td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; }
+table.heat th:first-child, table.heat td:first-child { text-align: left; }
+table.heat thead th { font-size: 0.8rem; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+table.heat tr.area-row td { background: var(--box); font-weight: 700; text-align: left; }
+table.heat td.cell { min-width: 44px; }
+.stat-row { display: flex; flex-wrap: wrap; gap: 32px; }
+.stat b { display: block; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+
+/* Info */
+.prose { max-width: 70ch; display: flex; flex-direction: column; gap: 14px; }
+.prose h2 { margin-top: 16px; }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; font-size: 0.875rem; color: var(--ink-2); }
+footer .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 40px; }
+footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+@media print {
+  .site-header .nav, footer .links, .no-print, .actions { display: none !important; }
+  .view:not(#view-result) { display: none !important; }
+  #view-result { display: block !important; }
+  main { padding: 0; }
+  details.sub .sub-body { display: grid !important; }
+  details.sub summary .t::before { content: ""; }
+  .area-block { break-inside: avoid; }
+  body { font-size: 11pt; }
+  .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-text">
+        <div class="eyebrow">Amt für Volksschulen und Sport</div>
+        <h1>Digitale Kompetenzen von Lehrpersonen</h1>
+        <p class="muted">Selbsteinschätzung · Prototyp</p>
+      </div>
+      <a class="logo-link" href="#start" data-go="start" aria-label="Kanton Schwyz – zur Startseite des Instruments"><img src="data:image/png;base64,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" alt="Kanton Schwyz"></a>
+    </div>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <button type="button" data-go="start">Start</button>
+      <button type="button" data-go="survey">Selbsteinschätzung</button>
+      <button type="button" data-go="result">Ergebnis</button>
+      <button type="button" data-go="school">Schulauswertung</button>
+      <button type="button" data-go="info">Hinweise</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- START -->
+  <section class="view" id="view-start" aria-labelledby="h-start">
+    <div class="start-grid">
+      <div class="stack" style="gap:24px">
+        <h2 id="h-start">Wo stehe ich beim Unterrichten mit digitalen Medien?</h2>
+        <p class="lead">Die Selbsteinschätzung zeigt das eigene Kompetenzprofil in sechs Bereichen. Grundlage ist der europäische Referenzrahmen DigCompEdu. Das Ergebnis dient der persönlichen Standortbestimmung, dem Mitarbeitendengespräch und der Weiterbildungsplanung der Schule.</p>
+        <ol class="steps">
+          <li><div><b>Angaben zum Arbeitsumfeld</b><br><span class="muted">Freiwillig und ohne Namen. Die Angaben helfen bei der Schulauswertung.</span></div></li>
+          <li><div><b>22 Fragen in 6 Bereichen</b><br><span class="muted">Pro Frage die Aussage wählen, die das eigene Handeln am besten beschreibt. Dauer: etwa 20 Minuten.</span></div></li>
+          <li><div><b>Kompetenzprofil und nächste Schritte</b><br><span class="muted">Das Profil lässt sich speichern, drucken und später wieder öffnen.</span></div></li>
+        </ol>
+        <div class="stack" style="gap:8px">
+          <h3>Sechs Kompetenzstufen</h3>
+          <div class="levels-strip" id="levels-strip"></div>
+        </div>
+        <div class="box">
+          <h3>Datenschutz</h3>
+          <p>Alle Antworten bleiben auf diesem Gerät. Es werden keine Daten übermittelt. Wer das Ergebnis mit der Schulleitung teilen möchte, speichert es als Datei und gibt diese selbst weiter.</p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="box box--warning" id="resume-box" hidden>
+          <h3>Auf diesem Gerät sind bereits Antworten gespeichert</h3>
+          <p id="resume-text"></p>
+          <p class="small" style="margin-top:6px">Wird das Gerät gemeinsam genutzt, zuerst die gespeicherten Antworten löschen.</p>
+          <div class="row" style="margin-top:14px">
+            <button class="btn" type="button" id="btn-resume">Fortsetzen</button>
+            <span class="confirm" id="reset-confirm-start"></span>
+          </div>
+        </div>
+        <form class="panel stack" id="context-form">
+          <h3>Angaben zum Arbeitsumfeld</h3>
+          <div class="field">
+            <label for="ctx-stufe">Schulstufe</label>
+            <select id="ctx-stufe" name="stufe">
+              <option value="">Keine Angabe</option>
+              <option>Kindergarten</option>
+              <option>Primarstufe 1.–2. Klasse</option>
+              <option>Primarstufe 3.–6. Klasse</option>
+              <option>Sekundarstufe I</option>
+              <option>Stufenübergreifend</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ctx-funktion">Funktion</label>
+            <select id="ctx-funktion" name="funktion">
+              <option value="">Keine Angabe</option>
+              <option>Klassenlehrperson</option>
+              <option>Fachlehrperson</option>
+              <option>Schulische Heilpädagogin / Schulischer Heilpädagoge</option>
+              <option>Lehrperson Deutsch als Zweitsprache</option>
+              <option>Andere Funktion</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ctx-erfahrung">Berufserfahrung</label>
+            <select id="ctx-erfahrung" name="erfahrung">
+              <option value="">Keine Angabe</option>
+              <option>Weniger als 5 Jahre</option>
+              <option>5 bis 15 Jahre</option>
+              <option>Mehr als 15 Jahre</option>
+            </select>
+          </div>
+          <button class="btn" type="submit" id="btn-start">Selbsteinschätzung starten
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
+        </form>
+        <div class="stack" style="gap:8px">
+          <p class="small"><b>Früheres Ergebnis öffnen</b></p>
+          <p class="small muted">Eine gespeicherte Ergebnisdatei (.json) laden, um das Profil anzusehen oder weiterzubearbeiten.</p>
+          <input type="file" id="file-own" accept=".json,application/json" class="small">
+          <p class="small" id="file-own-msg" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FRAGEBOGEN -->
+  <section class="view" id="view-survey" hidden aria-labelledby="h-area">
+    <div class="survey-grid">
+      <aside>
+        <div class="progressbar" aria-hidden="true"><span id="progress-fill"></span></div>
+        <p class="small muted" id="progress-text" style="margin-bottom:12px"></p>
+        <nav class="areanav" id="areanav" aria-label="Kompetenzbereiche"></nav>
+      </aside>
+      <div>
+        <div class="area-head">
+          <div class="eyebrow" id="area-eyebrow"></div>
+          <h2 id="h-area" tabindex="-1"></h2>
+          <p class="muted" id="area-desc"></p>
+        </div>
+        <div id="questions"></div>
+        <div class="survey-foot">
+          <button class="btn secondary" type="button" id="btn-prev">Zurück</button>
+          <button class="btn" type="button" id="btn-next">Weiter</button>
+        </div>
+        <p class="small muted" id="open-hint" role="status" style="margin-top:12px"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ERGEBNIS -->
+  <section class="view" id="view-result" hidden aria-labelledby="h-result">
+    <div id="result-empty" class="box" hidden>
+      <h3>Noch kein Ergebnis</h3>
+      <p>Sobald Fragen beantwortet sind, erscheint hier das Kompetenzprofil.</p>
+      <div class="row" style="margin-top:12px"><button class="btn" type="button" data-go="survey">Zur Selbsteinschätzung</button></div>
+    </div>
+    <div id="result-content">
+      <div class="result-head">
+        <div class="stack" style="gap:8px">
+          <div class="eyebrow" id="result-date"></div>
+          <h2 id="h-result">Persönliches Kompetenzprofil</h2>
+          <div class="chips" id="result-chips"></div>
+        </div>
+      </div>
+      <div class="box box--warning no-print" id="result-open" hidden style="margin-top:20px"></div>
+      <div class="result-top">
+        <div class="stack">
+          <h3>Profil über die sechs Bereiche</h3>
+          <div class="radar-wrap" id="radar-own"></div>
+          <div class="legend" id="legend-own"></div>
+        </div>
+        <div class="stack" style="gap:28px">
+          <div class="stack" style="gap:12px">
+            <h3>Stärken</h3>
+            <ul class="list-plain" id="list-strengths"></ul>
+          </div>
+          <div class="stack" style="gap:12px">
+            <h3>Entwicklungsfelder und nächster Schritt</h3>
+            <ul class="list-plain" id="list-gaps"></ul>
+          </div>
+          <div class="stack" style="gap:12px" id="noopp-wrap" hidden>
+            <h3>Bisher keine Gelegenheit</h3>
+            <p class="small muted">Hier fehlen möglicherweise Voraussetzungen wie Geräte, Plattformen oder ein Auftrag. Das ist ein Thema für das Gespräch mit der Schulleitung, keine Kompetenzlücke.</p>
+            <ul class="list-plain small" id="list-noopp"></ul>
+          </div>
+        </div>
+      </div>
+      <div id="result-areas"></div>
+      <div class="actions">
+        <button class="btn" type="button" id="btn-save">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
+          Ergebnis als Datei speichern</button>
+        <button class="btn secondary" type="button" id="btn-print">Drucken oder als PDF sichern</button>
+        <button class="btn secondary" type="button" data-go="survey">Antworten bearbeiten</button>
+        <span class="confirm" id="reset-confirm-result"></span>
+      </div>
+      <p class="small muted no-print" style="margin-top:12px">Die Datei enthält nur die Antworten und die freiwilligen Angaben zum Arbeitsumfeld, keinen Namen.</p>
+    </div>
+  </section>
+
+  <!-- SCHULAUSWERTUNG -->
+  <section class="view" id="view-school" hidden aria-labelledby="h-school">
+    <div class="stack" style="gap:24px">
+      <div class="stack" style="gap:8px">
+        <div class="eyebrow">Für Schulleitungen</div>
+        <h2 id="h-school">Schulauswertung</h2>
+        <p class="muted" style="max-width:70ch">Die Ergebnisdateien des Kollegiums zusammenführen und den Weiterbildungsbedarf der Schule erkennen. Einzelne Profile werden nicht angezeigt. In der Serverversion geschieht dieses Zusammenführen automatisch.</p>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div>
+          <p><b>Ergebnisdateien hierher ziehen</b> oder auswählen</p>
+          <p class="small muted">Mehrere .json-Dateien gleichzeitig möglich.</p>
+        </div>
+        <div class="row">
+          <label class="btn secondary" for="file-school">Dateien auswählen</label>
+          <input type="file" id="file-school" accept=".json,application/json" multiple hidden>
+          <button class="btn quiet" type="button" id="btn-school-sample">Beispieldaten anzeigen</button>
+        </div>
+      </div>
+      <p class="small" id="school-msg" role="status"></p>
+      <div id="school-out" class="stack" style="gap:28px"></div>
+    </div>
+  </section>
+
+  <!-- HINWEISE -->
+  <section class="view" id="view-info" hidden aria-labelledby="h-info">
+    <div class="prose">
+      <h2 id="h-info">Hinweise zum Instrument</h2>
+      <p>Das Instrument setzt Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz» um. Es unterstützt Lehrpersonen bei der Standortbestimmung und Schulen bei der Planung der Weiterbildung.</p>
+      <h3>Aufbau</h3>
+      <p>Sechs Kompetenzbereiche mit 22 Teilbereichen. Zu jedem Teilbereich gibt es sechs Aussagen, die den Stufen I bis VI entsprechen. Das Ergebnis ist ein Profil, kein Gesamtwert. Wer in einem Teilbereich bisher keine Gelegenheit hatte, wählt die entsprechende Option. Diese Antworten fliessen nicht in die Mittelwerte ein.</p>
+      <h3>Stufen</h3>
+      <div class="levels-strip" id="levels-strip-2"></div>
+      <h3>Künstliche Intelligenz</h3>
+      <p>Aussagen zu Künstlicher Intelligenz werden in einer nächsten Version in die bestehenden Bereiche integriert.</p>
+      <h3>Datenschutz</h3>
+      <p>Diese Version arbeitet vollständig auf dem eigenen Gerät. Antworten werden nur im Browser dieses Geräts zwischengespeichert, bis sie gelöscht werden. Es findet keine Übermittlung statt.</p>
+      <h3>Quelle</h3>
+      <p>Die Aussagen basieren auf dem Selbsteinschätzungswerkzeug «DigCompEdu Bavaria» der Akademie für Lehrerfortbildung und Personalführung Dillingen und auf dem Referenzrahmen DigCompEdu der Europäischen Kommission. Die Anpassung an den Kanton Schwyz ist in Arbeit.</p>
+      <p class="small muted" id="info-version"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div>
+      <b>Kanton Schwyz</b><br>
+      Bildungsdepartement · Amt für Volksschulen und Sport<br>
+      <a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a>
+    </div>
+    <ul class="links">
+      <li><a href="https://www.sz.ch/impressum" target="_blank" rel="noopener">Impressum</a></li>
+      <li><a href="https://www.sz.ch/services/rechtliches/datenschutzerklaerung.html/8756-8761-10330-10328" target="_blank" rel="noopener">Datenschutz</a></li>
+      <li><a href="https://www.sz.ch/services/rechtliches/nutzungshinweise.html/8756-8761-10330-10329" target="_blank" rel="noopener">Nutzungshinweise</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+/*
+ * DigKomp SZ – Auswertungslogik (gemeinsamer Kern)
+ * Wird in der Offline-HTML-Version eingebettet und später von der Serverversion wiederverwendet.
+ * Antwortwerte: 1–6 = Stufe I–VI, 0 = «keine Gelegenheit», fehlend = nicht beantwortet.
+ */
+const DKCore = (function () {
+  const NO_OPPORTUNITY = 0;
+  const FORMAT = 'dk-sz-result';
+  const MIN_GROUP = 5;
+
+  const mean = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
+
+  function allSubareas(items) {
+    return items.areas.flatMap((a) => a.subareas.map((s) => Object.assign({ areaId: a.id }, s)));
+  }
+
+  function areaScores(items, answers) {
+    return items.areas.map((a) => {
+      const vals = a.subareas.map((s) => answers[s.id]).filter((v) => v >= 1);
+      const answered = a.subareas.filter((s) => answers[s.id] !== undefined).length;
+      return { id: a.id, mean: mean(vals), answered, total: a.subareas.length };
+    });
+  }
+
+  function progress(items, answers) {
+    const subs = allSubareas(items);
+    const done = subs.filter((s) => answers[s.id] !== undefined).length;
+    return { done, total: subs.length, open: subs.filter((s) => answers[s.id] === undefined).map((s) => s.id) };
+  }
+
+  function strengthsAndGaps(items, answers, n = 3) {
+    const rated = allSubareas(items).filter((s) => answers[s.id] >= 1).map((s, i) => ({ s, v: answers[s.id], i }));
+    const strengths = rated.slice().sort((a, b) => b.v - a.v || a.i - b.i).slice(0, n);
+    const gaps = rated.filter((r) => r.v < 6).sort((a, b) => a.v - b.v || a.i - b.i).slice(0, n);
+    const noOpp = allSubareas(items).filter((s) => answers[s.id] === NO_OPPORTUNITY);
+    return { strengths, gaps, noOpp };
+  }
+
+  function validateRecord(obj) {
+    if (!obj || obj.format !== FORMAT || typeof obj.answers !== 'object') return false;
+    return Object.values(obj.answers).every((v) => Number.isInteger(v) && v >= 0 && v <= 6);
+  }
+
+  function aggregate(items, records) {
+    const subs = allSubareas(items);
+    const bySub = {};
+    subs.forEach((s) => {
+      const counts = [0, 0, 0, 0, 0, 0, 0];
+      records.forEach((r) => {
+        const v = r.answers[s.id];
+        if (v !== undefined) counts[v]++;
+      });
+      const rated = [];
+      counts.forEach((c, lvl) => { if (lvl >= 1) for (let k = 0; k < c; k++) rated.push(lvl); });
+      bySub[s.id] = { counts, answered: counts.reduce((a, b) => a + b, 0), mean: mean(rated) };
+    });
+    const areas = items.areas.map((a) => ({
+      id: a.id,
+      mean: mean(a.subareas.map((s) => bySub[s.id].mean).filter((v) => v !== null)),
+    }));
+    return { n: records.length, bySub, areas };
+  }
+
+  function toCSV(items, agg) {
+    const rows = [['Teilbereich-ID', 'Teilbereich', 'Antworten', 'Keine Gelegenheit', 'I', 'II', 'III', 'IV', 'V', 'VI', 'Mittelwert']];
+    allSubareas(items).forEach((s) => {
+      const d = agg.bySub[s.id];
+      rows.push([s.id, s.title, d.answered, d.counts[0], ...d.counts.slice(1), d.mean === null ? '' : d.mean.toFixed(2)]);
+    });
+    return rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  }
+
+  return { NO_OPPORTUNITY, FORMAT, MIN_GROUP, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, toCSV };
+})();
+if (typeof module !== 'undefined') module.exports = DKCore;
+
+</script>
+<script>
+const ITEMS = {"instrument": "Digitale Kompetenzen Lehrpersonen Kanton Schwyz", "version": "SZ-2026.0-entwurf", "source": "DigCompEdu Bavaria, ALP Dillingen (Itemtexte ausgelesen am 28.09.2026); Anpassung Kanton Schwyz in Arbeit", "levels": [{"level": 1, "roman": "I", "label": "Einsteigen"}, {"level": 2, "roman": "II", "label": "Entdecken"}, {"level": 3, "roman": "III", "label": "Anwenden"}, {"level": 4, "roman": "IV", "label": "Integrieren"}, {"level": 5, "roman": "V", "label": "Entwickeln"}, {"level": 6, "roman": "VI", "label": "Weitergeben"}], "areas": [{"id": "1", "title": "Berufsbezogenes Handeln", "short": "Berufsbezogenes Handeln", "description": "Digitale Medien für Kommunikation, Zusammenarbeit, Reflexion und die eigene Weiterbildung nutzen.", "subareas": [{"id": "1.1", "title": "Berufliche Kommunikation", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.1-I", "text": "Ich kenne digitale Medien wie E-Mail oder schulische Kommunikationsportale, nutze diese jedoch selten in beruflichen Kontexten."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.1-II", "text": "Ich versuche digitale Medien adressatengerecht für die Kommunikation zu nutzen (z. B. mit Lernenden und Erziehungsberechtigten, im Kollegenkreis oder mit weiterem pädagogischem Personal)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.1-III", "text": "Ich nutze geeignete digitale Kommunikationskanäle und kommuniziere sprachsensibel. Dabei berücksichtige ich Nutzungsbedingungen und vereinbarte Kommunikationsabläufe."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.1-IV", "text": "Ich wähle aus einem breiten Repertoire an Kommunikationskanälen einen angemessenen Kanal, Stil und das Format für einen bestimmten Kommunikationszweck und -kontext aus."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.1-V", "text": "Ich reflektiere, bewerte und diskutiere im Kollegenkreis die Art und Weise, wie digitale Medien effektiv für die schulische Kommunikation genutzt werden. Ich nutze digitale Medien, um schulorganisatorische Verfahren für Lernende und/oder Erziehungsberechtigte transparent zu machen und ihnen zu ermöglichen, informierte Entscheidungen zu treffen."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.1-VI", "text": "Ich trage zur Entwicklung innovativer Konzepte und Strategien für den verantwortungsvollen Einsatz digitaler Technologien für die Kommunikation bei und multipliziere diese auch über die eigene Schule hinaus."}]}, {"id": "1.2", "title": "Kollegiale Zusammenarbeit", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.2-I", "text": "Ich bin mir bewusst, dass digitale Medien die Zusammenarbeit mit Kolleginnen und Kollegen - auch ausserhalb meiner Schule - unterstützen, nutze diese jedoch selten (z. B. kollaborative Online-Plattformen oder Videokonferenzwerkzeuge)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.2-II", "text": "Ich versuche mit digitalen Medien mit Kolleginnen und Kollegen an meiner Schule zusammenzuarbeiten (z. B. um Inhalte, Wissen oder Meinungen auszutauschen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.2-III", "text": "Ich nutze Online-Communities (z. B. Twitter oder Internetforen für Lehrkräfte), um neue pädagogische Ressourcen oder Methoden zu entdecken. Auch nutze ich digitale Medien zum Teilen von Materialien und zum Austausch von Wissen und Meinungen in und ausserhalb meiner Schule."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.2-IV", "text": "Ich wähle aktiv Online-Communities aus, um Ideen und digitale Ressourcen auszutauschen und zu erarbeiten (z. B. mebis-TeachSHARE )."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.2-V", "text": "Durch die Nutzung beruflicher Kooperationsnetzwerke entwickle ich meine berufliche Praxis und meine Kompetenzen weiter. Dadurch erhalte ich Feedback zu pädagogischen Konzepten und Unterrichtsideen."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.2-VI", "text": "Mit Hilfe von Online-Communities trage ich zur innovativen Weiterentwicklung pädagogischer Praktiken bei. Dabei fördere und unterstütze ich Lehrkräfte auch ausserhalb des eigenen Kollegiums bei der Weiterentwicklung ihrer digitalen und pädagogischen Kompetenzen."}]}, {"id": "1.3", "title": "Reflektiertes Handeln", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.3-I", "text": "Ich bin mir bewusst, dass digitale Medien im schulischen Kontext eingesetzt werden können. Jedoch habe ich hierin kaum Erfahrung und bin mir über die Möglichkeiten noch im Unklaren, wie ich mich hier weiterentwickeln kann."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.3-II", "text": "Ich suche nach Wegen, meine medienbezogenen Lehrkompetenzen weiterzuentwickeln. Dabei bin ich mir der Grenzen meiner eigenen digitalen Kompetenz wie auch notwendiger individueller Entwicklungsbereiche bewusst."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.3-III", "text": "Ich nutze digitale Medien bewusst in verschiedenen schulischen Kontexten und zu unterschiedlichen Zwecken, um mit zeitgemässen pädagogischen Ansätzen zu experimentieren. Dabei möchte ich meine medienbezogenen Lehrkompetenzen durch Erproben und Peer-Learning weiterentwickeln und verbessern."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.3-IV", "text": "Ich analysiere und diskutiere mit Kolleginnen und Kollegen, wie die Nutzung von digitalen Medien zur Erneuerung und Verbesserung der Unterrichtspraxis realisiert werden kann. Ich suche aktiv nach bewährten Praktiken, Kursen oder anderen Ratschlägen, um meine eigenen digitalen pädagogischen Konzepte zu verbessern und digitale Kompetenzen auszuweiten."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.3-V", "text": "Ich unterstütze Kolleginnen und Kollegen dabei, ihre digitalen Kompetenzen weiterzuentwickeln. Ich informiere mich regelmässig, z. B. in Fachzeitschriften oder im Internet über aktuelle wissenschaftliche Erkenntnisse und übertrage diese in meine Praxis. Zudem bewerte, reflektiere und diskutiere ich über Konzepte und Praxis der Schule hinsichtlich der Nutzung digitaler Medien (z.B. Teilnahme an Kongressen und Organisation von SchiLFS)"}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.3-VI", "text": "Mit Hilfe digitaler Medien trage ich dazu bei, individuell oder gemeinsam mit Kolleginnen und Kollegen eine Strategie zur Verbesserung der Bildungspraxis zu entwickeln. Ich reflektiere und evaluiere mit Kolleginnen und Kollegen und/oder Wissenschaftlerinnen und Wissenschaftlern verschiedene digitale Praktiken, Methoden und Strategien mit dem Ziel, innovative Konzepte zu entwickeln. (z.B. Mitwirkung an Kongressen oder Barcamps)"}]}, {"id": "1.4", "title": "Kontinuierliche Weiterentwicklung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.4-I", "text": "Ich bin mir bewusst, dass ich mit Hilfe des Internets mein fachspezifisches oder pädagogisches Wissen aktualisieren oder meine Fähigkeiten erweitern kann."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.4-II", "text": "Ich suche nach Wegen, mit Hilfe des Internets mein fachspezifisches oder pädagogisches Wissen zu aktualisieren. (z.B. Onlineportale, Edu-Blogs, Themenseiten des ISB)"}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.4-III", "text": "Ich nutze das Internet, um gezielt passende Fort- und Weiterbildungsangebote und andere Chancen für die berufliche Weiterentwicklung zu identifizieren. (z. B. Identifizierung geeigneter Fortbildungsveranstaltungen)"}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.4-IV", "text": "Ich wähle zielgerichtet Online-Fortbildungen (z. B. eSessions) oder digitales Weiterbildungsmaterial und Video-Tutorials als Quelle für meine berufliche Weiterentwicklung aus."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.4-V", "text": "Ich berate meine Kolleginnen und Kollegen bei der Wahl von Online-Fortbildungsmöglichkeiten. Dazu sichte ich eine Vielzahl von Angeboten und wähle diejenigen aus, die meinen Weiterentwicklungsbedürfnissen und ggf. denen meiner Kolleginnen und Kollegen am besten entsprechen. Ich nehme aktiv an Online-Fortbildungen teil und trage durch gezieltes Feedback zu deren Verbesserung bei."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.4-VI", "text": "Ich fördere Kolleginnen und Kollegen mit Hilfe digitaler Technologien (z. B. im Rahmen von Fortbildungen, durch persönliche Blogs oder indem ich für sie neues digitales Fortbildungsmaterial entwickle)."}]}]}, {"id": "2", "title": "Digitale Ressourcen", "short": "Digitale Ressourcen", "description": "Digitale Materialien finden, erstellen, anpassen, ordnen und rechtlich korrekt teilen.", "subareas": [{"id": "2.1", "title": "Auswählen digitaler Ressourcen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "2.1-I", "text": "Ich bin mir bewusst, dass ich online nach Lehr- und Lernressourcen suchen kann, nutze die Möglichkeit jedoch nicht oder nur selten (z.B. Arbeitsmaterial, Onlinequizze oder Videos)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "2.1-II", "text": "Ich nutze einfache Internet-Suchstrategien, um digitale Lehr- und Lernressourcen zum Beispiel auf Bildungsplattformen wie mebis zu finden."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "2.1-III", "text": "Ich identifiziere und verwende geeignete Online-Werkzeuge und Bildungsplattformen, um nach vielfältigen digitalen Ressourcen zu suchen, die dem Bildungsbedarf meiner Lernenden entsprechen (z. B. mebis)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "2.1-IV", "text": "Ich wähle digitale Ressourcen auf der Grundlage komplexer Kriterien aus und entwickle meine Suchkriterien mit Blick auf den intendierten Kompetenzerwerb weiter, um meine spezifischen Lehr- und Lernziele zu erfüllen (z. B. Bildungswert, Relevanz, Zuverlässigkeit, Gültigkeit, Qualität, Lizenzierung)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "2.1-V", "text": "Ich reflektiere und bewerte meine Suchergebnisse umfassend und passe meine Auswahlkriterien ggf. neu und flexibel an (z. B. Prüfung von Genauigkeit und Neutralität). Ausserdem berate ich meine Kolleginnen und Kollegen."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "2.1-VI", "text": "Ich entwickle und multipliziere innovative Strategien zur Auswahl, Identifizierung und Auswertung digitaler Ressourcen."}]}, {"id": "2.2", "title": "Erstellen und Anpassen digitaler Ressourcen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "2.2-I", "text": "Ich bin mir der Tatsache bewusst, dass ich bestehende Ressourcen in digitaler Form erstellen oder anpassen kann, verzichte aber meist darauf (z. B. Textverarbeitung, Bilder, Fotos, Audio, Video)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "2.2-II", "text": "Ich entdecke für mich neue digitale Ressourcen und habe bereits versucht, eigene Ressourcen mit Hilfe von einfachen Tools zu erstellen oder anzupassen (z. B. Textverarbeitung, Bilder, Tabellen, Präsentationen, Audio- oder Videodateien)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "2.2-III", "text": "Ich identifiziere und verwende geeignete digitale Tools, um Ressourcen zu erstellen und passe sie ggf. sach-und situationsgerecht an, um den Bedürfnissen der Lernenden zu entsprechen (z. B. interaktive Texte, Multimedia-Präsentationen, Quizze, Spiele, Online-Aktivitäten und Unterricht)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "2.2-IV", "text": "Ich wende Gestaltungsprinzipien und -prozesse an, um digitale Ressourcen zu schaffen oder systematisch anzupassen, damit sie den Lehr- und Lernzielen entsprechen (z.B. Entwerfen eines Onlinelernspiels, digitale Lernumgebungen, Erklärvideos)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "2.2-V", "text": "Ich erstelle Konzepte für komplexe und interaktive digitale Lernaktivitäten und/oder passe diese an (z. B. interaktive Arbeitsbögen, Lernaktivitäten wie Wikis, Blogs, Lernpfade). Ich reflektiere kritisch, inwiefern sich verschiedene Methoden für die Erstellung digitaler Ressourcen eignen und gebe mein Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "2.2-VI", "text": "Ich entwickle und multipliziere komplexe und innovative digitale Ressourcen für Lehr-/Lernkontexte (z. B.digitale Lernumgebungen mit 3D-Animationen) unter Berücksichtigung neuester technischer Entwicklungen."}]}, {"id": "2.3", "title": "Organisieren, Schützen und Teilen digitaler Ressourcen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "2.3-I", "text": "Ich speichere und verwalte digitale Ressourcen, wie z. B. Arbeitsmaterial, Fotos oder Videos zur eigenen Verwendung. Ich bin mir der Tatsache bewusst, dass einige der im Internet verbreiteten Ressourcen dem Urheberrecht unterliegen."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "2.3-II", "text": "Ich teile Unterrichtsmaterialien (z. B. Texte und interaktive Aufgaben) unter Beachtung des Urheberrechts als Anhang einer Nachricht oder durch die Weitergabe von Links."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "2.3-III", "text": "Ich teile verantwortungsvoll Unterrichtsmaterialien (z. B. Verschlüsselung von Texten, Videos, Lernspiele und Aufgaben) im Rahmen des digital gestützten Lernens und schütze sensible Inhalte wie Leistungserhebungen oder Berichte der Lehrkräfte effektiv."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "2.3-IV", "text": "Ich teile Ressourcen (z. B. Texte, Videos, Lernspiele und interaktive Aufgaben) professionell, indem ich sie in digitale Lernumgebungen einbette. Ich schütze persönliche und sensible Daten effektiv. Ich kennzeichne Ressourcen, die dem Urheberrecht unterliegen, richtig."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "2.3-V", "text": "Ich durchdenke den Sinn bestehender digitaler Ressourcen und gestalte sie ggf. neu, um sie in interaktive, auf den Lernenden ausgerichtete Aktivitäten zu integrieren. Ich veröffentliche die Ressourcen (online) und mache sie so für die Lernenden und andere Lehrkräfte zugänglich (z. B. Anpassung digitaler Ressourcen und digital erweiterter Aufgaben in einem Online-Kurs, einer Online-Beurteilung, einem kollaborativen Online-Projekt, einem Wiki, einem Blog oder einem virtuellen Lernraum)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "2.3-VI", "text": "Ich erstelle innovative digitale Ressourcen selbst, lizenziere sie und veröffentliche sie für die Lernenden und andere Lehrkräfte (z. B. digital erweiterte Aufgaben in einem Online-Kurs, einer Online-Beurteilung, einem kollaborativen Online-Projekt oder einem virtuellen Lernraum)."}]}]}, {"id": "3", "title": "Lehren und Lernen", "short": "Lehren und Lernen", "description": "Digitale Medien im Unterricht einsetzen, Lernprozesse begleiten, kooperatives und selbstgesteuertes Lernen fördern.", "subareas": [{"id": "3.1", "title": "Lehren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.1-I", "text": "Ich bin mir bewusst, dass digitale Technologien wie beispielsweise Programme, Apps und cloudbasierte Ressourcen das Lehren und Lernen unterstützen und verbessern können, nutze diese Möglichkeit jedoch selten."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.1-II", "text": "Ich versuche digitale Technologien wie beispielsweise Programme, mobile Apps und Tools, onlinebasierte Ressourcen oder interaktive Whiteboards zur Unterstützung oder Verbesserung meiner Unterrichtspraxis zu nutzen und die Lernenden zur Nutzung zu motivieren."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.1-III", "text": "Ich verwende sach- und situationsgerecht verschiedene digitale Technologien, die innovative pädagogische Ansätze unterstützen können und die aktive Beteiligung der Lernenden an ihren Lernprozessen fördern. Diese umfassen z.B. problembasiertes Lernen, Selbstbewertung und Coaching durch andere Lernende."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.1-IV", "text": "Ich wähle digitale Technologien (z.B. Simulationen, interaktive Online-Tools und kollaborative Umgebungen) systematisch aus, um die Lernziele in meinen Lernkonzepten zu erreichen."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.1-V", "text": "Ich bewerte und gestalte den Einsatz digitaler Technologien zur flexiblen Anpassung von Lehrmethoden und innovativen Lernansätzen wie z.B. Coaching durch andere Lernende, Modellierung und Beratung. Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.1-VI", "text": "Ich trage zur Entwicklung innovativer Lernpraktiken mit digitalen Technologien bei wie z.B. Online-Workshops, Co-Teaching und Reflexionsgespräche über die Wirksamkeit des Einsatzes digitaler Technologien. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}]}, {"id": "3.2", "title": "Lernbegleitung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.2-I", "text": "Ich bin mir bewusst, dass digitale Technologien dazu dienen können, Feedback zu geben und über Lehr- und Lernmethoden zu reflektieren, nutze diese Möglichkeit jedoch kaum oder gar nicht."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.2-II", "text": "Ich versuche digitale Technologien zu nutzen, um den Lernenden Feedback und Unterstützung zu geben (z.B. automatisiertes Feedback, Links zu Online-Tutorials, Chat)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.2-III", "text": "Ich verwende, je nach Anforderung, verschiedene digitale Technologien (z.B.Chats, Diskussionsforen und Umfragen im Unterricht) um den Lernenden ein Feedback zu geben und ihnen die Möglichkeit einzuräumen, über ihr Lernen nachzudenken."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.2-IV", "text": "Ich setze digitale Technologien (z.B. gemeinsame Online-Dokumente, Aufzeichnungen von Lernaktivitäten und begleitete Reflexion) systematisch ein, um den Lernenden die Möglichkeit zu geben, eine Selbstbewertung durchzuführen und dadurch an der Gestaltung des Lernprozesses teilzuhaben."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.2-V", "text": "Ich analysiere und bewerte Lernen neu unter Berücksichtigung von Erkenntnissen, die durch digitale Technologien (z.B. Aufzeichnungen von Lernaktivitäten und Learning Analytics) gewonnen wurden. Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.2-VI", "text": "Ich entwickle innovative Ansätze zur Unterstützung und Begleitung des Lernprozesses. Im Zuge dessen werden digitale Technologien (z.B. Diskussionsforen, gemeinsame Dokumente und FAQ-Sheets) eingesetzt. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}]}, {"id": "3.3", "title": "Kollaboratives Lernen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.3-I", "text": "Ich bin mir bewusst, dass digitale Technologien genutzt werden können, um die Zusammenarbeit der Lernenden beim Lernen (z.B. im Rahmen von Online-Zusammenarbeit und der gemeinsamen Nutzung von Lernressourcen) zu fördern und zu verbessern, nutze diese Möglichkeit jedoch selten oder nicht."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.3-II", "text": "Ich versuche digitale Technologien (z.B. gemeinsame Dokumente und Beiträge in Foren) zur Unterstützung und Verbesserung kollaborativer Aktivitäten von Lernenden zu nutzen und die Lernenden dazu zu motivieren."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.3-III", "text": "Ich verwende verschiedene digitale Technologien und Medien situationsgerecht (z.B. Foren, Wikis und kollaborative Lernprodukte), um das kollaborative Lernen zu unterstützen und zu verbessern."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.3-IV", "text": "Ich wende digitale Technologien systematisch in meinen Lernkonzepten an, um das kollaborative Lernen zu verbessern und zu unterstützen (z.B. im Rahmen von Gruppenreflexion, Projektentwicklung und Austausch)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.3-V", "text": "Ich entwickle die Nutzung digitaler Technologien zum Wissensaufbau weiter (z.B. die gemeinsame Teilnahme an Projekten, der virtuelle Austausch und die Nutzung digitaler Tools für Kommunikation). Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.3-VI", "text": "Ich entwickle innovative Lernszenarien, indem ich Möglichkeiten der Zusammenarbeit zur Unterstützung des Lernens (z.B. Nutzung synchroner und asynchroner Online-Umgebungen sowie Mitgestaltung und gemeinsame Erstellung von Lernmaterial) anbiete. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}]}, {"id": "3.4", "title": "Selbstgesteuertes Lernen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.4-I", "text": "Ich bin mir bewusst, dass digitale Technologien genutzt werden können, um aktives und autonomes Lernen (z.B. Planung, Zielsetzung und Aufzeichnung von Fortschritten) zu fördern, nutze diese Möglichkeit jedoch kaum oder gar nicht."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.4-II", "text": "Ich versuche digitale Technologien zur Unterstützung der Lernenden bei der Planung ihres eigenen Lernens (z.B. in der Verwendung von digitalen Kalendern und Aufzeichnung von Fortschritten) zu nutzen und sie dazu zu motivieren."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.4-III", "text": "Ich verwende verschiedene digitale Technologien (z.B. Online-Lernumgebungen, Werkzeuge und Räume für die Zusammenarbeit) situationsgerecht, um die Lernenden bei der Planung und Steuerung ihres eigenen Lernens zu unterstützen."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.4-IV", "text": "Ich wende digitale Technologien in meinen Lernkonzepten systematisch auf der Grundlage ihrer Eigenschaften an, um die selbstgesteuerten Lernfähigkeiten und die Autonomie der Lernenden zu steuern und zu fördern. Diese umfassen z.B. Eigeninitiative in Bezug auf das eigene Lernen, kreatives Eingehen auf neue Lernsituationen und Selbstreflexion, um den eigenen Fortschritt zu planen."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.4-V", "text": "Ich gestalte digitale Technologien und passe diese an, damit sie von Lernenden zur Förderung ihres selbstgesteuerten Lernens eingesetzt werden, indem sie z.B. über ihre Lernstrategien reflektieren oder Lernergebnisse sammeln und teilen. Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.4-VI", "text": "Ich entwickle innovative pädagogischer Strategien und Praktiken für das selbstgesteuerte Lernen (z.B. Makerspaces und Lernräume mit digitalen Technologien). Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}]}]}, {"id": "4", "title": "Lerndiagnose und Feedback", "short": "Lerndiagnose und Feedback", "description": "Mit digitalen Mitteln Lernstände erheben, auswerten und Rückmeldungen geben.", "subareas": [{"id": "4.1", "title": "Lernstandserhebung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "4.1-I", "text": "Ich bin mir bewusst, dass es digitale Medien und Werkzeuge für die Lernstandserhebung gibt, nutze sie jedoch selten oder nie (z.B. digitale Quizze, Online-Umfragen)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "4.1-II", "text": "Ich setze digitale Medien für überwiegend traditionelle Formen der Lernstandserhebung ein (z.B. Textverarbeitungswerkzeuge, Tools zur Erzeugung von Online-Abfragen wie mobile Apps oder Spiele)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "4.1-III", "text": "Ich verwende verschiedene digitale Technologien zur Bewertung und passe diese bei Bedarf an (z. B. Erstellen eines digitalen Tests, Nutzung von Bewertungsplattformen, die den Schülern zeitnahes Feedback geben)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "4.1-IV", "text": "Ich wähle digitale Technologien aus, um bestimmte Aspekte der Bewertung systematisch zu unterstützen und die Art des zu evaluierenden Lernergebnisses bestmöglich zu erfassen (z. B. Rubriken zur Selbstreflexion, Aufgaben, die den Lernenden zeitnahes Feedback bieten, gemeinsam genutzte Dokumente, die Peer-Reviews/Feedback unterstützen)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "4.1-V", "text": "Ich wähle aus einer Vielzahl digitaler Bewertungstools und -formaten zur Lernstandserhebung kritisch aus, passe diese an und multipliziere sie im Kreis der Kolleginnen und Kollegen (z.B. e-Portfolios, Formate der Selbst- und Peerbewertung)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "4.1-VI", "text": "Ich entwickle neue digitale Bewertungsformate, die es auch ermöglichen, innovative pädagogische Ansätze und überfachliche Fertigkeiten bewerten zu können (z. B. Selbst- und Peer-Bewertung, digitale Test- und Diagnosesysteme, formative Assessments, e-Portfolios). Diese gebe ich in meinem Kollegium und in Fortbildungen weiter."}]}, {"id": "4.2", "title": "Analyse der Lernevidenz", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "4.2-I", "text": "Ich bin mir bewusst, dass die Effektivität von Lernprozessen auch mittels digitaler Medien analysiert werden kann, mache davon aber kaum oder gar keinen Gebrauch."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "4.2-II", "text": "Ich versuche, digitale Tools während des Unterrichts zu nutzen, um zeitnahes Feedback zur grundlegenden Beteiligung und Effektivität des Lernprozesses zu erhalten (z. B. digitale Quizze oder Abfragen, Online-Rückmeldung zum Bearbeitungsstand von Aufgaben)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "4.2-III", "text": "Ich nutze regelmässig digitale Tools und die Nutzungsdaten der Lernenden, um die Beteiligung und Effektivität der Lernprozesse zu beurteilen und zeitnah Feedback zum Lernverhalten geben zu können (z. B. Online-Umfragen, Formulare, Umfragen, Tabellenkalkulationen)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "4.2-IV", "text": "Ich setze digitale Tools systematisch zur Datenerzeugung, -visualisierung und Analyse des Lernverhaltens der Lernenden ein, um zeitnah individuelles Feedback zur Lernentwicklung geben zu können (z. B. Tests, Beurteilungssysteme, Learning Analytics)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "4.2-V", "text": "Ich analysiere und bewerte regelmässig verschiedene Möglichkeiten der Nutzung digitaler Daten zur Optimierung des Lernprozesses und zur Anpassung eigener Lehrstrategien. Meine Kolleginnen und Kollegen unterstütze ich bei der Erhebung und Analyse digital erfasster Daten zum Lernprozess."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "4.2-VI", "text": "Ich initiiere und fördere in meiner Schule und ihrem Umfeld Strategien und Praktiken, die helfen, mittels Datengenerierung Lernprozesse zu beobachten. Mein diesbezügliches Wissen gebe ich in Kollegium und auf Fortbildungen weiter."}]}, {"id": "4.3", "title": "Feedback und Planung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "4.3-I", "text": "Ich bin mir bewusst, dass digitale Technologien genutzt werden können, um Lernenden Feedback zu geben, mache davon aber noch keinen oder kaum Gebrauch (z. B. Online-Übungen, Online-Abfragen, automatisiertes Feedback)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "4.3-II", "text": "Ich versuche digitale Tools zu nutzen, die individuelles Feedback unterstützen (z. B. Forum mit Peer-Feedback, Sternebewertung, digitale Anmerkungen zu Aufgaben)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "4.3-III", "text": "Ich nutze verschiedene digitale Technologien, um den Lernenden inhaltliches (auch automatisiertes) Feedback zu geben (z. B. Online-Tests mit automatischer Auswertung, Online-Umfragen mit visueller Darstellung der Ergebnisse)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "4.3-IV", "text": "Ich setze digitale Medien systematisch zur Verbesserung der Wirksamkeit von Feedback und individueller Lernunterstützung ein."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "4.3-V", "text": "Ich analysiere und bewerte regelmässig verschiedene Methoden zu digital gestütztem Feedback und optimiere dahingehend die Wahl digitaler Werkzeuge und eigener Lehrstrategien. Meine Kolleginnen und Kollegen unterstütze ich dabei."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "4.3-VI", "text": "Ich initiiere und fördere eine Strategie, die das Geben, Empfangen und Analysieren von Feedback erleichtert, um die Planung weiterer Massnahmen zu unterstützen (z. B. e-Portfolios, kontextabhängiges Feedback, digitales Storytelling). Mein zugehöriges Wissen gebe ich in Kollegium und Fortbildung weiter."}]}]}, {"id": "5", "title": "Schülerorientierung", "short": "Schülerorientierung", "description": "Mit digitalen Medien Teilhabe ermöglichen, differenzieren und Lernende aktivieren.", "subareas": [{"id": "5.1", "title": "Barrierefreiheit und digitale Teilhabe", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "5.1-I", "text": "Ich kenne die potenziellen Einschränkungen und Barrieren Lernender in Bezug auf digitale Technologien (z. B. begrenzter Zugang zu digitalen Geräten und/oder zum Internet, Lernschwierigkeiten), sehe aber noch keine oder nur geringe Ansätze zur besseren digitalen Teilhabe."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "5.1-II", "text": "Ich versuche digitale Technologien so einzusetzen, dass ein gleichberechtigter Bildungszugang möglich ist. Dabei berücksichtige ich elementar den Kontext und die Bedürfnisse der Lernenden (z. B. Bereitstellung von Geräten, Zugang zur Infrastruktur, familiärer Kontext, besondere Lernbedürfnisse)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "5.1-III", "text": "Ich nutze verschiedene digitale Technologien für eine gleichberechtigte und integrative Bildung und stelle sicher, dass alle Lernenden Zugang zu den von mir bereitgestellten digitalen Lernangeboten haben (z. B. Zugang zur Infrastruktur, adaptive und unterstützende Technologien wie Bildschirmlesegeräte, alternative Tastaturen, barrierefreie Tools, Verwendung von leichter Sprache)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "5.1-IV", "text": "Ich wähle digitale Technologien zielgerichtet aus und setze diese ein, um integrative Lernaktivitäten zu entwickeln. Ich erarbeite Konzepte und gestalte Ressourcen entsprechend den Bedürfnissen der Lernenden (z. B. Integration verschiedener Tools, Verwendung von speziellem Layout, Struktur und Sprache)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "5.1-V", "text": "Ich reflektiere das digitale Lehren und Lernen unter dem Blickwinkel barrierefreier und integrativer Ansätze und tausche mich mit Kolleginnen und Kollegen darüber aus, um den Bedürfnissen und Fähigkeiten aller Lernenden gerecht zu werden (z. B. multimodale Präsentation von Informationen, Anpassung von Merkmalen zur Förderung der Barrierefreiheit wie Schriftgrösse und Layout, Entwicklung der digitalen Fähigkeiten der Schüler)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "5.1-VI", "text": "Ich entwickle und multipliziere Konzepte und fördere Strategien für den gleichberechtigten Zugang zu Bildung durch den Einsatz digitaler Technologien (z. B. Medienbildung für Lernende und deren Eltern, Konzepte für Barrierefreiheit)."}]}, {"id": "5.2", "title": "Differenzierung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "5.2-I", "text": "Ich kenne digitale Technologien zur Differenzierung und Individualisierung des Lernens (z. B. Anpassung des Unterrichts an die Bedürfnisse verschiedener Gruppen von Lernenden, individuelle Unterstützung von Lernenden), nutze diese aber nur sehr selten."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "5.2-II", "text": "Ich versuche digitale Technologien für die Differenzierung und Individualisierung meines Unterricht zu integrieren (z. B. Quizze und Lernspiele, Online-Lernumgebungen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "5.2-III", "text": "Ich nutze verschiedene digitale Technologien beim Lehren und Lernen, um auf individuelle Lernbedürfnisse einzugehen (z. B. Quizze mit mit verschiedenen Schwierigkeitsgraden, differenzierte Online-Übungsaktivitäten, differenzierte Lernangebote in mebis, automatisiertes individuelles Feedback)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "5.2-IV", "text": "Ich verwende gezielt digitale Technologien, um individualisierte Lernumgebungen für die spezifischen Bedürfnisse der Lernenden zu entwickeln (z. B. Beachtung des Niveaus, der Lerngeschwindigkeit und der Präferenzen Lernender durch selbst entwickelte und auf die jeweiligen Lernziele abgestimmte Quizze oder Lernspiele, Erstellung von differenziertem Material für Online-Lernumgebungen, wie z.B. mebis)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "5.2-V", "text": "Ich gestalte meinen Unterricht so, dass die Lernenden in die Realisierung ihrer eigenen Lernwege einbezogen werden und ihren individuellen Lernbedürfnissen mithilfe von passenden digitalen Ressourcen folgen (z. B. personalisierte Lernpläne, Online-Tools, um Lernziele festzusetzen und den eigenen Fortschritt zu kontrollieren). Ich reflektiere ausserdem kritisch wie effektiv die eingesetzten Lehrstrategien die Differenzierung und Individualisierung fördern und passe meine Methoden entsprechend an."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "5.2-VI", "text": "Ich entwickle und multipliziere Konzepte für digital gestützte Differenzierung und Individualisierung (z. B. Austausch bewährter inklusiver Lernmethoden, Online-Plattform mit Ressourcen)."}]}, {"id": "5.3", "title": "Schüleraktivierung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "5.3-I", "text": "Ich nutze nur selten digitale Technologien, für motivierende und schüleraktivierende Lernformen. (z. B. Lernspiele, interaktive Aktivitäten)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "5.3-II", "text": "Ich suche nach Wegen, um mithilfe digitaler Technologien Lerninhalte motivierend und schülergerecht zu vermitteln (z. B. Lernspiele, interaktive Aktivitäten, Simulationen, OER-Ressourcen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "5.3-III", "text": "Ich nutze sach- und situationsgerecht digitale Technologien zur Förderung des aktiven Engagements der Lernenden (z.B. Lernspiele, Edu-Breakout, Erstellung von Erklärvideos durch die Lernenden, Peer-Reviews, AR-Technologie u.a.)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "5.3-IV", "text": "Ich gestalte meinen Unterricht zielgerichtet mit einer Vielzahl digitaler Technologien, um das aktive Engagement der Lernenden beim individuellen und gemeinschaftlichen Lernen und deren Eigenaktivität zu fördern (z. B. verschiedene sensorische Kanäle, Variation der Aktivitätstypen, kollaboratives Schreiben, Spiele und Simulationen, AR/VR )."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "5.3-V", "text": "Ich gestalte und entwickle didaktische Konzepte, um die aktive Beschäftigung der Lernenden mit dem Lerngegenstand optimal zu fördern und evaluiere, inwiefern sich verschiedene Methoden dazu eignen, die Eigenaktivität der Lernenden zu erhöhen. (z. B. strukturiertes teambasiertes Lernen, Online-Diskussionen, Peer-Coaching und -Unterricht, e-Portfolios)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "5.3-VI", "text": "Ich initiiere, fördere und multipliziere innovative Konzepte zur Förderung des digital gestützten eigenaktiven Lernens (z. B. Makerspace, Robotik, Programmierung, KI-Anwendungen, eigene Erstellung von komplexen Lernspielen)."}]}]}, {"id": "6", "title": "Medienkompetenz der Lernenden", "short": "Medienkompetenz der Lernenden", "description": "Lernende befähigen, digitale Medien kompetent, kreativ und reflektiert zu nutzen.", "subareas": [{"id": "6.1", "title": "Basiskompetenzen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.1-I", "text": "Ich bin mir bewusst, dass die Lernenden digitale Medien und Werkzeuge sachorientiert nutzen können, um Aufgaben zu verstehen und dabei auftretende Probleme zu lösen, nutze diese Möglichkeit in meinem Unterricht nicht oder nur selten (z. B. Nutzung einer Suchmaschine, von Hilfefunktionen)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.1-II", "text": "Ich habe Lernaktivitäten ausprobiert, die die Lernenden ermutigen, digitale Medien und Werkzeuge sachgerecht zu nutzen, Aufgaben zu verstehen und dabei auftretende Probleme zu lösen (z. B. einfache technische Lösungsstrategien wie Computer neu starten, Internetverbindung prüfen, Datensicherungen durchführen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.1-III", "text": "Ich nutze sach- und situationsgerecht Lernaktivitäten, bei denen die Lernenden digitale Medien und Werkzeuge überlegt und systematisch für komplexere Aufgabenfelder nutzen (z. B. Informationen mit digitalen Werkzeugen finden und ordnen, analysieren, Schlussfolgerung ziehen und Ergebnisse fixieren; Erstellung und Konzeption einer Präsentation zu einem umfangreicheren Themenbereich)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.1-IV", "text": "Ich wähle und verwende Lernkonzepte, in denen z.B. im Rahmen von Projektarbeiten Lernende aus einem breiten Medienangebot gezielt das Passende auswählen und dabei nach verschiedenen innovativen und kreativen Lösungen suchen, die in neuen Situationen und Kontexten angewandt werden können (z.B. Projektarbeit im Geografieunterricht unter Verwendung von geografischen Informationssystemen (GIS); Nutzung von virtuellen Umgebungen im Geschichts- oder Biologieunterricht, Modellierungen)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.1-V", "text": "Ich reflektiere kritisch inwiefern sich Strategien und Methoden zur Nutzung von Medienangeboten bei schulischen Lernaktivitäten und Aufgaben didaktisch und pädagogisch eignen, berücksichtige dabei insbesondere auch die Möglichkeiten und Grenzen der digitalen Werkzeuge vor Ort, und gebe mein Wissen im Kollegenkreis weiter (z.B. Mitarbeit im Medienkonzeptteam, Referententätigkeit im SCHILF-Bereich, Multiplikation von Strategien zur Nutzung schulischer IT-Systeme wie mebis)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.1-VI", "text": "Ich trage zur Entwicklung und Multiplikation innovativer und kreativer Lernszenarien für die Nutzung von Medienangeboten bei schulischen Lernaktivitäten und Aufgaben bei. Dabei analysiere und modelliere ich den Einsatz von digitalen Werkzeugen und bereite sie didaktisch auf (z.B. Entwicklung von Lernsoftware oder Schulbüchern mit digitalen Zusatzangeboten, Entwicklung von Unterrichtskonzepten mit digitalen Medien, Verfassen von Handreichungen für den Unterricht, umfassende regionale bzw. zentrale Referententätigkeit)."}]}, {"id": "6.2", "title": "Suchen und Verarbeiten", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.2-I", "text": "Ich kenne Lernaktivitäten mit digitalen Medien, die die Such- und Verarbeitungsstrategien der Lernenden verbessern können, nutze sie jedoch im Unterricht nicht oder nur selten (z.B. Suche nach digitalen Informationen mit einer Suchmaschine, Bewertung der gefundenen Informationen, Lesen von Diagrammen, Lesen und Verstehen von Daten, Erstellung einfacher digitaler Inhalte wie Texte, Tabellen oder Bilder)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.2-II", "text": "Ich habe Lernaktivitäten ausprobiert, die die Lernenden dazu anregen, digitale Medien zur Informationsgewinnung und -verarbeitung einzusetzen. Dabei bringe ich Lernenden bei, Quellen korrekt anzugeben und zu zitieren (z.B. bei Online-Recherchen, Festlegung von Suchkriterien, Vergleich verschiedener Quellen, Interpretation von Daten, Erstellung digitaler Inhalte)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.2-III", "text": "Ich nutze sach- und situationsgerecht Lernaktivitäten und Aufgaben, die von den Lernenden verlangen, Informationen und Daten aus verschiedenen Quellen zu suchen, zu vergleichen, kritisch auf ihre Verlässlichkeit zu bewerten und sie in komplexeren digitalen Inhalten zu kombinieren. (z. B. Nutzung von unterschiedlichen und altersgerechten Suchmaschinen; Verwendung von Suchfiltern; Festlegung von Auswahlkriterien, Erkennen von Ungenauigkeiten, fehlenden Informationen oder Voreingenommenheit, Gegenprüfung verschiedener Quellen zur Beurteilung der Glaubwürdigkeit, Umgang mit Fehlinformationen, Rassismus und Fremdenfeindlichkeit)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.2-IV", "text": "Ich gestalte den Unterricht sach- und situationsgerecht mit einer Vielzahl an verschiedenen Lernaktivitäten und Aufgaben so, dass die Lernenden Informationen und Daten kritisch suchen, bewerten, kombinieren und aufbereiten können. (z. B. systematische Nutzung unterschiedlicher Suchmaschinen und Kombination von Suchfiltern; Analyse der Wahl des Informationsmediums, der Quelle, des Zwecks, der Transparenz der Algorithmen, die verwendet werden, um zu entscheiden, welche Art von Informationen und Daten angezeigt werden)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.2-V", "text": "Ich reflektiere kritisch, inwiefern sich verschiedene Methoden dazu eignen, Such- und Verarbeitungsstrategien beim Einsatz digitaler Medien und Werkzeuge zu fördern, entwickle Unterrichtskonzepte entsprechend weiter und multipliziere mein Wissen im Kollegenkreis (z. B. Entwicklung von Unterrichtskonzepten für Such- und Verarbeitungsstrategien mit digitalen Medien, Verfassen von Handreichungen für den Unterricht, Referententätigkeit auf SCHILF-Ebene)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.2-VI", "text": "Ich trage zur Entwicklung und Multiplikation von innovativen Lernszenarien bei. Diese fördern Kompetenzen zur Informationsgewinnung und -verarbeitung - auch unter Berücksichtigung neuer medialer Entwicklungen (z.B. Entwicklung bestimmter Kriterien zur kritischen Bewertung von Suchergebnissen kommerzieller Suchmaschinen; Nutzung von (neuen) Spezial-Suchmaschinen)."}]}, {"id": "6.3", "title": "Kommunizieren und Kooperieren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.3-I", "text": "Ich kenne Lernaktivitäten, die die digital gestützte Kommunikation und Zusammenarbeit der Lernenden fördern könnten, nutze sie jedoch nicht oder nur selten (z. B. Nutzung von E-Mails, Instant Messaging, sozialen Netzwerken usw. zur Kommunikation mit Lehrkräften und Mitschülerinnen und Mitschülern)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.3-II", "text": "Ich habe Lernaktivitäten ausprobiert, die Lernende dazu ermutigen, mithilfe digitaler Medien und Werkzeuge mit anderen Lernenden, ihren Lehrkräften und mit Dritten zu kommunizieren und zu kooperieren (z. B. durch Online-Meetings, Diskussionsforen, Klassen-Chat)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.3-III", "text": "Ich setze sach- und situationsgerecht Lernaktivitäten ein, bei denen Lernende digitale Medien und Werkzeuge effektiv und verantwortungsbewusst für die Kommunikation nutzen. Ich entwickle mit den Lernenden Kommunikations- und Verhaltensregeln für den digitalen Raum. Ich unterstütze sie dabei, Kommunikationsstrategien und -kanäle angemessen auszuwählen und sich der kulturellen und sozialen Vielfalt in digitalen Umgebungen bewusst zu sein (z. B. Verwendung eines geeigneten Mediums für die digitale Kommunikation der Lernenden, Etablierung einer „Netiquette“)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.3-IV", "text": "Ich gestalte eine Vielzahl an verschiedenen Lernaktivitäten und Aufgaben, bei denen die Lernenden digitale Medien und Werkzeuge für die Kommunikation und Kooperation nutzen. Dabei unterstütze und motiviere ich sie, digitale Medien und Werkzeuge zum Peer-Feedback sowie zur Teilnahme an öffentlichen Diskursen zu nutzen und diese aktiv und bewusst für die gesellschaftliche Teilhabe zu verwenden. Ich prüfe und reflektiere vereinbarte Kommunikations- und Verhaltensregeln gemeinsam mit den Lernenden (z. B. Verwendung von digitalen Kollaborations-Tools, Nutzung einer gemeinsamen Lernumgebung, Bearbeitung gemeinsamer Online-Dokumente, Respektieren der Ideen und der Vielfalt anderer, während man zur Teamarbeit beiträgt, Austausch von Nachrichten über multikulturelle Netzwerke, Schaffung positiver Verbindungen und Aufbau von Kontakten, Teilnahme an der öffentlichen Diskussion in Foren)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.3-V", "text": "Ich reflektiere kritisch, inwiefern sich verschiedene Methoden dazu eignen, Kompetenzen der Lernenden zur effektiven und verantwortungsbewussten digital gestützten Kommunikation und Zusammenarbeit sowie zur Partizipation in einer digitalisierten Welt zu fördern, entwickle Unterrichtskonzepte entsprechend weiter und multipliziere mein Wissen im Kollegenkreis (z. B. Nutzung erweiterter Funktionen von Kollaborations-Tools, Diskussion mit den Lernenden über die Bedürfnisse der Kommunikation und Kooperation, Referententätigkeit auf SCHILF-Ebene)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.3-VI", "text": "Ich entwickle innovative Lernszenarien zur Förderung von Kompetenzen zur Kommunikation und Zusammenarbeit der Lernenden sowie zur Partizipation in einer digitalisierten Welt – auch unter Einbezug neuer kommunikationstechnischer Entwicklungen (z. B. Entwicklung neuer digitaler Kollaborationsformen im unterrichtlichen Kontext)."}]}, {"id": "6.4", "title": "Produzieren und Präsentieren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.4-I", "text": "Ich kenne Lernaktivitäten, die Lernende dazu ermutigen, sich mit digitalen Mitteln auszudrücken (z. B. in Form von Texten, Fotos, Bildern, Präsentationen), setze diese jedoch kaum ein."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.4-II", "text": "Ich habe Lernaktivitäten ausprobiert, die die Lernenden dazu ermutigen, digitale Inhalte zu erstellen und zu bearbeiten (z. B. Texte, Präsentationen, Audio- und Video-Inhalte)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.4-III", "text": "Ich setze verschiedene Lernaktivitäten sach- und situationsgerecht um, die von meinen Lernenden verlangen, ihre Ideen kreativ zum Ausdruck zu bringen und zu vermitteln, indem sie geeignete digitale Tools verwenden (z. B. Visualisierungen, Simulationen, digitale Stories, Werkzeuge zum Videoschnitt)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.4-IV", "text": "Ich identifiziere aus einer Vielzahl verschiedener Lernaktivitäten gezielt geeignete aus und verwende sie, um Lernende zu unterstützen, ihre Meinung und Arbeitsergebnisse zu präsentieren und zu dokumentieren (z.B. in Wikis, Blogs oder E-Portfolios) und dabei Urheberrechtsvorschriften einzuhalten und Lizenzen zu wahren."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.4-V", "text": "Ich reflektiere und bewerte kritisch Lernaktivitäten zur Förderung der digitalen Fertigkeiten bei der (Neu-)Erstellung von Inhalten durch die Lernenden und zur Förderung der kollaborativen Nutzung (z. B. digitale Stories, e-Portfolios). Ausserdem berate ich mein Kollegium diesbezüglich."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.4-VI", "text": "Ich entwickle innovative Lernszenarien zur Förderung digital gestützter kreativer Produkte, Präsentationen und Publikationen der Lernenden (z. B. Veröffentlichung komplexer Medienprodukte, gemeinsame Erstellung von mobilen Apps, Unterhaltung von Makerspaces, Förderung von Audio- und Videoübertragungen) und multipliziere diese Kompetenzen in regionalen oder überregionalen Fortbildungen."}]}, {"id": "6.5", "title": "Analysieren und Reflektieren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.5-I", "text": "Ich kenne in geringem Umfang Lernaktivitäten, die die Lernenden befähigen, die rechtlichen und ethischen Auswirkungen der Nutzung digitaler Technologien zu verstehen (z. B. Weitergabe von personenbezogenen Daten und sensiblen Informationen anderer, Umgang mit privaten Einstellungen in Online-Apps), aber berücksichtige sie in meinem Unterricht kaum."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.5-II", "text": "Ich versuche zielgerichtet Lernende dahingehend zu sensibilisieren, welche rechtlichen und ethischen Auswirkungen die Nutzung digitaler Technologien haben kann (z. B. Freigabe von urheberrechtlich geschützten digitalen Inhalten, Akzeptieren von Genehmigungen bei der Installation von Apps) und für eine interessengeleitete Setzung medialer Inhalte zu sensibilisieren (z.B. Erkennen von Fake News)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.5-III", "text": "Ich verwende sach- und situationsgerecht verschiedene digitale Lernaktivitäten, die von den Lernenden sowohl bei der Nutzung als auch bei der Erstellung von digitalen Inhalten eine verantwortungsvolle, ethisch reflektierte und sozialverantwortliche Vorgehensweise verlangen (z. B. kritische Bewertung von Online-Informationen, Reaktion auf Falschinformationen, positives Online-Verhalten, Einhaltung von Datenschutz- und Urheberrechtsbestimmungen)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.5-IV", "text": "Ich gestalte durch systematische Auswahl verschiedener Aktivitäten Lernumgebungen, um Lernende bei der vertiefenden Analyse und Beurteilung von Inhalten und Einflüssen digitaler Technologien zu fördern und sie zu einem verantwortungsbewussten Umgang mit digitalen Medien zu befähigen (z. B. Verfolgung ihres digitalen Fussabdrucks, Verwaltung ihrer digitalen Identität, Kenntnis der Nutzungsbedingungen verschiedener Medien und Anwendungen, Verwaltung von Anwendungseinstellungen)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.5-V", "text": "Ich reflektiere kritisch, inwiefern sich verschiedene Methoden dazu eignen, Medienangebote und digitale Werkzeuge im Unterricht umfassend zu analysieren und gestalte sie ggf. entsprechend um. Mein Wissen gebe ich im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.5-VI", "text": "Ich entwickle und multipliziere innovative Konzepte und Lernszenarien zur kritischen Auseinandersetzung mit Inhalten, Gestaltungsmitteln, Wirkungsweisen und Einflüssen digitaler Technologien sowie Chancen und Risiken in den Medien."}]}]}]};
+(function () {
+  'use strict';
+  const STORE_KEY = 'dk-sz-selbsteinschaetzung-v1';
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+  const LV = ITEMS.levels;
+  const roman = (v) => (v >= 1 ? LV[v - 1].roman : '–');
+  const SUBS = DKCore.allSubareas(ITEMS);
+  const subById = Object.fromEntries(SUBS.map((s) => [s.id, s]));
+  const LEVEL_VARS = ['--l0', '--l1', '--l2', '--l3', '--l4', '--l5', '--l6'];
+
+  /* ---------- Zustand ---------- */
+  function newState() {
+    return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: uid(), created: new Date().toISOString(), updated: null, context: {}, answers: {} };
+  }
+  function uid() { return 'r-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+  function load() {
+    try { const raw = localStorage.getItem(STORE_KEY); if (!raw) return null; const s = JSON.parse(raw); return DKCore.validateRecord(s) ? s : null; } catch (e) { return null; }
+  }
+  function persist() {
+    state.updated = new Date().toISOString();
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* Speicher nicht verfügbar: weiter ohne */ }
+  }
+  function wipe() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} state = newState(); }
+  let state = load() || newState();
+  let areaIdx = 0;
+
+  /* ---------- Navigation ---------- */
+  function go(view) {
+    ['start', 'survey', 'result', 'school', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
+    $$('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.go === view ? 'page' : 'false'));
+    if (view === 'start') renderStart();
+    if (view === 'survey') renderSurvey();
+    if (view === 'result') renderResult();
+    if (view === 'school') renderSchool();
+    window.scrollTo({ top: 0 });
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-go]');
+    if (t) { e.preventDefault(); go(t.dataset.go); }
+  });
+
+  /* ---------- Stufenleiste ---------- */
+  function levelsStrip(el) {
+    el.innerHTML = LV.map((l) => `<div class="lv${l.level}"><b>${l.roman}</b>${esc(l.label)}</div>`).join('');
+  }
+  levelsStrip($('#levels-strip'));
+  levelsStrip($('#levels-strip-2'));
+  $('#info-version').textContent = 'Version ' + ITEMS.version + ' · ' + ITEMS.source;
+
+  /* ---------- Löschen mit Bestätigung auf der Seite ---------- */
+  function resetControl(el, label) {
+    el.innerHTML = `<button class="btn danger" type="button">${label}</button>`;
+    el.firstChild.addEventListener('click', () => {
+      el.innerHTML = `<span class="small"><b>Alle Antworten auf diesem Gerät löschen?</b></span>
+        <button class="btn danger" type="button" data-a="yes">Ja, löschen</button>
+        <button class="btn quiet" type="button" data-a="no">Abbrechen</button>`;
+      el.querySelector('[data-a=yes]').addEventListener('click', () => { wipe(); go('start'); });
+      el.querySelector('[data-a=no]').addEventListener('click', () => resetControl(el, label));
+    });
+  }
+
+  /* ---------- Start ---------- */
+  function renderStart() {
+    const p = DKCore.progress(ITEMS, state.answers);
+    const has = p.done > 0;
+    $('#resume-box').hidden = !has;
+    if (has) {
+      const d = state.updated ? new Date(state.updated) : null;
+      $('#resume-text').textContent = `${p.done} von ${p.total} Fragen beantwortet` + (d ? `, zuletzt bearbeitet am ${d.toLocaleDateString('de-CH')} um ${d.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })} Uhr.` : '.');
+      resetControl($('#reset-confirm-start'), 'Löschen und neu beginnen');
+    }
+    ['stufe', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx-' + k).value = state.context[k] || ''; });
+    $('#btn-start').firstChild.textContent = has ? 'Weiter zur Selbsteinschätzung ' : 'Selbsteinschätzung starten ';
+  }
+  $('#context-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    ['stufe', 'funktion', 'erfahrung'].forEach((k) => { state.context[k] = $('#ctx-' + k).value || null; });
+    persist();
+    const p = DKCore.progress(ITEMS, state.answers);
+    const firstOpen = p.open[0];
+    areaIdx = firstOpen ? ITEMS.areas.findIndex((a) => a.id === subById[firstOpen].areaId) : 0;
+    go('survey');
+  });
+  $('#btn-resume').addEventListener('click', () => { $('#context-form').requestSubmit(); });
+
+  $('#file-own').addEventListener('change', async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const obj = JSON.parse(await f.text());
+      if (!DKCore.validateRecord(obj)) throw new Error('format');
+      state = Object.assign(newState(), obj);
+      persist();
+      $('#file-own-msg').textContent = '';
+      go('result');
+    } catch (err) {
+      $('#file-own-msg').textContent = 'Diese Datei ist keine Ergebnisdatei dieses Instruments. Bitte eine mit «Ergebnis als Datei speichern» erstellte .json-Datei wählen.';
+    }
+    e.target.value = '';
+  });
+
+  /* ---------- Fragebogen ---------- */
+  function renderAreaNav() {
+    $('#areanav').innerHTML = ITEMS.areas.map((a, i) => {
+      const done = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
+      const full = done === a.subareas.length;
+      return `<button type="button" data-area="${i}" aria-current="${i === areaIdx ? 'step' : 'false'}">
+        <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>`;
+    }).join('');
+    $$('#areanav button').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
+    const p = DKCore.progress(ITEMS, state.answers);
+    $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
+    $('#progress-text').textContent = `${p.done} von ${p.total} Fragen beantwortet`;
+  }
+  function renderSurvey(focus) {
+    const a = ITEMS.areas[areaIdx];
+    $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
+    $('#h-area').textContent = a.title;
+    $('#area-desc').textContent = a.description;
+    $('#questions').innerHTML = a.subareas.map((s) => {
+      const cur = state.answers[s.id];
+      const opts = s.levels.map((l) => `
+        <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${cur === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('');
+      return `<fieldset class="q">
+        <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
+        <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
+        <div class="opts">${opts}
+          <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${cur === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
+        </div></fieldset>`;
+    }).join('');
+    $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
+      state.answers[r.name.slice(2)] = +r.value;
+      persist();
+      renderAreaNav();
+      $('#open-hint').textContent = '';
+    }));
+    $('#btn-prev').hidden = areaIdx === 0;
+    $('#btn-next').textContent = areaIdx === ITEMS.areas.length - 1 ? 'Zum Ergebnis' : 'Weiter zu «' + ITEMS.areas[areaIdx + 1].title + '»';
+    renderAreaNav();
+    $('#open-hint').textContent = '';
+    if (focus) { window.scrollTo({ top: 0 }); $('#h-area').focus({ preventScroll: true }); }
+  }
+  $('#btn-prev').addEventListener('click', () => { if (areaIdx > 0) { areaIdx--; renderSurvey(true); } });
+  $('#btn-next').addEventListener('click', () => {
+    if (areaIdx < ITEMS.areas.length - 1) { areaIdx++; renderSurvey(true); }
+    else go('result');
+  });
+
+  /* ---------- Netzdiagramm (SVG) ---------- */
+  function radarSVG(series, opts = {}) {
+    const W = 560, H = 470, cx = W / 2, cy = 232, R = 158, n = ITEMS.areas.length;
+    const ang = (i) => -Math.PI / 2 + (2 * Math.PI * i) / n;
+    const pt = (i, v) => [cx + Math.cos(ang(i)) * R * (v / 6), cy + Math.sin(ang(i)) * R * (v / 6)];
+    let g = '';
+    for (let lv = 1; lv <= 6; lv++) {
+      const pts = ITEMS.areas.map((_, i) => pt(i, lv).map((x) => x.toFixed(1)).join(',')).join(' ');
+      g += `<polygon points="${pts}" fill="none" stroke="${lv === 6 ? '#919191' : '#D2D2D2'}" stroke-width="1"/>`;
+    }
+    ITEMS.areas.forEach((a, i) => {
+      const [x, y] = pt(i, 6);
+      g += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#D2D2D2" stroke-width="1"/>`;
+    });
+    for (let lv = 1; lv <= 6; lv++) {
+      const [x, y] = pt(0, lv);
+      g += `<text x="${(x + 6).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="11" fill="#6E6E6E">${LV[lv - 1].roman}</text>`;
+    }
+    ITEMS.areas.forEach((a, i) => {
+      const [x, y] = pt(i, 6.0);
+      const c = Math.cos(ang(i)), s = Math.sin(ang(i));
+      const anchor = Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end';
+      const words = a.short.split(' ');
+      const lines = [];
+      words.forEach((w) => { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= 16) lines[lines.length - 1] += ' ' + w; else lines.push(w); });
+      const val = opts.valueLabels ? series[0].values[i] : null;
+      const nl = lines.length + (opts.valueLabels ? 1 : 0);
+      const lx = x + c * 16;
+      const ly = s < -0.3 ? y - 12 - 15 * (nl - 1) : s > 0.3 ? y + 22 : y + 4 - 7.5 * (nl - 1);
+      g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" font-size="13" fill="#000">` +
+        lines.map((l, k) => `<tspan x="${lx.toFixed(1)}" dy="${k === 0 ? 0 : 15}">${k === 0 ? '<tspan font-weight="700">' + a.id + '</tspan> ' : ''}${esc(l)}</tspan>`).join('') +
+        (val !== null && val !== undefined ? `<tspan x="${lx.toFixed(1)}" dy="15" fill="#464646">Ø ${fmt(val)}</tspan>` : '') + `</text>`;
+    });
+    series.forEach((se) => {
+      const pts = se.values.map((v, i) => pt(i, v || 0).map((x) => x.toFixed(1)).join(',')).join(' ');
+      g += `<polygon points="${pts}" fill="${se.fill}" stroke="${se.stroke}" stroke-width="2.5" stroke-linejoin="round" ${se.dash ? 'stroke-dasharray="6 4"' : ''}/>`;
+      se.values.forEach((v, i) => {
+        if (v === null) return;
+        const [x, y] = pt(i, v);
+        g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${se.stroke}" stroke="#fff" stroke-width="1.5"/>`;
+      });
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || 'Netzdiagramm')}">${g}</svg>`;
+  }
+
+  /* ---------- Ergebnis ---------- */
+  function meter(v) {
+    if (v === 0) return `<div class="meter none" aria-hidden="true">${'<span></span>'.repeat(6)}</div>`;
+    return `<div class="meter" aria-hidden="true">${[1, 2, 3, 4, 5, 6].map((k) => `<span style="${k <= v ? 'background:var(--l' + k + ')' : ''}"></span>`).join('')}</div>`;
+  }
+  function badge(v) {
+    if (v === undefined) return `<span class="badge" style="background:#fff;border:1px solid var(--line)">offen</span>`;
+    if (v === 0) return `<span class="badge lv0" title="Keine Gelegenheit">k. G.</span>`;
+    return `<span class="badge lv${v}">${LV[v - 1].roman}</span>`;
+  }
+  function renderResult() {
+    const p = DKCore.progress(ITEMS, state.answers);
+    const any = p.done > 0;
+    $('#result-empty').hidden = any;
+    $('#result-content').hidden = !any;
+    if (!any) return;
+    const d = new Date(state.updated || state.created);
+    $('#result-date').textContent = 'Stand ' + d.toLocaleDateString('de-CH');
+    const ctx = state.context || {};
+    $('#result-chips').innerHTML = [ctx.stufe, ctx.funktion, ctx.erfahrung].filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
+    const openBox = $('#result-open');
+    openBox.hidden = p.open.length === 0;
+    if (p.open.length) openBox.innerHTML = `<b>${p.open.length} von ${p.total} Fragen sind noch offen</b> (${p.open.join(', ')}). Das Profil ist darum unvollständig. <button class="btn quiet" type="button" data-go="survey">Offene Fragen beantworten</button>`;
+
+    const scores = DKCore.areaScores(ITEMS, state.answers);
+    $('#radar-own').innerHTML = radarSVG([{ values: scores.map((s) => s.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwert der Stufen pro Kompetenzbereich' });
+    $('#legend-own').innerHTML = 'Mittelwert der gewählten Stufen pro Bereich (I = 1 bis VI = 6). Antworten «keine Gelegenheit» zählen nicht.';
+
+    const sg = DKCore.strengthsAndGaps(ITEMS, state.answers, 3);
+    $('#list-strengths').innerHTML = sg.strengths.map((r) => `<li class="focus-item">${badge(r.v)}<span><b>${r.s.id}</b> ${esc(r.s.title)}</span></li>`).join('') || '<li class="muted small">Noch keine Angaben.</li>';
+    $('#list-gaps').innerHTML = sg.gaps.map((r) => `<li class="focus-item">${badge(r.v)}<span><b>${r.s.id}</b> ${esc(r.s.title)}</span>
+      <span class="next">Nächste Stufe ${LV[r.v].roman}: ${esc(r.s.levels[r.v].text)}</span></li>`).join('') || '<li class="muted small">Keine offenen Entwicklungsfelder.</li>';
+    $('#noopp-wrap').hidden = sg.noOpp.length === 0;
+    $('#list-noopp').innerHTML = sg.noOpp.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}</li>`).join('');
+
+    $('#result-areas').innerHTML = ITEMS.areas.map((a, i) => {
+      const sc = scores[i];
+      return `<div class="area-block"><h3><span>${a.id} ${esc(a.title)}</span><span class="avg">Ø ${fmt(sc.mean)}${sc.mean ? ' · ' + LV[Math.round(sc.mean) - 1].label : ''}</span></h3>
+        ${a.subareas.map((s) => {
+          const v = state.answers[s.id];
+          let body = '';
+          if (v === undefined) body = `<p class="muted">Noch nicht beantwortet.</p>`;
+          else if (v === 0) body = `<p>Bisher keine Gelegenheit. Zu klären: Sind die Voraussetzungen an der Schule gegeben, etwa Geräte, Plattformen oder ein entsprechender Auftrag?</p>`;
+          else {
+            body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${esc(s.levels[v - 1].text)}</p></div>`;
+            if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${esc(s.levels[v].text)}</p></div>`;
+          }
+          return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
+        }).join('')}</div>`;
+    }).join('');
+    resetControl($('#reset-confirm-result'), 'Alle Daten auf diesem Gerät löschen');
+  }
+
+  function download(name, text, type) {
+    const blob = new Blob([text], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const today = () => new Date().toISOString().slice(0, 10);
+  $('#btn-save').addEventListener('click', () => download(`Kompetenzprofil_SZ_${today()}.json`, JSON.stringify(state, null, 1), 'application/json'));
+  $('#btn-print').addEventListener('click', () => {
+    $$('details.sub').forEach((d) => { d.dataset.wasOpen = d.open; d.open = true; });
+    window.print();
+    $$('details.sub').forEach((d) => { d.open = d.dataset.wasOpen === 'true'; });
+  });
+
+  /* ---------- Schulauswertung ---------- */
+  let school = { records: [], sample: false, filter: '' };
+  function sampleRecords() {
+    let seed = 20260928;
+    const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const base = { '1': 3.4, '2': 3.1, '3': 2.8, '4': 2.1, '5': 2.4, '6': 2.6 };
+    const stufen = ['Kindergarten', 'Primarstufe 1.–2. Klasse', 'Primarstufe 3.–6. Klasse', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
+    return Array.from({ length: 14 }, (_, k) => {
+      const skill = (rnd() - 0.5) * 2.2;
+      const answers = {};
+      SUBS.forEach((s) => {
+        if ((s.id === '5.1' || s.areaId === '4') && rnd() < 0.12) { answers[s.id] = 0; return; }
+        answers[s.id] = Math.max(1, Math.min(6, Math.round(base[s.areaId] + skill + (rnd() - 0.5) * 1.6)));
+      });
+      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[Math.floor(rnd() * stufen.length)] }, answers };
+    });
+  }
+  async function addFiles(files) {
+    const msg = [];
+    if (school.sample) { school.records = []; school.sample = false; }
+    let added = 0, bad = 0, dup = 0;
+    for (const f of files) {
+      try {
+        const obj = JSON.parse(await f.text());
+        if (!DKCore.validateRecord(obj)) { bad++; continue; }
+        if (school.records.some((r) => r.id === obj.id)) { dup++; continue; }
+        school.records.push(obj); added++;
+      } catch (e) { bad++; }
+    }
+    msg.push(`${added} Ergebnis${added === 1 ? '' : 'se'} hinzugefügt.`);
+    if (dup) msg.push(`${dup} doppelt, nicht übernommen.`);
+    if (bad) msg.push(`${bad} Datei${bad === 1 ? '' : 'en'} nicht lesbar.`);
+    $('#school-msg').textContent = msg.join(' ');
+    renderSchool();
+  }
+  $('#file-school').addEventListener('change', (e) => { addFiles(Array.from(e.target.files)); e.target.value = ''; });
+  const dz = $('#dropzone');
+  ['dragenter', 'dragover'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', (e) => addFiles(Array.from(e.dataTransfer.files)));
+  $('#btn-school-sample').addEventListener('click', () => { school = { records: sampleRecords(), sample: true, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+
+  function heatCell(count, total) {
+    if (!total) return `<td class="cell">–</td>`;
+    const share = count / total;
+    const bg = count === 0 ? 'transparent' : `rgba(226,0,26,${(0.08 + share * 0.82).toFixed(2)})`;
+    const fg = share > 0.62 ? '#fff' : '#000';
+    return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
+  }
+  function renderSchool() {
+    const out = $('#school-out');
+    if (!school.records.length && !school.sample) { school = { records: sampleRecords(), sample: true, filter: '' }; }
+    const stufen = [...new Set(school.records.map((r) => (r.context && r.context.stufe) || '').filter(Boolean))].sort();
+    const recs = school.filter ? school.records.filter((r) => r.context && r.context.stufe === school.filter) : school.records;
+    const agg = DKCore.aggregate(ITEMS, recs);
+    const tooFew = agg.n < DKCore.MIN_GROUP;
+    const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
+    const noOppTop = SUBS.filter((s) => agg.bySub[s.id].counts[0] > 0).sort((a, b) => agg.bySub[b.id].counts[0] - agg.bySub[a.id].counts[0]).slice(0, 3);
+
+    out.innerHTML = `
+      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> 14 fiktive Lehrpersonen zur Veranschaulichung. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
+      ${tooFew && agg.n > 0 ? `<div class="box box--warning"><b>Weniger als ${DKCore.MIN_GROUP} Ergebnisse.</b> Bei so kleinen Gruppen lassen sich Rückschlüsse auf einzelne Personen ziehen. Die Auswertung ist nur zur Kontrolle gedacht.</div>` : ''}
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div class="stat-row">
+          <div class="stat"><span class="small muted">Ergebnisse</span><b>${agg.n}</b></div>
+          ${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small muted">Bereich ${a.id}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}
+        </div>
+        <div class="row">
+          <div class="field" style="min-width:220px"><label for="school-filter" class="small">Schulstufe</label>
+            <select id="school-filter"><option value="">Alle Stufen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
+        </div>
+      </div>
+      <div class="result-top" style="padding-block:0">
+        <div class="stack"><h3>Profil der Schule</h3><div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>
+          <p class="small muted">Mittelwert der Teilbereiche pro Bereich, Stufen I = 1 bis VI = 6.</p></div>
+        <div class="stack" style="gap:28px">
+          <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3>
+            <ul class="list-plain">${sorted.slice(0, 4).map((s) => `<li class="focus-item"><span class="badge lv${Math.max(1, Math.round(agg.bySub[s.id].mean))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
+          <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3>
+            <ul class="list-plain">${sorted.slice(-3).reverse().map((s) => `<li class="focus-item"><span class="badge lv${Math.round(agg.bySub[s.id].mean)}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
+          ${noOppTop.length ? `<div class="stack" style="gap:12px"><h3>Häufig keine Gelegenheit</h3><p class="small muted">Hinweis auf fehlende Voraussetzungen an der Schule.</p>
+            <ul class="list-plain small">${noOppTop.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}: ${agg.bySub[s.id].counts[0]} Nennung${agg.bySub[s.id].counts[0] === 1 ? '' : 'en'}</li>`).join('')}</ul></div>` : ''}
+        </div>
+      </div>
+      <div class="stack" style="gap:12px">
+        <h3>Verteilung pro Teilbereich</h3>
+        <p class="small muted">Anzahl Lehrpersonen pro Stufe. Je dunkler, desto grösser der Anteil.</p>
+        <div class="table-scroll"><table class="heat">
+          <thead><tr><th scope="col">Teilbereich</th>${LV.map((l) => `<th scope="col">${l.roman}<br><span style="font-weight:400">${esc(l.label)}</span></th>`).join('')}<th scope="col">Keine<br>Gelegenheit</th><th scope="col">Ø</th></tr></thead>
+          <tbody>${ITEMS.areas.map((a) => `<tr class="area-row"><td colspan="9">${a.id} ${esc(a.title)}</td></tr>` + a.subareas.map((s) => {
+            const d = agg.bySub[s.id];
+            return `<tr><td>${s.id} ${esc(s.title)}</td>${[1, 2, 3, 4, 5, 6].map((k) => heatCell(d.counts[k], d.answered)).join('')}<td class="cell">${d.counts[0] || ''}</td><td><b>${fmt(d.mean)}</b></td></tr>`;
+          }).join('')).join('')}</tbody></table></div>
+      </div>
+      <div class="actions" style="border-top:0;padding-top:0">
+        <button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button>
+        ${!school.sample ? '<button class="btn quiet" type="button" id="btn-school-clear">Geladene Dateien entfernen</button>' : ''}
+      </div>`;
+    $('#school-filter').addEventListener('change', (e) => { school.filter = e.target.value; renderSchool(); });
+    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg), 'text/csv;charset=utf-8'));
+    const clr = $('#btn-school-clear');
+    if (clr) clr.addEventListener('click', () => { school = { records: [], sample: false, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+  }
+
+  go(location.hash === '#school' ? 'school' : location.hash === '#result' ? 'result' : 'start');
+})();
+</script>
+</body>
+</html>

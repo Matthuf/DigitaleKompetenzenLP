@@ -1,0 +1,20 @@
+{
+  "name": "digkomp-sz",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Selbsteinschätzung digitale Kompetenzen von Lehrpersonen, Kanton Schwyz (Prototyp)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "python3 build.py",
+    "dev": "node dev-server.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0"
+  }
+}
