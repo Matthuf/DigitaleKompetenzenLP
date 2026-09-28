@@ -55,6 +55,34 @@ window.Block = (function () {
     return '\r\n' + rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
   }
 
+  /* ---------- Vorschau aus Sicht der Lehrperson (nicht gespeichert) ---------- */
+  function previewHTML(b) {
+    const qs = b.questions.map((q, i) => {
+      const opts = (q.options || []).map((o) => o.trim()).filter(Boolean);
+      const name = 'pv-' + i;
+      let hint = '', body = '';
+      if (q.type === 'scale') {
+        hint = 'Wie weit trifft die Aussage zu?';
+        body = `<div class="opts inline">${SCALE.map((l) => `<label class="opt"><input type="radio" name="${name}"><span>${l}</span></label>`).join('')}</div>
+          <div class="opts" style="margin-top:8px"><label class="opt none"><input type="radio" name="${name}"><span>Kann ich nicht beurteilen</span></label></div>`;
+      } else if (q.type === 'levels') {
+        hint = 'Welche Aussage beschreibt das eigene Handeln am besten?';
+        body = `<div class="opts">${opts.map((o) => `<label class="opt"><input type="radio" name="${name}"><span>${esc(o)}</span></label>`).join('')}
+          <label class="opt none"><input type="radio" name="${name}"><span>Dazu hatte ich bisher keine Gelegenheit.</span></label></div>`;
+      } else if (q.type === 'choice') {
+        hint = q.multiple ? 'Mehrere Antworten möglich.' : 'Eine Antwort wählen.';
+        body = `<div class="opts">${opts.map((o) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}"><span>${esc(o)}</span></label>`).join('')}</div>`;
+      } else {
+        hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen.';
+        body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" rows="3"></textarea>`;
+      }
+      return `<fieldset class="q"><legend><span class="qid">${i + 1}</span><span>${esc(q.text || '(ohne Fragetext)')}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
+    }).join('');
+    return `<div class="eyebrow">Vorschau · so sehen Lehrpersonen den letzten Schritt · Eingaben werden nicht gespeichert</div>
+      <h2 style="margin-top:6px">${esc(b.title || 'Fragen unserer Schule')}</h2>
+      <p class="muted">${esc(b.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten fliessen nur in die Schulauswertung ein.')}</p>${qs}`;
+  }
+
   /* ---------- Editor ---------- */
   let ed = null;       // { id, title, locked, block }
   let ctx = null;      // { campaigns: () => [], reload: async () => {} }
@@ -64,18 +92,23 @@ window.Block = (function () {
     ctx = context;
     const c = ctx.campaigns().find((x) => x.id === id);
     const b = c.custom_block ? JSON.parse(JSON.stringify(c.custom_block)) : { title: 'Fragen unserer Schule', intro: '', questions: [] };
-    ed = { id, title: c.title, locked: c.submitted > 0, block: b };
+    ed = { id, title: c.title, locked: c.submitted > 0, block: b, preview: false };
     render();
-    $('#block-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!ctx.embedded) $('#block-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  function close() { ed = null; render(); }
+  function close() {
+    if (ctx && ctx.embedded && ed) { const id = ed.id; ed = null; return open(id, ctx); }
+    ed = null; render();
+  }
 
   function render() {
     const box = $('#block-editor');
     if (!ed) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     const b = ed.block;
-    const head = `<div class="row" style="justify-content:space-between;align-items:flex-end">
+    const head = ctx.embedded
+      ? `<p class="small muted" style="max-width:75ch">Sobald die erste Lehrperson die Erhebung abgeschlossen hat, lassen sich die Fragen nicht mehr ändern. Die Auswertung erscheint wie beim Kompetenzteil erst ab der Mindestanzahl abgeschlossener Teilnahmen.</p><span id="ed-close" hidden></span>`
+      : `<div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stack" style="gap:6px"><div class="eyebrow">Schulblock</div><h2>Eigene Fragen · ${esc(ed.title)}</h2></div>
         <button class="btn quiet" type="button" id="ed-close">Schliessen</button></div>
       <p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen im Fragebogen als zusätzlicher Schritt nach den sechs Kompetenzbereichen. Sie fliessen nicht ins Kompetenzprofil ein. Die Auswertung erscheint wie beim Kern erst ab fünf abgeschlossenen Teilnahmen. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
@@ -99,10 +132,12 @@ window.Block = (function () {
         ${others.length ? `<span class="muted small">oder</span><select id="ed-copy" style="width:auto" aria-label="Fragen aus anderer Erhebung übernehmen"><option value="">Fragen übernehmen aus …</option>${others.map((c) => `<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select>` : ''}
       </div>
       <div class="row" style="border-top:1px solid var(--line);padding-top:16px">
-        <button class="btn" type="button" id="ed-save">Schulblock speichern</button>
+        <button class="btn" type="button" id="ed-save">Eigene Fragen speichern</button>
+        <button class="btn secondary" type="button" id="ed-preview-btn" aria-expanded="${ed.preview}" ${b.questions.length ? '' : 'disabled'}>${ed.preview ? 'Vorschau schliessen' : 'Vorschau für Lehrpersonen'}</button>
         <span class="confirm" id="ed-remove"></span>
         <span class="small" id="ed-msg" role="status"></span>
-      </div>`;
+      </div>
+      <div id="ed-preview" class="preview" ${ed.preview && b.questions.length ? '' : 'hidden'}>${ed.preview ? previewHTML(b) : ''}</div>`;
     bind();
   }
 
@@ -128,13 +163,15 @@ window.Block = (function () {
   function bind() {
     const b = ed.block;
     $('#ed-close').addEventListener('click', close);
-    $('#ed-title').addEventListener('input', (e) => { b.title = e.target.value; });
-    $('#ed-intro').addEventListener('input', (e) => { b.intro = e.target.value; });
+    const refresh = () => { if (ed.preview) $('#ed-preview').innerHTML = previewHTML(b); };
+    $('#ed-title').addEventListener('input', (e) => { b.title = e.target.value; refresh(); });
+    $('#ed-intro').addEventListener('input', (e) => { b.intro = e.target.value; refresh(); });
     $$('#ed-questions [data-f]').forEach((el) => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', () => {
       const q = b.questions[+el.dataset.i];
       if (el.dataset.f === 'options') q.options = el.value.split('\n');
       else if (el.dataset.f === 'multiple') q.multiple = el.checked;
       else q.text = el.value;
+      refresh();
     }));
     $$('#ed-questions [data-move]').forEach((btn) => btn.addEventListener('click', () => {
       const i = +btn.dataset.move, j = i + +btn.dataset.dir;
@@ -152,6 +189,7 @@ window.Block = (function () {
       $('#ed-msg').textContent = 'Fragen übernommen. Zum Übernehmen noch speichern.';
     });
     $('#ed-save').addEventListener('click', () => save(b));
+    $('#ed-preview-btn').addEventListener('click', () => { ed.preview = !ed.preview; render(); if (ed.preview) $('#ed-preview').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     if (b.questions.length || count(ctx.campaigns().find((c) => c.id === ed.id))) {
       confirmButton($('#ed-remove'), 'Schulblock entfernen', 'Alle eigenen Fragen dieser Erhebung entfernen?', 'Ja, entfernen', () => save(null), 'btn quiet');
     }

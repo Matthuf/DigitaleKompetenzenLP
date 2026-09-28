@@ -57,43 +57,57 @@
   </section>
 
   <section class="view" id="v-dash" hidden>
-    <div class="stack" style="gap:40px">
-      <div class="stack" style="gap:16px">
-        <div class="row" style="justify-content:space-between;align-items:flex-end">
-          <div class="stack" style="gap:6px">
-            <h2>Erhebungen</h2>
-            <p class="muted small" style="max-width:70ch">Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt, zum Beispiel «Herbst 2026». Den Link an alle Lehrpersonen weitergeben. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>
-          </div>
-          <form class="row" id="form-campaign">
-            <label for="camp-title" class="small"><b>Neue Erhebung</b></label>
-            <input type="text" id="camp-title" placeholder="z. B. Herbst 2026" style="width:220px">
-            <select id="camp-copy" aria-label="Schulblock übernehmen" style="width:auto" hidden></select>
-            <button class="btn" type="submit">Erstellen</button>
-          </form>
-        </div>
-        <p class="error small" id="camp-msg" role="alert"></p>
-        <div class="table-scroll"><table class="list" id="camp-table"></table></div>
-      </div>
+    <nav class="tabs" aria-label="Bereiche der Schulleitung">
+      <a href="#erhebungen" data-tab="erhebungen">Erhebungen</a>
+      <a href="#auswertung" data-tab="auswertung">Auswertung</a>
+      <a href="#fragen" data-tab="fragen">Eigene Fragen</a>
+    </nav>
 
-      <div class="stack" style="gap:20px" id="block-editor" hidden></div>
-
-      <div class="stack" style="gap:24px" id="analysis" hidden>
-        <div class="row" style="justify-content:space-between;align-items:flex-end">
-          <div class="stack" style="gap:6px"><div class="eyebrow">Schulauswertung</div><h2 id="an-title"></h2></div>
-          <div class="row">
-            <div class="field"><label for="an-compare" class="small">Vergleich mit</label><select id="an-compare"></select></div>
-            <div class="field"><label for="an-stufe" class="small">Schulstufe</label><select id="an-stufe"></select></div>
-          </div>
-        </div>
-        <div id="an-out" class="stack" style="gap:28px"></div>
+    <div class="tabpanel stack" id="tab-erhebungen" style="gap:24px">
+      <div class="stack" style="gap:6px">
+        <h2>Erhebungen</h2>
+        <p class="muted" style="max-width:72ch">Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt, zum Beispiel «Herbst 2026». Den Link an alle Lehrpersonen weitergeben. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>
       </div>
+      <details class="panel create" id="create-box">
+        <summary><b>Neue Erhebung eröffnen</b></summary>
+        <form class="stack" id="form-campaign" style="margin-top:16px">
+          <div class="two-col" style="gap:16px">
+            <div class="field"><label for="camp-title">Titel</label><input type="text" id="camp-title" placeholder="z. B. Herbst 2026" maxlength="80"></div>
+            <div class="field"><label for="camp-expected">Anzahl Lehrpersonen <span class="small muted">(freiwillig, für die Rücklaufquote)</span></label><input type="text" inputmode="numeric" id="camp-expected" placeholder="z. B. 24"></div>
+          </div>
+          <div class="field" id="camp-copy-field" hidden><label for="camp-copy">Eigene Fragen</label><select id="camp-copy"></select></div>
+          <div class="row"><button class="btn" type="submit">Erhebung eröffnen</button><span class="error small" id="camp-msg" role="alert"></span></div>
+        </form>
+      </details>
+      <div id="camp-list" class="stack" style="gap:16px"></div>
+    </div>
+
+    <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div class="stack" style="gap:6px"><h2>Auswertung</h2><p class="muted small">Zusammengefasste Werte der Schule. Einzelne Profile sind nicht einsehbar.</p></div>
+        <div class="row">
+          <div class="field"><label for="an-campaign" class="small">Erhebung</label><select id="an-campaign"></select></div>
+          <div class="field"><label for="an-compare" class="small">Vergleich mit</label><select id="an-compare"></select></div>
+          <div class="field"><label for="an-stufe" class="small">Schulstufe</label><select id="an-stufe"></select></div>
+        </div>
+      </div>
+      <div id="an-out" class="stack" style="gap:28px"></div>
+    </div>
+
+    <div class="tabpanel stack" id="tab-fragen" style="gap:20px" hidden>
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div class="stack" style="gap:6px"><h2>Eigene Fragen</h2><p class="muted small" style="max-width:72ch">Zusätzliche Fragen der Schule, pro Erhebung. Sie erscheinen am Schluss des Fragebogens und werden getrennt vom Kompetenzprofil ausgewertet.</p></div>
+        <div class="field"><label for="fq-campaign" class="small">Erhebung</label><select id="fq-campaign"></select></div>
+      </div>
+      <div class="stack" style="gap:20px" id="block-editor"></div>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap cols">
-    <div><b>Kanton Schwyz</b><br>Bildungsdepartement · Amt für Volksschulen und Sport<br><a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a></div>
+    <div><b>Kanton Schwyz</b><br>Amt für Volksschulen und Sport<br>Kollegiumstrasse 28, Postfach 2191, 6431 Schwyz<br>
+      Telefon <a href="tel:+41418191911">+41 41 819 19 11</a> · <a href="mailto:avs@sz.ch">avs@sz.ch</a> · <a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a></div>
     <ul class="links">
       <li><a href="/hilfe">Hilfe</a></li>
       <li><a href="/">Startseite</a></li>
@@ -106,6 +120,7 @@
 <script src="/assets/core.js"></script>
 <script src="/assets/ui.js"></script>
 <script src="/assets/staff.js"></script>
+<script src="/assets/vendor/qrcode.js"></script>
 <script src="/assets/block.js"></script>
 <script src="/assets/leitung.js"></script>
 <script src="/assets/nav.js"></script>

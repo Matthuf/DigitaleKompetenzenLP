@@ -215,7 +215,7 @@ on('POST', 'auth/password', async ({ req, body }) => {
 // Schulleitung: Erhebungen
 on('GET', 'leitung/campaigns', async ({ req }) => {
   const s = staff(req, 'leitung');
-  return q(`select c.id, c.title, c.token, c.status, c.created_at, c.closed_at, c.custom_block,
+  return q(`select c.id, c.title, c.token, c.status, c.created_at, c.closed_at, c.custom_block, c.expected,
                    count(r.id) filter (where r.status = 'submitted')::int as submitted,
                    count(r.id) filter (where r.status = 'draft')::int as drafts
               from campaigns c left join responses r on r.campaign_id = c.id
@@ -231,7 +231,9 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
     block = src ? src.custom_block : null; // gleiche Fragen-IDs: Vergleich zwischen Erhebungen bleibt möglich
   }
   const id = newId();
-  await q(`insert into campaigns (id, school_id, title, token, custom_block) values ($1,$2,$3,$4,$5)`, [id, s.sid, title, newToken(), block ? JSON.stringify(block) : null]);
+  const exp = parseInt(body.expected, 10);
+  await q(`insert into campaigns (id, school_id, title, token, custom_block, expected) values ($1,$2,$3,$4,$5,$6)`,
+    [id, s.sid, title, newToken(), block ? JSON.stringify(block) : null, Number.isInteger(exp) && exp >= 1 && exp <= 1000 ? exp : null]);
   return { id };
 });
 on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
@@ -242,6 +244,11 @@ on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
     await q(`update campaigns set status = $1, closed_at = case when $1 = 'closed' then now() else null end where id = $2`, [body.status, c.id]);
   }
   if (typeof body.title === 'string' && body.title.trim()) await q(`update campaigns set title = $1 where id = $2`, [body.title.trim().slice(0, 80), c.id]);
+  if ('expected' in body) {
+    const n = body.expected === null || body.expected === '' ? null : parseInt(body.expected, 10);
+    if (n !== null && (!Number.isInteger(n) || n < 1 || n > 1000)) fail(400, 'Bitte eine Anzahl zwischen 1 und 1000 eingeben oder das Feld leer lassen.');
+    await q(`update campaigns set expected = $1 where id = $2`, [n, c.id]);
+  }
   return { ok: true };
 });
 on('PUT', 'leitung/campaigns/:id/block', async ({ req, params, body }) => {

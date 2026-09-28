@@ -300,3 +300,33 @@ details.faq p { padding-bottom: 14px; }
   .nav-toggle { font-size: 0.9rem; padding: 7px 10px; }
   .aside-status { align-items: baseline; }
 }
+address.contact { font-style: normal; line-height: 1.6; }
+/* Schulleitung: Reiter und Erhebungskarten */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px 24px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+.tabs a { padding: 8px 0 10px; font-weight: 700; color: var(--ink-2); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tabs a:hover { color: var(--ink); }
+.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--red); }
+details.create summary { cursor: pointer; list-style: none; }
+details.create summary::-webkit-details-marker { display: none; }
+details.create summary::before { content: "+ "; color: var(--red); font-weight: 700; }
+details.create[open] summary::before { content: "− "; }
+.camp-card { border: 1px solid var(--line); padding: 20px; display: grid; gap: 14px; }
+.camp-card.closed { background: #FAFAFA; }
+.camp-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; justify-content: space-between; }
+.camp-head h3 { font-size: 1.2rem; }
+.camp-meta { font-size: 0.85rem; color: var(--ink-2); }
+.camp-stats { display: flex; flex-wrap: wrap; gap: 12px 36px; align-items: flex-end; }
+.camp-stats .stat b { font-size: 1.4rem; }
+.quote { min-width: 220px; flex: 1 1 220px; max-width: 360px; display: grid; gap: 4px; font-size: 0.85rem; color: var(--ink-2); }
+.quote .bar { height: 8px; background: var(--box); }
+.quote .bar span { display: block; height: 100%; background: var(--red); }
+.camp-link { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--box); padding: 10px 12px; }
+.camp-link code { font-size: 0.85rem; word-break: break-all; flex: 1 1 260px; }
+.camp-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.share { border-left: 4px solid var(--red); padding: 4px 0 4px 16px; display: grid; gap: 12px; }
+.share textarea { min-height: 220px; font-size: 0.9rem; }
+.qr-box { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; }
+.qr-box .qr svg { width: 180px; height: 180px; display: block; background: #fff; }
+.inline-edit { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.inline-edit input { width: 90px; }
+.preview { border: 2px dashed var(--ink-3); padding: 20px 24px; background: #FCFCFC; }
