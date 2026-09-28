@@ -178,6 +178,41 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; font-size:
 footer .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 40px; }
 footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; flex-wrap: wrap; }
 
+
+/* Eigene Fragen (Schulblock) */
+input[type="text"] { font: inherit; padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 2px; background: var(--bg); color: var(--ink); width: 100%; }
+textarea { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 2px; background: var(--bg); color: var(--ink); resize: vertical; }
+input[type="text"]:focus, textarea:focus, select:focus { outline: 3px solid var(--ink); outline-offset: 1px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.opts.inline { flex-direction: row; flex-wrap: wrap; }
+.opts.inline .opt { flex: 1 1 150px; }
+.check { display: flex; gap: 10px; align-items: flex-start; }
+.check input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--red); }
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+.qedit { border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; }
+.qedit-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.qedit-head .num { font-weight: 700; color: var(--red); }
+.btn.small { padding: 5px 10px; font-size: 0.85rem; }
+.btn:disabled { opacity: .45; cursor: default; }
+.box--success { background: #E3F1E6; }
+.error { color: var(--red-dark); font-weight: 700; }
+.ok { color: #1f6b33; font-weight: 700; }
+.custom-list { margin: 0; display: grid; gap: 14px; max-width: 80ch; }
+.custom-list dt { font-weight: 700; }
+.custom-list dd { margin: 2px 0 0; }
+.dist { display: flex; height: 22px; width: 100%; max-width: 560px; background: var(--box); }
+.dist span { display: block; height: 100%; min-width: 0; }
+.dist-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dist-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; }
+.choice-rows { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 280px) 70px; gap: 6px 12px; align-items: center; font-size: 0.9rem; max-width: 820px; font-variant-numeric: tabular-nums; }
+.choice-rows .bar { height: 14px; background: var(--box); }
+.choice-rows .bar span { display: block; height: 100%; background: var(--red); }
+.texts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 80ch; }
+.texts li { background: var(--box); padding: 10px 14px; white-space: pre-wrap; }
+.cq-card { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 10px; }
+@media (max-width: 620px) { .choice-rows { grid-template-columns: 1fr 70px; } .choice-rows .bar { grid-column: 1 / -1; } }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 @media print {
@@ -198,9 +233,9 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
   <div class="wrap">
     <div class="brand">
       <div class="brand-text">
-        <div class="eyebrow">Amt für Volksschulen und Sport</div>
+        <div class="eyebrow" id="brand-eyebrow">Amt für Volksschulen und Sport</div>
         <h1>Digitale Kompetenzen von Lehrpersonen</h1>
-        <p class="muted">Selbsteinschätzung · Prototyp</p>
+        <p class="muted" id="brand-sub">Selbsteinschätzung · Prototyp</p>
       </div>
       <a class="logo-link" href="#start" data-go="start" aria-label="Kanton Schwyz – zur Startseite des Instruments"><img src="__LOGO__" alt="Kanton Schwyz"></a>
     </div>
@@ -209,6 +244,7 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
       <button type="button" data-go="survey">Selbsteinschätzung</button>
       <button type="button" data-go="result">Ergebnis</button>
       <button type="button" data-go="school">Schulauswertung</button>
+      <button type="button" data-go="custom">Eigene Fragen</button>
       <button type="button" data-go="info">Hinweise</button>
     </nav>
   </div>
@@ -223,7 +259,7 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
         <p class="lead">Die Selbsteinschätzung zeigt das eigene Kompetenzprofil in sechs Bereichen. Grundlage ist der europäische Referenzrahmen DigCompEdu. Das Ergebnis dient der persönlichen Standortbestimmung, dem Mitarbeitendengespräch und der Weiterbildungsplanung der Schule.</p>
         <ol class="steps">
           <li><div><b>Angaben zum Arbeitsumfeld</b><br><span class="muted">Freiwillig und ohne Namen. Die Angaben helfen bei der Schulauswertung.</span></div></li>
-          <li><div><b>22 Fragen in 6 Bereichen</b><br><span class="muted">Pro Frage die Aussage wählen, die das eigene Handeln am besten beschreibt. Dauer: etwa 20 Minuten.</span></div></li>
+          <li><div><b>22 Fragen in 6 Bereichen</b><span id="steps-custom"></span><br><span class="muted">Pro Frage die Aussage wählen, die das eigene Handeln am besten beschreibt. Dauer: etwa 20 Minuten.</span></div></li>
           <li><div><b>Kompetenzprofil und nächste Schritte</b><br><span class="muted">Das Profil lässt sich speichern, drucken und später wieder öffnen.</span></div></li>
         </ol>
         <div class="stack" style="gap:8px">
@@ -237,6 +273,7 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
       </div>
 
       <div class="stack">
+        <div class="box box--info" id="school-version-box" hidden></div>
         <div class="box box--warning" id="resume-box" hidden>
           <h3>Auf diesem Gerät sind bereits Antworten gespeichert</h3>
           <p id="resume-text"></p>
@@ -355,6 +392,7 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
         </div>
       </div>
       <div id="result-areas"></div>
+      <div id="result-custom"></div>
       <div class="actions">
         <button class="btn" type="button" id="btn-save">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
@@ -388,6 +426,23 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
       </div>
       <p class="small" id="school-msg" role="status"></p>
       <div id="school-out" class="stack" style="gap:28px"></div>
+    </div>
+  </section>
+
+  <!-- EIGENE FRAGEN -->
+  <section class="view" id="view-custom" hidden aria-labelledby="h-custom">
+    <div class="stack" style="gap:28px">
+      <div class="stack" style="gap:8px">
+        <div class="eyebrow">Für Schulleitungen</div>
+        <h2 id="h-custom">Eigene Fragen der Schule</h2>
+        <p class="muted" style="max-width:72ch">Zusätzlich zu den 22 Kompetenzfragen kann eine Schule eigene Fragen stellen. Sie erscheinen als letzter Schritt im Fragebogen, fliessen nicht ins Kompetenzprofil ein und werden in der Schulauswertung separat ausgewertet.</p>
+      </div>
+      <ol class="steps">
+        <li><div><b>Fragen erstellen</b><br><span class="muted">Vier Frageformen, frei mischbar: Zustimmungsskala, eigene Stufenaussagen, Auswahl und Freitext.</span></div></li>
+        <li><div><b>Schulversion herunterladen und verteilen</b><br><span class="muted">Es entsteht eine neue HTML-Datei mit den eigenen Fragen. Diese Datei ans Kollegium weitergeben.</span></div></li>
+        <li><div><b>Ergebnisdateien einsammeln und auswerten</b><br><span class="muted">Die Lehrpersonen speichern ihr Ergebnis als Datei. Unter «Schulauswertung» lassen sich alle Dateien zusammen auswerten, inklusive der eigenen Fragen.</span></div></li>
+      </ol>
+      <div id="custom-editor" class="stack" style="gap:20px"></div>
     </div>
   </section>
 
@@ -431,9 +486,13 @@ __CORE_JS__
 </script>
 <script>
 const ITEMS = __ITEMS_JSON__;
+// Schulversion: eigene Fragen der Schule. In der allgemeinen Datei null; beim Herunterladen einer Schulversion ersetzt.
+const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
 (function () {
   'use strict';
-  const STORE_KEY = 'dk-sz-selbsteinschaetzung-v1';
+  // Unveränderte Seite festhalten, bevor etwas gerendert wird: Vorlage für neue Schulversionen
+  const PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML;
+  const STORE_KEY = 'dk-sz-selbsteinschaetzung-v1' + (SCHOOL ? '-' + SCHOOL.id : '');
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -446,7 +505,9 @@ const ITEMS = __ITEMS_JSON__;
 
   /* ---------- Zustand ---------- */
   function newState() {
-    return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: uid(), created: new Date().toISOString(), updated: null, context: {}, answers: {} };
+    return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: uid(), created: new Date().toISOString(), updated: null, context: {}, answers: {},
+      school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : null,
+      custom_block: SCHOOL ? SCHOOL.block : null, custom_answers: {} };
   }
   function uid() { return 'r-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
   function load() {
@@ -458,16 +519,18 @@ const ITEMS = __ITEMS_JSON__;
   }
   function wipe() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} state = newState(); }
   let state = load() || newState();
+  state.custom_answers = state.custom_answers || {};
   let areaIdx = 0;
 
   /* ---------- Navigation ---------- */
   function go(view) {
-    ['start', 'survey', 'result', 'school', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
+    ['start', 'survey', 'result', 'school', 'custom', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
     $$('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.go === view ? 'page' : 'false'));
     if (view === 'start') renderStart();
     if (view === 'survey') renderSurvey();
     if (view === 'result') renderResult();
     if (view === 'school') renderSchool();
+    if (view === 'custom') renderEditor();
     window.scrollTo({ top: 0 });
   }
   document.addEventListener('click', (e) => {
@@ -507,6 +570,11 @@ const ITEMS = __ITEMS_JSON__;
     }
     ['stufe', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx-' + k).value = state.context[k] || ''; });
     $('#btn-start').firstChild.textContent = has ? 'Weiter zur Selbsteinschätzung ' : 'Selbsteinschätzung starten ';
+    const blk = blockOf();
+    $('#steps-custom').textContent = blk ? ` und ${blk.questions.length} Frage${blk.questions.length === 1 ? '' : 'n'} der Schule` : '';
+    const sv = $('#school-version-box');
+    sv.hidden = !SCHOOL;
+    if (SCHOOL) sv.innerHTML = `<h3>Schulversion ${esc(SCHOOL.name)}</h3><p class="small">Diese Datei enthält zusätzlich ${SCHOOL.block.questions.length} eigene Frage${SCHOOL.block.questions.length === 1 ? '' : 'n'} der Schule. Am Schluss das Ergebnis als Datei speichern und der Schulleitung abgeben.</p>`;
   }
   $('#context-form').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -525,6 +593,7 @@ const ITEMS = __ITEMS_JSON__;
       const obj = JSON.parse(await f.text());
       if (!DKCore.validateRecord(obj)) throw new Error('format');
       state = Object.assign(newState(), obj);
+      state.custom_answers = state.custom_answers || {};
       persist();
       $('#file-own-msg').textContent = '';
       go('result');
@@ -535,49 +604,116 @@ const ITEMS = __ITEMS_JSON__;
   });
 
   /* ---------- Fragebogen ---------- */
+  const SCALE = DKCore.SCALE;
+  const TYPE_LABEL = { scale: 'Zustimmungsskala', levels: 'Eigene Stufenaussagen', choice: 'Auswahl', text: 'Freitext' };
+  const blockOf = (r = state) => (r && r.custom_block && Array.isArray(r.custom_block.questions) && r.custom_block.questions.length ? r.custom_block : null);
+  const steps = () => ITEMS.areas.length + (blockOf() ? 1 : 0);
+  const stepTitle = (i) => (i < ITEMS.areas.length ? ITEMS.areas[i].title : blockOf().title);
+
   function renderAreaNav() {
+    const blk = blockOf();
+    const ca = state.custom_answers;
     $('#areanav').innerHTML = ITEMS.areas.map((a, i) => {
       const done = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
       const full = done === a.subareas.length;
       return `<button type="button" data-area="${i}" aria-current="${i === areaIdx ? 'step' : 'false'}">
         <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>`;
-    }).join('');
+    }).join('') + (blk ? (() => {
+      const done = blk.questions.filter((q) => ca[q.id] !== undefined).length;
+      const full = done === blk.questions.length;
+      return `<button type="button" data-area="${ITEMS.areas.length}" aria-current="${areaIdx === ITEMS.areas.length ? 'step' : 'false'}" style="margin-top:8px;border-top:1px solid var(--line)">
+        <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>`;
+    })() : '');
     $$('#areanav button').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
     const p = DKCore.progress(ITEMS, state.answers);
     $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
-    $('#progress-text').textContent = `${p.done} von ${p.total} Fragen beantwortet`;
+    $('#progress-text').textContent = `${p.done} von ${p.total} Kompetenzfragen beantwortet`;
   }
+
+  function customQuestionHTML(q, i) {
+    const v = state.custom_answers[q.id];
+    const name = 'cq-' + q.id;
+    let hint = '', body = '';
+    if (q.type === 'scale') {
+      hint = 'Wie weit trifft die Aussage zu?';
+      body = `<div class="opts inline">${SCALE.map((l, k) => `<label class="opt"><input type="radio" name="${name}" id="${name}-${k + 1}" value="${k + 1}" ${v === k + 1 ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
+        <div class="opts" style="margin-top:8px"><label class="opt none"><input type="radio" name="${name}" id="${name}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Kann ich nicht beurteilen</span></label></div>`;
+    } else if (q.type === 'levels') {
+      hint = 'Welche Aussage beschreibt das eigene Handeln am besten?';
+      body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="radio" name="${name}" id="${name}-${k + 1}" value="${k + 1}" ${v === k + 1 ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}
+        <label class="opt none"><input type="radio" name="${name}" id="${name}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit.</span></label></div>`;
+    } else if (q.type === 'choice') {
+      hint = q.multiple ? 'Mehrere Antworten möglich.' : 'Eine Antwort wählen.';
+      const sel = [].concat(v === undefined ? [] : v);
+      body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}" id="${name}-${k}" value="${k}" ${sel.includes(k) ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}</div>`;
+    } else {
+      hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen.';
+      body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" name="${name}" rows="4" maxlength="1000">${esc(v || '')}</textarea>`;
+    }
+    return `<fieldset class="q" data-qtype="${q.type}"><legend><span class="qid">${i + 1}</span><span>${esc(q.text)}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
+  }
+
+  function renderCustomStep() {
+    const blk = blockOf();
+    $('#area-eyebrow').textContent = 'Fragen der Schule · nicht Teil des Kompetenzprofils';
+    $('#h-area').textContent = blk.title;
+    $('#area-desc').textContent = blk.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten stehen in der Ergebnisdatei und fliessen in die Schulauswertung ein.';
+    $('#questions').innerHTML = blk.questions.map(customQuestionHTML).join('');
+    blk.questions.forEach((q) => {
+      const name = 'cq-' + q.id;
+      if (q.type === 'text') {
+        $('#' + name).addEventListener('input', (e) => {
+          const val = e.target.value.trim();
+          if (val) state.custom_answers[q.id] = val.slice(0, 1000); else delete state.custom_answers[q.id];
+          persist(); renderAreaNav();
+        });
+        return;
+      }
+      $$(`input[name="${name}"]`).forEach((inp) => inp.addEventListener('change', () => {
+        if (q.type === 'choice' && q.multiple) {
+          const list = $$(`input[name="${name}"]:checked`).map((x) => +x.value);
+          if (list.length) state.custom_answers[q.id] = list; else delete state.custom_answers[q.id];
+        } else state.custom_answers[q.id] = +inp.value;
+        persist(); renderAreaNav();
+      }));
+    });
+  }
+
   function renderSurvey(focus) {
-    const a = ITEMS.areas[areaIdx];
-    $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
-    $('#h-area').textContent = a.title;
-    $('#area-desc').textContent = a.description;
-    $('#questions').innerHTML = a.subareas.map((s) => {
-      const cur = state.answers[s.id];
-      const opts = s.levels.map((l) => `
-        <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${cur === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('');
-      return `<fieldset class="q">
-        <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
-        <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
-        <div class="opts">${opts}
-          <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${cur === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
-        </div></fieldset>`;
-    }).join('');
-    $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
-      state.answers[r.name.slice(2)] = +r.value;
-      persist();
-      renderAreaNav();
-      $('#open-hint').textContent = '';
-    }));
+    if (areaIdx >= steps()) areaIdx = steps() - 1;
+    if (areaIdx === ITEMS.areas.length) renderCustomStep();
+    else {
+      const a = ITEMS.areas[areaIdx];
+      $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
+      $('#h-area').textContent = a.title;
+      $('#area-desc').textContent = a.description;
+      $('#questions').innerHTML = a.subareas.map((s) => {
+        const cur = state.answers[s.id];
+        const opts = s.levels.map((l) => `
+          <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${cur === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('');
+        return `<fieldset class="q">
+          <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
+          <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
+          <div class="opts">${opts}
+            <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${cur === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
+          </div></fieldset>`;
+      }).join('');
+      $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
+        state.answers[r.name.slice(2)] = +r.value;
+        persist();
+        renderAreaNav();
+        $('#open-hint').textContent = '';
+      }));
+    }
     $('#btn-prev').hidden = areaIdx === 0;
-    $('#btn-next').textContent = areaIdx === ITEMS.areas.length - 1 ? 'Zum Ergebnis' : 'Weiter zu «' + ITEMS.areas[areaIdx + 1].title + '»';
+    $('#btn-next').textContent = areaIdx === steps() - 1 ? 'Zum Ergebnis' : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
     renderAreaNav();
     $('#open-hint').textContent = '';
     if (focus) { window.scrollTo({ top: 0 }); $('#h-area').focus({ preventScroll: true }); }
   }
   $('#btn-prev').addEventListener('click', () => { if (areaIdx > 0) { areaIdx--; renderSurvey(true); } });
   $('#btn-next').addEventListener('click', () => {
-    if (areaIdx < ITEMS.areas.length - 1) { areaIdx++; renderSurvey(true); }
+    if (areaIdx < steps() - 1) { areaIdx++; renderSurvey(true); }
     else go('result');
   });
 
@@ -676,6 +812,17 @@ const ITEMS = __ITEMS_JSON__;
           return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
         }).join('')}</div>`;
     }).join('');
+    const blk = blockOf();
+    const ca = state.custom_answers;
+    const ansTxt = (q, v) => {
+      if (v === undefined) return '<span class="muted">Keine Antwort</span>';
+      if (q.type === 'scale') return v === 0 ? 'Kann ich nicht beurteilen' : esc(SCALE[v - 1]);
+      if (q.type === 'levels') return v === 0 ? 'Keine Gelegenheit' : `Stufe ${v} von ${q.options.length}: ${esc(q.options[v - 1])}`;
+      if (q.type === 'choice') return [].concat(v).map((k) => esc(q.options[k])).join(', ');
+      return esc(v);
+    };
+    $('#result-custom').innerHTML = blk ? `<div class="area-block"><h3><span>${esc(blk.title)}</span><span class="avg">Fragen der Schule, nicht Teil des Kompetenzprofils</span></h3>
+      <dl class="custom-list">${blk.questions.map((q) => `<div><dt>${esc(q.text)}</dt><dd>${ansTxt(q, ca[q.id])}</dd></div>`).join('')}</dl></div>` : '';
     resetControl($('#reset-confirm-result'), 'Alle Daten auf diesem Gerät löschen');
   }
 
@@ -697,6 +844,13 @@ const ITEMS = __ITEMS_JSON__;
 
   /* ---------- Schulauswertung ---------- */
   let school = { records: [], sample: false, filter: '' };
+  const DEMO_BLOCK = { title: 'Fragen unserer Schule (Beispiel)', intro: '', questions: [
+    { id: 'qdemo1', type: 'scale', text: 'Die Geräte an unserer Schule funktionieren zuverlässig.' },
+    { id: 'qdemo2', type: 'levels', text: 'Umgang mit der Lernplattform unserer Schule', options: ['Ich kenne die Lernplattform kaum.', 'Ich nutze sie für Mitteilungen.', 'Ich stelle regelmässig Aufträge und Material bereit.', 'Ich unterstütze Kolleginnen und Kollegen bei der Nutzung.'] },
+    { id: 'qdemo3', type: 'choice', text: 'Welche Geräte setzen Sie im Unterricht ein?', options: ['Tablet', 'Notebook', 'Interaktive Wandtafel', 'Dokumentenkamera'], multiple: true },
+    { id: 'qdemo4', type: 'text', text: 'Welche Weiterbildung wünschen Sie sich?' },
+  ] };
+  const DEMO_TEXTS = ['Gemeinsames Ausprobieren im Team, zum Beispiel an einem Nachmittag pro Quartal.', 'Einführung in KI-Werkzeuge für die Unterrichtsvorbereitung.', 'Mehr Zeit, um Material auf der Lernplattform aufzubauen.', 'Kurze Inputs direkt im Schulhaus statt externer Kurse.'];
   function sampleRecords() {
     let seed = 20260928;
     const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -709,7 +863,18 @@ const ITEMS = __ITEMS_JSON__;
         if ((s.id === '5.1' || s.areaId === '4') && rnd() < 0.12) { answers[s.id] = 0; return; }
         answers[s.id] = Math.max(1, Math.min(6, Math.round(base[s.areaId] + skill + (rnd() - 0.5) * 1.6)));
       });
-      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[Math.floor(rnd() * stufen.length)] }, answers };
+      const blk = SCHOOL ? SCHOOL.block : DEMO_BLOCK;
+      const ca = {};
+      blk.questions.forEach((q) => {
+        if (q.type === 'scale') ca[q.id] = rnd() < 0.08 ? 0 : 1 + Math.floor(rnd() * 4);
+        else if (q.type === 'levels') ca[q.id] = 1 + Math.floor(rnd() * q.options.length);
+        else if (q.type === 'choice') ca[q.id] = q.multiple ? q.options.map((_, i) => i).filter(() => rnd() < 0.5) : Math.floor(rnd() * q.options.length);
+        else if (rnd() < 0.4) ca[q.id] = DEMO_TEXTS[k % DEMO_TEXTS.length];
+        if (Array.isArray(ca[q.id]) && !ca[q.id].length) delete ca[q.id];
+      });
+      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[Math.floor(rnd() * stufen.length)] }, answers,
+        school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : { id: 'beispiel', name: 'Beispielschule', version: 'beispiel', created: '2026-09-01' },
+        custom_block: blk, custom_answers: ca };
     });
   }
   async function addFiles(files) {
@@ -753,9 +918,10 @@ const ITEMS = __ITEMS_JSON__;
     const tooFew = agg.n < DKCore.MIN_GROUP;
     const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
     const noOppTop = SUBS.filter((s) => agg.bySub[s.id].counts[0] > 0).sort((a, b) => agg.bySub[b.id].counts[0] - agg.bySub[a.id].counts[0]).slice(0, 3);
+    const custom = customForRecords(recs);
 
     out.innerHTML = `
-      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> 14 fiktive Lehrpersonen zur Veranschaulichung. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
+      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> 14 fiktive Lehrpersonen zur Veranschaulichung${SCHOOL ? '' : ', inklusive vier Beispielfragen einer Schule'}. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
       ${tooFew && agg.n > 0 ? `<div class="box box--warning"><b>Weniger als ${DKCore.MIN_GROUP} Ergebnisse.</b> Bei so kleinen Gruppen lassen sich Rückschlüsse auf einzelne Personen ziehen. Die Auswertung ist nur zur Kontrolle gedacht.</div>` : ''}
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stat-row">
@@ -789,14 +955,196 @@ const ITEMS = __ITEMS_JSON__;
             return `<tr><td>${s.id} ${esc(s.title)}</td>${[1, 2, 3, 4, 5, 6].map((k) => heatCell(d.counts[k], d.answered)).join('')}<td class="cell">${d.counts[0] || ''}</td><td><b>${fmt(d.mean)}</b></td></tr>`;
           }).join('')).join('')}</tbody></table></div>
       </div>
+      ${custom ? customSection(custom) : ''}
       <div class="actions" style="border-top:0;padding-top:0">
         <button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button>
         ${!school.sample ? '<button class="btn quiet" type="button" id="btn-school-clear">Geladene Dateien entfernen</button>' : ''}
       </div>`;
     $('#school-filter').addEventListener('change', (e) => { school.filter = e.target.value; renderSchool(); });
-    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg), 'text/csv;charset=utf-8'));
+    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg) + customCSV(custom), 'text/csv;charset=utf-8'));
     const clr = $('#btn-school-clear');
     if (clr) clr.addEventListener('click', () => { school = { records: [], sample: false, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+  }
+
+  /* ---------- Eigene Fragen: Auswertung ---------- */
+  function customForRecords(recs) {
+    const withBlock = recs.filter((r) => blockOf(r));
+    if (!withBlock.length) return null;
+    const bySchool = {};
+    withBlock.forEach((r) => { const k = (r.school && r.school.id) || 'ohne'; (bySchool[k] = bySchool[k] || []).push(r); });
+    const group = Object.values(bySchool).sort((a, b) => b.length - a.length)[0];
+    // Neueste Schulversion bestimmt die Fragen; Antworten werden über die Frage-Kennung zusammengeführt
+    const latest = group.slice().sort((a, b) => String((b.school || {}).created || '').localeCompare(String((a.school || {}).created || '')))[0];
+    const block = latest.custom_block;
+    return { block, n: group.length, other: withBlock.length - group.length, school: latest.school, ...DKCore.aggregateCustom(block, group.map((r) => r.custom_answers)) };
+  }
+  const RAMP = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)', 'var(--l5)', 'var(--l6)'];
+  const rampFor = (n) => (n === 4 ? [RAMP[0], RAMP[2], RAMP[3], RAMP[5]] : n === 3 ? [RAMP[0], RAMP[3], RAMP[5]] : n === 5 ? [RAMP[0], RAMP[1], RAMP[2], RAMP[3], RAMP[5]] : RAMP.slice(0, n));
+  function distBar(counts, labels) {
+    const total = counts.reduce((a, b) => a + b, 0) || 1;
+    const cols = rampFor(counts.length);
+    return `<div class="dist" role="img" aria-label="${esc(labels.map((l, i) => l + ': ' + counts[i]).join(', '))}">${counts.map((n, i) => n ? `<span style="width:${(100 * n / total).toFixed(2)}%;background:${cols[i]}" title="${esc(labels[i])}: ${n}"></span>` : '').join('')}</div>
+      <div class="dist-legend">${labels.map((l, i) => `<span><i style="background:${cols[i]}"></i>${esc(l)}: <b>${counts[i]}</b></span>`).join('')}</div>`;
+  }
+  function customSection(c) {
+    const res = Object.fromEntries(c.questions.map((r) => [r.id, r]));
+    return `<div class="stack" style="gap:18px">
+      <div class="stack" style="gap:6px"><h3>${esc(c.block.title)}</h3><p class="small muted">Eigene Fragen${c.school && c.school.name ? ' der ' + esc(c.school.name) : ''}. Nicht Teil des Kompetenzprofils. ${c.n} Ergebnisdatei${c.n === 1 ? '' : 'en'} mit diesen Fragen.${c.other ? ` ${c.other} Datei${c.other === 1 ? '' : 'en'} einer anderen Schulversion sind hier nicht berücksichtigt.` : ''}</p></div>
+      ${c.block.questions.map((q, i) => {
+        const r = res[q.id] || { answered: 0, counts: [], texts: [] };
+        let body = '';
+        if (q.type === 'scale') {
+          body = distBar(r.counts.slice(1), SCALE) + `<p class="small muted">Ø ${fmt(r.mean)} auf der Skala 1 bis 4${r.counts[0] ? ` · Kann ich nicht beurteilen: ${r.counts[0]}` : ''}</p>`;
+        } else if (q.type === 'levels') {
+          body = distBar(r.counts.slice(1), q.options.map((_, k) => 'Stufe ' + (k + 1))) +
+            `<p class="small muted">Ø ${fmt(r.mean)} von ${q.options.length}${r.counts[0] ? ` · Keine Gelegenheit: ${r.counts[0]}` : ''}</p>
+            <details><summary class="small" style="cursor:pointer">Stufenaussagen anzeigen</summary><ol class="small" style="margin:8px 0 0">${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ol></details>`;
+        } else if (q.type === 'choice') {
+          const base = r.answered || 1;
+          body = `<div class="choice-rows">${q.options.map((o, k) => `<span>${esc(o)}</span><span class="bar"><span style="width:${(100 * r.counts[k] / base).toFixed(1)}%"></span></span><span>${r.counts[k]} · ${Math.round(100 * r.counts[k] / base)}&nbsp;%</span>`).join('')}</div>
+            ${q.multiple ? '<p class="small muted">Mehrfachauswahl: Die Anteile beziehen sich auf alle, die geantwortet haben.</p>' : ''}`;
+        } else {
+          body = r.texts.length ? `<ul class="texts">${r.texts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><p class="small muted">In zufälliger Reihenfolge.</p>` : '<p class="muted small">Keine Antworten.</p>';
+        }
+        return `<div class="cq-card"><p><b>${i + 1}. ${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}${q.type === 'choice' && q.multiple ? ', mehrfach' : ''} · ${r.answered} von ${c.n} beantwortet</span></p>${body}</div>`;
+      }).join('')}</div>`;
+  }
+  function customCSV(c) {
+    if (!c) return '';
+    const rows = [[], ['Eigene Fragen', c.block.title], ['Frage', 'Form', 'Antwort', 'Anzahl']];
+    const res = Object.fromEntries(c.questions.map((r) => [r.id, r]));
+    c.block.questions.forEach((q) => {
+      const r = res[q.id];
+      if (q.type === 'scale') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], k === 0 ? 'Kann ich nicht beurteilen' : SCALE[k - 1], n]));
+      else if (q.type === 'levels') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], k === 0 ? 'Keine Gelegenheit' : 'Stufe ' + k + ': ' + q.options[k - 1], n]));
+      else if (q.type === 'choice') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], q.options[k], n]));
+      else r.texts.forEach((x) => rows.push([q.text, TYPE_LABEL[q.type], x, '']));
+    });
+    return '\r\n' + rows.map((r) => r.map((x) => '"' + String(x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  }
+
+  /* ---------- Eigene Fragen: Editor und Schulversion ---------- */
+  const DRAFT_KEY = 'dk-sz-schulblock-entwurf';
+  const rid = (p) => p + Math.random().toString(36).slice(2, 9);
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); return d && d.block && Array.isArray(d.block.questions) ? d : null; } catch (e) { return null; } }
+  function saveDraft() { if (SCHOOL) return; try { localStorage.setItem(DRAFT_KEY, JSON.stringify(ed)); } catch (e) { /* ohne Zwischenspeicher weiter */ } }
+  let ed = SCHOOL ? { name: SCHOOL.name, block: clone(SCHOOL.block) } : (loadDraft() || { name: '', block: { title: 'Fragen unserer Schule', intro: '', questions: [] } });
+  const emptyQ = (type) => ({ id: rid('q'), type, text: '', options: type === 'levels' ? ['', '', ''] : type === 'choice' ? ['', ''] : undefined, multiple: false });
+
+  function validateConfig() {
+    const name = (ed.name || '').trim().slice(0, 120);
+    if (!name) return { error: 'Bitte den Namen der Schule eingeben.' };
+    const qs = ed.block.questions;
+    if (!qs.length) return { error: 'Bitte mindestens eine Frage erfassen.' };
+    if (qs.length > 15) return { error: 'Höchstens 15 Fragen pro Schule.' };
+    const questions = [];
+    for (const [i, q] of qs.entries()) {
+      const text = (q.text || '').trim().slice(0, 300);
+      if (!text) return { error: `Frage ${i + 1}: Bitte den Fragetext eingeben.` };
+      const out = { id: /^q[a-z0-9]{4,12}$/.test(q.id || '') ? q.id : rid('q'), type: q.type, text };
+      if (q.type === 'levels' || q.type === 'choice') {
+        const opts = (q.options || []).map((o) => o.trim().slice(0, q.type === 'levels' ? 400 : 120)).filter(Boolean);
+        const [lo, hi] = q.type === 'levels' ? [3, 6] : [2, 10];
+        if (opts.length < lo || opts.length > hi) return { error: `Frage ${i + 1}: ${q.type === 'levels' ? 'Stufenaussagen' : 'Auswahl'} braucht ${lo} bis ${hi} ${q.type === 'levels' ? 'Aussagen' : 'Optionen'}.` };
+        out.options = opts;
+        if (q.type === 'choice') out.multiple = !!q.multiple;
+      }
+      questions.push(out);
+    }
+    return { config: {
+      id: SCHOOL ? SCHOOL.id : rid('s-'), name, version: rid('v-'), created: new Date().toISOString(),
+      block: { title: (ed.block.title || '').trim().slice(0, 80) || 'Fragen unserer Schule', intro: (ed.block.intro || '').trim().slice(0, 500), questions },
+    } };
+  }
+
+  function downloadSchoolVersion() {
+    const v = validateConfig();
+    const msg = $('#cf-msg');
+    if (v.error) { msg.className = 'small error'; msg.textContent = v.error; return; }
+    const START = '/*SCHOOL_' + 'CONFIG_START*/', END = '/*SCHOOL_' + 'CONFIG_END*/';
+    const i = PRISTINE.indexOf(START), j = PRISTINE.indexOf(END);
+    if (i < 0 || j < i) { msg.className = 'small error'; msg.textContent = 'Die Schulversion konnte nicht erstellt werden. Bitte die unveränderte Originaldatei verwenden.'; return; }
+    const json = JSON.stringify(v.config).replace(/</g, '\\u003c');
+    const html = PRISTINE.slice(0, i + START.length) + json + PRISTINE.slice(j);
+    const slug = v.config.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    download(`DigKomp_SZ_${slug || 'Schule'}.html`, html, 'text/html;charset=utf-8');
+    ed.block.questions = clone(v.config.block.questions);
+    saveDraft();
+    msg.className = 'small ok';
+    msg.textContent = `Schulversion «${v.config.name}» heruntergeladen. Diese Datei ans Kollegium weitergeben.`;
+  }
+
+  function renderEditor() {
+    const box = $('#custom-editor');
+    const b = ed.block;
+    box.innerHTML = `
+      ${SCHOOL ? `<div class="box box--info"><b>Diese Datei ist die Schulversion «${esc(SCHOOL.name)}»</b>, erstellt am ${new Date(SCHOOL.created).toLocaleDateString('de-CH')}. Änderungen erzeugen eine neue Datei; bereits verteilte Dateien bleiben unverändert. Fragen, die gleich bleiben, werden in der Schulauswertung gemeinsam ausgewertet.</div>` : ''}
+      <div class="two-col">
+        <div class="field"><label for="cf-school">Name der Schule</label><input type="text" id="cf-school" maxlength="120" value="${esc(ed.name || '')}" placeholder="z. B. Schule Musterdorf"></div>
+        <div class="field"><label for="cf-title">Titel des Frageblocks</label><input type="text" id="cf-title" maxlength="80" value="${esc(b.title || '')}"></div>
+      </div>
+      <div class="field"><label for="cf-intro">Einleitung <span class="small muted">(freiwillig)</span></label><textarea id="cf-intro" rows="2" maxlength="500">${esc(b.intro || '')}</textarea></div>
+      <div class="stack" id="cf-questions" style="gap:12px">${b.questions.map(qEditHTML).join('') || '<p class="muted">Noch keine Fragen.</p>'}</div>
+      <div class="row">
+        <label for="cf-newtype" class="small"><b>Frage hinzufügen</b></label>
+        <select id="cf-newtype" style="width:auto">${Object.entries(TYPE_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
+        <button class="btn secondary" type="button" id="cf-add" ${b.questions.length >= 15 ? 'disabled' : ''}>Hinzufügen</button>
+      </div>
+      <div class="row" style="border-top:1px solid var(--line);padding-top:16px">
+        <button class="btn" type="button" id="cf-download">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
+          Schulversion herunterladen</button>
+        <span class="small" id="cf-msg" role="status"></span>
+      </div>
+      <p class="small muted">Der Entwurf bleibt in diesem Browser gespeichert. Die heruntergeladene Schulversion lässt sich später wieder öffnen und hier weiterbearbeiten.</p>`;
+    bindEditor();
+  }
+
+  function qEditHTML(q, i) {
+    const n = ed.block.questions.length;
+    let extra = '';
+    if (q.type === 'scale') extra = `<p class="small muted">Antworten: ${SCALE.join(' · ')} · Kann ich nicht beurteilen</p>`;
+    if (q.type === 'levels') extra = `<div class="field"><label for="qe-${i}-opts" class="small">Stufenaussagen: eine pro Zeile, von der tiefsten zur höchsten Stufe (3 bis 6)</label><textarea id="qe-${i}-opts" rows="5" data-i="${i}" data-f="options">${esc((q.options || []).join('\n'))}</textarea></div>
+      <p class="small muted">Zusätzlich gibt es immer die Option «Dazu hatte ich bisher keine Gelegenheit».</p>`;
+    if (q.type === 'choice') extra = `<div class="field"><label for="qe-${i}-opts" class="small">Antwortoptionen: eine pro Zeile (2 bis 10)</label><textarea id="qe-${i}-opts" rows="4" data-i="${i}" data-f="options">${esc((q.options || []).join('\n'))}</textarea></div>
+      <label class="check small"><input type="checkbox" id="qe-${i}-multi" data-i="${i}" data-f="multiple" ${q.multiple ? 'checked' : ''}><span>Mehrere Antworten erlaubt</span></label>`;
+    if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Offene Fragen sparsam einsetzen.</p>`;
+    return `<div class="qedit">
+      <div class="qedit-head"><span><span class="num">Frage ${i + 1}</span> · ${TYPE_LABEL[q.type]}</span>
+        <span class="row" style="gap:4px">
+          <button class="btn quiet small" type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="Frage ${i + 1} nach oben">▲</button>
+          <button class="btn quiet small" type="button" data-move="${i}" data-dir="1" ${i === n - 1 ? 'disabled' : ''} aria-label="Frage ${i + 1} nach unten">▼</button>
+          <button class="btn quiet small" type="button" data-remove="${i}">Entfernen</button></span></div>
+      <div class="field"><label for="qe-${i}-text" class="small">${q.type === 'scale' ? 'Aussage' : 'Frage'}</label><textarea id="qe-${i}-text" rows="2" maxlength="300" data-i="${i}" data-f="text">${esc(q.text)}</textarea></div>
+      ${extra}</div>`;
+  }
+
+  function bindEditor() {
+    const b = ed.block;
+    $('#cf-school').addEventListener('input', (e) => { ed.name = e.target.value; saveDraft(); });
+    $('#cf-title').addEventListener('input', (e) => { b.title = e.target.value; saveDraft(); });
+    $('#cf-intro').addEventListener('input', (e) => { b.intro = e.target.value; saveDraft(); });
+    $$('#cf-questions [data-f]').forEach((el) => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', () => {
+      const q = b.questions[+el.dataset.i];
+      if (el.dataset.f === 'options') q.options = el.value.split('\n');
+      else if (el.dataset.f === 'multiple') q.multiple = el.checked;
+      else q.text = el.value;
+      saveDraft();
+    }));
+    $$('#cf-questions [data-move]').forEach((btn) => btn.addEventListener('click', () => {
+      const i = +btn.dataset.move, j = i + +btn.dataset.dir;
+      [b.questions[i], b.questions[j]] = [b.questions[j], b.questions[i]];
+      saveDraft(); renderEditor();
+    }));
+    $$('#cf-questions [data-remove]').forEach((btn) => btn.addEventListener('click', () => { b.questions.splice(+btn.dataset.remove, 1); saveDraft(); renderEditor(); }));
+    $('#cf-add').addEventListener('click', () => { b.questions.push(emptyQ($('#cf-newtype').value)); saveDraft(); renderEditor(); $(`#qe-${b.questions.length - 1}-text`).focus(); });
+    $('#cf-download').addEventListener('click', downloadSchoolVersion);
+  }
+
+  if (SCHOOL) {
+    $('#brand-eyebrow').textContent = SCHOOL.name;
+    $('#brand-sub').textContent = 'Selbsteinschätzung · Schulversion';
   }
 
   go(location.hash === '#school' ? 'school' : location.hash === '#result' ? 'result' : 'start');

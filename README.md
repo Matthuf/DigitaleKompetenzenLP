@@ -9,6 +9,10 @@ Zwei Versionen aus derselben Quelle:
 | **Offline** (`dist/DigKomp_SZ_Selbsteinschaetzung.html`) | Einzelne Lehrpersonen, ohne Internet | bleiben im Browser, Export als Datei |
 | **Server** (dieses Repository auf Vercel) | Schulen | Postgres-Datenbank, getrennt pro Schule |
 
+## Eigene Fragen in der Offline-Version
+
+Im Reiter «Eigene Fragen» erstellt die Schulleitung ihre Fragen (gleiche vier Formen wie online) und lädt eine **Schulversion** herunter: eine neue HTML-Datei, in der Schulname und Fragen fest eingebaut sind (Konfiguration zwischen den Markierungen `SCHOOL_CONFIG_START/END`). Die Lehrpersonen beantworten die Fragen als letzten Schritt; die Antworten stehen in ihrer Ergebnisdatei. Die Schulauswertung liest die Dateien ein und wertet die eigenen Fragen über die Frage-Kennung aus, auch über mehrere Versionen derselben Schule.
+
 ## Rollen der Serverversion
 
 - **AVS (Admin)**, `/admin`: erfasst Schulen und Zugänge für Schulleitungen. Sieht nur Anzahlen, keine Antworten.
