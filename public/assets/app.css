@@ -412,7 +412,7 @@ details.sub[open] summary::after { transform: rotate(180deg); }
 }
 
 /* Schulauswertung: Abschnitte, Navigation, Kennzahlen */
-#an-out { gap: 44px !important; }
+#an-out, #k-out { gap: 44px !important; }
 .an-sec { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 72px; }
 .sec-head { background: var(--box); box-shadow: 0 0 0 100vmax var(--box); clip-path: inset(0 -100vmax); padding: 12px 0; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
 .sec-head h3 { font-size: 1.2rem; display: flex; align-items: baseline; gap: 12px; }
@@ -456,3 +456,15 @@ table.kv-table th[scope="row"], table.kv-table thead th:first-child { text-align
 table.kv-table thead th { font-size: 0.8rem; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
 table.kv-table td.muted { text-align: left; }
 table.kv-table thead th:last-child { text-align: left; }
+
+/* Erhebungen mit einem Link pro Schule */
+.links { display: grid; gap: 10px; }
+.link-row { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.link-head { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.link-head .quote { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; max-width: none; flex: 1 1 260px; }
+.link-head .quote .bar { display: inline-block; width: 120px; height: 8px; }
+.status.round { background: #E8EEF6; color: #1d3b63; }
+.check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 16px; margin-top: 6px; }
+fieldset.field { border: 0; padding: 0; margin: 0; }
+.grp-table th, .grp-table td { white-space: nowrap; }
+.grp-table thead th:last-child { text-align: right; }

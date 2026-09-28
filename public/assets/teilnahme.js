@@ -4,14 +4,20 @@
   const { ITEMS, LV, $, $$, esc, fmt, date, api, radarSVG, meter, badge, download, today, confirmButton, copyText } = UI;
   const SUBS = DKCore.allSubareas(ITEMS);
 
+  // Werte werden gespeichert, Beschriftungen nur angezeigt. Bezirksschulen: Zyklus 3 fest, das Feld entfällt.
   const CONTEXT_OPTIONS = {
-    stufe: ['Kindergarten', 'Primarstufe 1.–2. Klasse', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I', 'Stufenübergreifend'],
+    zyklus: [['Zyklus 1', 'Zyklus 1 (Kindergarten bis 2. Klasse)'], ['Zyklus 2', 'Zyklus 2 (3. bis 6. Klasse)'], ['Zyklusübergreifend', 'Zyklusübergreifend (z. B. SHP, DaZ, Fachlehrperson)']],
     funktion: ['Klassenlehrperson', 'Fachlehrperson', 'Schulische Heilpädagogin / Schulischer Heilpädagoge', 'Lehrperson Deutsch als Zweitsprache', 'Andere Funktion'],
     erfahrung: ['Weniger als 5 Jahre', '5 bis 15 Jahre', 'Mehr als 15 Jahre'],
   };
   ['ctx', 'ctx2'].forEach((p) => Object.entries(CONTEXT_OPTIONS).forEach(([k, opts]) => {
-    $(`#${p}-${k}`).innerHTML = `<option value="">Keine Angabe</option>` + opts.map((o) => `<option>${esc(o)}</option>`).join('');
+    $(`#${p}-${k}`).innerHTML = `<option value="">Keine Angabe</option>` + opts.map((o) => Array.isArray(o) ? `<option value="${esc(o[0])}">${esc(o[1])}</option>` : `<option>${esc(o)}</option>`).join('');
   }));
+  let traegerKind = 'primar';
+  function setKind(kind) {
+    traegerKind = kind || 'primar';
+    $$('[data-zyklus-field]').forEach((f) => { f.hidden = traegerKind === 'sek'; });
+  }
 
   const m = location.pathname.match(/^\/t\/([^/]+)/);
   const TOKEN = m ? decodeURIComponent(m[1]) : null;
@@ -83,13 +89,14 @@
       try { camp = await api('GET', 'c/' + encodeURIComponent(TOKEN)); }
       catch (e) { return showError('Dieser Link funktioniert nicht', e.message); }
       $('#school-name').textContent = camp.school.name;
+      setKind(camp.traeger && camp.traeger.kind);
       $('#campaign-name').textContent = 'Selbsteinschätzung · ' + camp.campaign.title;
       await loadMe();
       if (me) {
         try { return await openCampaignResponse(); }
         catch (e) {
           if (e.status === 403) {
-            return showError('Angemeldet mit einem Code einer anderen Schule', 'Für diese Erhebung bitte abmelden und mit dem Code dieser Schule weiterfahren oder neu beginnen.', '<button class="btn" type="button" id="btn-err-logout">Abmelden</button>');
+            return showError('Angemeldet mit einem Code eines anderen Schulträgers', 'Für diese Erhebung bitte abmelden und mit dem Code dieses Schulträgers weiterfahren oder neu beginnen.', '<button class="btn" type="button" id="btn-err-logout">Abmelden</button>');
           }
           if (e.status !== 409) return showError('Fehler', e.message);
         }
@@ -147,7 +154,11 @@
   });
 
   /* ---------- Einstieg ---------- */
-  const readCtx = (p) => Object.fromEntries(Object.keys(CONTEXT_OPTIONS).map((k) => [k, $(`#${p}-${k}`).value || null]));
+  const readCtx = (p) => {
+    const c = Object.fromEntries(Object.keys(CONTEXT_OPTIONS).map((k) => [k, $(`#${p}-${k}`).value || null]));
+    if (traegerKind === 'sek') c.zyklus = 'Zyklus 3';
+    return c;
+  };
   $('#form-start').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#start-msg').textContent = '';
@@ -239,6 +250,7 @@
       const firstOpen = p.open[0];
       areaIdx = firstOpen ? ITEMS.areas.findIndex((a) => a.id === SUBS.find((s) => s.id === firstOpen).areaId) : 0;
     }
+    setKind(cur.traeger_kind);
     Object.keys(CONTEXT_OPTIONS).forEach((k) => { $(`#ctx2-${k}`).value = (cur.context && cur.context[k]) || ''; });
     ctxSummary();
     setSaveState(cur.updated_at ? 'Zuletzt gespeichert am ' + date(cur.updated_at) : '');
@@ -451,7 +463,7 @@
     const r = viewing;
     const answers = r.answers;
     const prev = previousOf(r);
-    $('#result-date').textContent = `${me.school.name} · ${r.campaign_title} · ${r.status === 'submitted' ? 'abgeschlossen am ' + date(r.submitted_at) : 'in Bearbeitung'}`;
+    $('#result-date').textContent = `${r.school_name || me.school.name} · ${r.campaign_title} · ${r.status === 'submitted' ? 'abgeschlossen am ' + date(r.submitted_at) : 'in Bearbeitung'}`;
     UI.levelsStrip($('#result-levels'));
     $('#btn-toggle-all').textContent = 'Alle öffnen';
     const ctx = r.context || {};

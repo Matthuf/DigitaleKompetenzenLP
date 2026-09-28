@@ -92,7 +92,7 @@ window.Block = (function () {
     ctx = context;
     const c = ctx.campaigns().find((x) => x.id === id);
     const b = c.custom_block ? JSON.parse(JSON.stringify(c.custom_block)) : { title: 'Fragen unserer Schule', intro: '', questions: [] };
-    ed = { id, title: c.title, locked: c.submitted > 0, block: b, preview: false };
+    ed = { id, title: c.title, locked: c.submitted > 0 || c.manageable === false, byOther: c.manageable === false, block: b, preview: false };
     render();
     if (!ctx.embedded) $('#block-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -113,7 +113,9 @@ window.Block = (function () {
         <button class="btn quiet" type="button" id="ed-close">Schliessen</button></div>
       <p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen im Fragebogen als zusätzlicher Schritt nach den sechs Kompetenzbereichen. Sie fliessen nicht ins Kompetenzprofil ein. Die Auswertung erscheint wie beim Kern erst ab fünf abgeschlossenen Teilnahmen. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
     if (ed.locked) {
-      box.innerHTML = head + `<div class="box box--info">Für diese Erhebung gibt es bereits abgeschlossene Teilnahmen. Die Fragen sind darum gesperrt. Für geänderte Fragen eine neue Erhebung eröffnen und den Schulblock dort übernehmen.</div>` +
+      box.innerHTML = head + (ed.byOther
+        ? `<div class="box box--info">Diese Erhebung hat das Rektorat eröffnet. Eigene Fragen legt darum das Rektorat fest.</div>`
+        : `<div class="box box--info">Für diese Erhebung gibt es bereits abgeschlossene Teilnahmen. Die Fragen sind darum gesperrt. Für geänderte Fragen eine neue Erhebung eröffnen und den Schulblock dort übernehmen.</div>`) +
         (b.questions.length ? `<ol class="stack" style="gap:10px;padding-left:20px">${b.questions.map((q) => `<li><b>${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}</span>${q.options ? `<ul class="small">${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol>` : '<p class="muted">Kein Schulblock.</p>');
       $('#ed-close').addEventListener('click', close);
       return;

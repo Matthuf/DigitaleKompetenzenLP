@@ -19,10 +19,10 @@ Blatt «Weiterbildung» der Excel-Masterdatei: pro Teilbereich ein Haupt- und ei
 - **Veränderung** (bei gewähltem Vergleich): Hantel pro Teilbereich, nach Veränderung sortiert.
 - **Wer braucht was?** Anteile Einstieg (I–II), Vertiefung (III–IV), Weitergeben (V–VI) plus Streuung: *gespalten* = je mind. 25 % auf I–II und V–VI, *einig* = Standardabweichung ≤ 0,8, sonst *gemischt*.
 - **Voraussetzungen:** Anteil «keine Gelegenheit» pro Teilbereich, Schwelle 25 %.
-- **Schulstufen im Vergleich:** nur ohne Stufenfilter, ab zwei Stufen und nur wenn jede Gruppe (inkl. «ohne Angabe») `MIN_GROUP_SIZE` erreicht.
+- **Gruppenvergleiche** (Zyklen, beim Rektorat Schulen, beim AVS Zyklen, Berufserfahrung und Funktion): nur ab zwei Gruppen und nur wenn jede Gruppe (inkl. «ohne Angabe») `MIN_GROUP_SIZE` erreicht.
 - **Bericht** auf einer A4-Seite (Drucken / PDF) und jedes Diagramm als PNG.
-- Offline-Version: dieselben Diagramme (`public/assets/charts.js` wird beim Build eingebettet), ohne Vergleich zweier Erhebungen. Stufenvergleich ab 5 Ergebnissen pro Gruppe; Beispieldaten: 18 Personen in drei Stufen.
-- Bekannte Grenze: Der bestehende Stufenfilter plus Gesamtwert erlaubt bei genau einer ausgeblendeten kleinen Gruppe eine Differenzrechnung. Vor dem Echtbetrieb prüfen.
+- Offline-Version: dieselben Diagramme (`public/assets/charts.js` wird beim Build eingebettet), ohne Vergleich zweier Erhebungen. Zyklenvergleich ab 5 Ergebnissen pro Gruppe; Beispieldaten: 18 Personen in drei Gruppen. Ältere Ergebnisdateien mit «Schulstufe» werden automatisch einem Zyklus zugeordnet.
+- **Filter** (Zyklus, Schule) werden nach derselben Regel nur angeboten, wenn jede Gruppe die Mindestgrösse erreicht. So lässt sich keine kleine Gruppe als Differenz zum Gesamtwert berechnen.
 
 ## Eigene Fragen in der Offline-Version
 
@@ -30,10 +30,16 @@ Im Reiter «Eigene Fragen» erstellt die Schulleitung ihre Fragen (gleiche vier 
 
 ## Rollen der Serverversion
 
-- **AVS (Admin)**, `/admin`: erfasst Schulen und Zugänge für Schulleitungen. Sieht nur Anzahlen, keine Antworten.
-- **Schulleitung**, `/leitung`: eröffnet Erhebungen (z. B. «Herbst 2026»), gibt den Link ans Kollegium weiter und sieht die Auswertung **nur der eigenen Schule** und **erst ab 5 abgeschlossenen Teilnahmen**. Keine Einzelprofile. Vergleich zwischen Erhebungen und Filter nach Schulstufe (ebenfalls nur ab 5).
-- **Schulblock**: Pro Erhebung kann die Schulleitung bis zu 15 eigene Fragen ergänzen und dabei vier Formen mischen: Zustimmungsskala (4 Stufen), eigene Stufenaussagen (3–6), Auswahl (einfach oder mehrfach) und Freitext. Die Fragen erscheinen als zusätzlicher Schritt nach den sechs Bereichen, fliessen nicht ins Kompetenzprofil ein und werden ebenfalls erst ab 5 Teilnahmen ausgewertet (Freitexte in zufälliger Reihenfolge). Nach der ersten abgeschlossenen Teilnahme ist der Block gesperrt. Er lässt sich in eine neue Erhebung übernehmen; die Fragen behalten dabei ihre Kennung.
-- **Lehrperson**, `/t/<link>`: nimmt ohne Namen und E-Mail teil und erhält einen **persönlichen Code** (z. B. `K7QM-4RTX-9P2C`). Damit: fortsetzen, Profil wieder ansehen (`/mein-profil`), bei der nächsten Erhebung erneut ausfüllen mit Vergleich, alle eigenen Daten löschen.
+Aufbau: **Schulträger** (Gemeinde = Primarstufe mit Zyklus 1 und 2, Bezirk = Sekundarstufe mit Zyklus 3) → **Schulen bzw. Schulhäuser**. Eine Erhebung gehört dem Träger, jede beteiligte Schule hat einen **eigenen Link**.
+
+- **AVS (Admin)**, `/admin`: erfasst Schulträger, Schulen und Zugänge, legt **Runden** fest (z. B. die erste kantonale Runde) und sieht die **kantonale Auswertung**: alle Teilnahmen zusammen, filterbar nach Runde und Zyklus, Vergleiche nach Zyklus, Berufserfahrung und Funktion. **Keine Angaben zu Schulen oder Trägern** (weder Filter noch Namen noch IDs in der Antwort), keine eigenen Fragen, keine Freitexte; jede Person zählt einmal (jüngste Teilnahme). Keine Einsicht in Schulauswertungen.
+- **Rektorat / Hauptschulleitung**, `/leitung`: eröffnet Erhebungen für alle oder ausgewählte Schulen des Trägers, verteilt die Links oder überlässt sie den Schulleitungen, sieht alle Erhebungen des Trägers (auch jene der Schulleitungen), die Gesamtauswertung, den Filter nach Schule und «Schulen im Vergleich». Pro Runde kann das Rektorat auch alle Erhebungen der Schulen zusammen auswerten.
+- **Schulleitung**, `/leitung`: sieht Erhebungen mit einem Link für ihre Schule und davon **nur die Auswertung der eigenen Schule**. Kann selbst Erhebungen für die eigene Schule eröffnen und verwalten; Erhebungen des Rektorats verwaltet das Rektorat.
+- **Runden**: Die erste Runde gibt das AVS vor. Pro Runde nimmt jede Schule einmal teil (sonst würden Lehrpersonen doppelt gezählt). Weitere Erhebungen legen die Schulen frei fest.
+- **Mindestgrösse**: alle Auswertungen erst ab `MIN_GROUP_SIZE` (Echtbetrieb 5) abgeschlossenen Teilnahmen. Keine Einzelprofile.
+- **Schulblock**: Pro Erhebung bis zu 15 eigene Fragen, vier Formen mischbar: Zustimmungsskala (4 Stufen), eigene Stufenaussagen (3–6), Auswahl (einfach oder mehrfach) und Freitext. Erscheinen als zusätzlicher Schritt, fliessen nicht ins Kompetenzprofil ein, werden erst ab Mindestgrösse ausgewertet (Freitexte in zufälliger Reihenfolge). Nach der ersten abgeschlossenen Teilnahme gesperrt, übernehmbar in eine neue Erhebung.
+- **Lehrperson**, `/t/<link>`: nimmt ohne Namen und E-Mail teil und erhält einen **persönlichen Code**. Damit: fortsetzen, Profil wieder ansehen (`/mein-profil`), bei der nächsten Erhebung erneut ausfüllen mit Vergleich, alle eigenen Daten löschen. Der Code gilt innerhalb des ganzen Schulträgers. Zyklus: Gemeindeschulen wählen Zyklus 1, 2 oder zyklusübergreifend; bei Bezirksschulen ist Zyklus 3 fest.
+- **Migration**: Bestehende Schulen werden beim Start automatisch zu eigenen Trägern (Primarstufe), bisherige Erhebungslinks bleiben gültig, Schulstufen werden zu Zyklen.
 
 ## Aufbau
 

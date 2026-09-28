@@ -205,7 +205,7 @@
     return svg(bottom + 4, g, 'Anteil «keine Gelegenheit» pro Teilbereich');
   }
 
-  /* B4: Stufen nebeneinander – Mittelwert pro Bereich und Schulstufe */
+  /* B4: Gruppen nebeneinander (Zyklen, Schulen …) – Mittelwert pro Bereich und Gruppe */
   const STUFE_COL = ['#E2001A', '#000000', '#8C8C8C', '#EB694B', '#780A00'];
   const shape = (k, x, y, col, s = 5.5) => {
     x = +(+x).toFixed(1); y = +(+y).toFixed(1);
@@ -222,13 +222,13 @@
       byStufe.forEach((st, k) => {
         const v = st.areas[r.idx];
         if (v === null) return;
-        g += `<g><title>${esc(st.stufe)}: ${fmt(v)}</title>${shape(k, xf(v).toFixed(1), r.cy, STUFE_COL[k % STUFE_COL.length])}</g>`;
+        g += `<g><title>${esc(st.label || st.stufe)}: ${fmt(v)}</title>${shape(k, xf(v).toFixed(1), r.cy, STUFE_COL[k % STUFE_COL.length])}</g>`;
       });
     });
-    return svg(bottom + 4, g, 'Mittelwerte pro Bereich nach Schulstufe');
+    return svg(bottom + 4, g, 'Mittelwerte pro Bereich nach Gruppe');
   }
   function stufenLegend(byStufe) {
-    return byStufe.map((st, k) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${shape(k, 7, 7, STUFE_COL[k % STUFE_COL.length], 5)}</svg> ${esc(st.stufe)} (${st.n})</span>`).join('');
+    return byStufe.map((st, k) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${shape(k, 7, 7, STUFE_COL[k % STUFE_COL.length], 5)}</svg> ${esc(st.label || st.stufe)} (${st.n})</span>`).join('');
   }
 
   /* Diagramm als PNG speichern */

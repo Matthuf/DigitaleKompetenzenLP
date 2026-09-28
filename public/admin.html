@@ -58,39 +58,88 @@
   </section>
 
   <section class="view" id="v-dash" hidden>
-    <div class="stack" style="gap:40px">
+    <nav class="tabs" aria-label="Bereiche der AVS-Verwaltung">
+      <a href="#traeger" data-tab="traeger">Schulträger und Zugänge</a>
+      <a href="#runden" data-tab="runden">Runden</a>
+      <a href="#auswertung" data-tab="auswertung">Kantonale Auswertung</a>
+    </nav>
+
+    <div class="tabpanel stack" id="tab-traeger" style="gap:32px">
       <div class="stack" style="gap:16px">
         <div class="row" style="justify-content:space-between;align-items:flex-end">
           <div class="stack" style="gap:6px">
-            <h2>Schulen</h2>
-            <p class="muted small" style="max-width:70ch">Jede Schule erhält eigene Zugänge für die Schulleitung. Die AVS-Verwaltung sieht nur Anzahlen, keine Antworten und keine Auswertungen.</p>
+            <h2>Schulträger</h2>
+            <p class="muted small" style="max-width:72ch">Gemeinden führen die Primarstufe (Zyklus 1 und 2), Bezirke die Sekundarstufe (Zyklus 3). Jeder Träger hat eine oder mehrere Schulen bzw. Schulhäuser. Zugänge gibt es für das Rektorat bzw. die Hauptschulleitung (ganzer Träger) und für die Schulleitungen (eine Schule).</p>
           </div>
-          <form class="row" id="form-school">
-            <label for="school-new" class="small"><b>Neue Schule</b></label>
-            <input type="text" id="school-new" placeholder="z. B. Schule Musterdorf" style="width:240px">
+          <form class="row" id="form-traeger" style="align-items:flex-end">
+            <div class="field"><label for="tr-new" class="small">Neuer Schulträger</label><input type="text" id="tr-new" placeholder="z. B. Gemeinde Musterdorf" style="width:240px"></div>
+            <div class="field"><label for="tr-kind" class="small">Stufe</label><select id="tr-kind" style="width:auto"><option value="primar">Gemeinde · Primarstufe</option><option value="sek">Bezirk · Sekundarstufe</option></select></div>
             <button class="btn" type="submit">Erfassen</button>
           </form>
         </div>
-        <p class="error small" id="school-msg" role="alert"></p>
-        <div class="field" style="max-width:320px"><label for="school-filter" class="small">Schule suchen</label><input type="text" id="school-filter" placeholder="Name eingeben"></div>
-        <div class="table-scroll"><table class="list" id="school-table"></table></div>
+        <p class="error small" id="tr-msg" role="alert"></p>
+        <div class="field" style="max-width:320px"><label for="tr-filter" class="small">Schulträger oder Schule suchen</label><input type="text" id="tr-filter" placeholder="Name eingeben"></div>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Schulträger"><table class="list" id="tr-table"></table></div>
       </div>
-      <div class="stack" style="gap:16px" id="users-panel" hidden>
-        <div class="row" style="justify-content:space-between;align-items:flex-end">
-          <div class="stack" style="gap:6px"><div class="eyebrow">Zugänge Schulleitung</div><h2 id="users-title"></h2></div>
-          <form class="row" id="form-user">
-            <div class="field"><label for="user-new" class="small">Benutzername</label><input type="text" id="user-new" placeholder="vorname.nachname" autocapitalize="none" spellcheck="false" style="width:200px"></div>
-            <div class="field"><label for="user-new-name" class="small">Name (freiwillig)</label><input type="text" id="user-new-name" style="width:200px"></div>
-            <button class="btn" type="submit">Zugang erstellen</button>
-          </form>
+
+      <div class="stack" style="gap:20px" id="tr-panel" hidden>
+        <div class="stack" style="gap:6px"><div class="eyebrow" id="tr-kind-label"></div><h2 id="tr-title"></h2></div>
+        <div class="two-col">
+          <div class="stack" style="gap:12px">
+            <h3>Schulen bzw. Schulhäuser</h3>
+            <ul class="list-plain stack" style="gap:6px" id="sc-list"></ul>
+            <form class="row" id="form-school" style="align-items:flex-end">
+              <div class="field"><label for="school-new" class="small">Weitere Schule</label><input type="text" id="school-new" placeholder="z. B. Schulhaus Dorf" style="width:220px"></div>
+              <button class="btn secondary" type="submit">Hinzufügen</button>
+            </form>
+            <p class="error small" id="school-msg" role="alert"></p>
+          </div>
+          <div class="stack" style="gap:12px">
+            <h3>Neuer Zugang</h3>
+            <form class="stack" id="form-user" style="gap:10px">
+              <div class="field"><label for="user-scope" class="small">Zugang für</label><select id="user-scope"></select></div>
+              <div class="row">
+                <div class="field"><label for="user-new" class="small">Benutzername</label><input type="text" id="user-new" placeholder="vorname.nachname" autocapitalize="none" spellcheck="false" style="width:200px"></div>
+                <div class="field"><label for="user-new-name" class="small">Name (freiwillig)</label><input type="text" id="user-new-name" style="width:200px"></div>
+              </div>
+              <div><button class="btn" type="submit">Zugang erstellen</button></div>
+            </form>
+            <p class="error small" id="user-msg" role="alert"></p>
+          </div>
         </div>
-        <p class="error small" id="user-msg" role="alert"></p>
         <div class="box box--success" id="pw-once" hidden></div>
-        <div class="table-scroll"><table class="list" id="user-table"></table></div>
-        <div class="confirm" id="school-delete"></div>
+        <h3>Zugänge</h3>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Zugänge"><table class="list" id="user-table"></table></div>
+        <div class="confirm" id="tr-delete"></div>
       </div>
     </div>
+
+    <div class="tabpanel stack" id="tab-runden" style="gap:20px" hidden>
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div class="stack" style="gap:6px"><h2>Runden</h2>
+          <p class="muted small" style="max-width:72ch">Eine Runde bündelt die Erhebungen aller Schulen im gleichen Zeitraum, zum Beispiel die erste kantonale Runde. Schulen wählen sie beim Eröffnen einer Erhebung aus. Weitere Erhebungen legen die Schulen selbst fest. Die kantonale Auswertung lässt sich pro Runde filtern.</p></div>
+        <form class="row" id="form-round" style="align-items:flex-end">
+          <div class="field"><label for="round-new" class="small">Neue Runde</label><input type="text" id="round-new" placeholder="z. B. Erste Runde 2026/27" style="width:240px"></div>
+          <button class="btn" type="submit">Erfassen</button>
+        </form>
+      </div>
+      <p class="error small" id="round-msg" role="alert"></p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Runden"><table class="list" id="round-table"></table></div>
+    </div>
+
+    <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div class="stack" style="gap:6px"><h2>Kantonale Auswertung</h2>
+          <p class="muted small" style="max-width:72ch">Alle abgeschlossenen Selbsteinschätzungen des Kantons zusammen. Ohne Angaben zu Schulen oder Schulträgern, ohne eigene Fragen der Schulen und ohne Freitexte. Jede Lehrperson zählt einmal (ihre jüngste Teilnahme).</p></div>
+        <div class="row">
+          <div class="field"><label for="k-round" class="small">Runde</label><select id="k-round"></select></div>
+          <div class="field"><label for="k-zyklus" class="small">Zyklus</label><select id="k-zyklus"></select></div>
+        </div>
+      </div>
+      <div id="k-out" class="stack" style="gap:28px"></div>
+    </div>
   </section>
+  <section id="report" class="report" hidden aria-hidden="true"></section>
 </main>
 
 <footer>
@@ -109,6 +158,8 @@
 <script src="/assets/core.js"></script>
 <script src="/assets/ui.js"></script>
 <script src="/assets/staff.js"></script>
+<script src="/assets/charts.js"></script>
+<script src="/assets/analysis.js"></script>
 <script src="/assets/admin.js"></script>
 <script src="/assets/nav.js"></script>
 </body>

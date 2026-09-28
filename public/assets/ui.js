@@ -117,8 +117,8 @@
   function heatCell(count, total) {
     if (!total) return `<td class="cell">–</td>`;
     const share = count / total;
-    const bg = count === 0 ? 'transparent' : `rgba(226,0,26,${(0.08 + share * 0.82).toFixed(2)})`;
-    const fg = share > 0.62 ? '#fff' : '#000';
+    const bg = count === 0 ? "transparent" : `rgba(226,0,26,${(0.08 + share * 0.72).toFixed(2)})`;
+    const fg = "#000"; // Deckkraft höchstens 0.8: schwarze Schrift bleibt überall gut lesbar
     return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
   }
   function heatTable(agg) {

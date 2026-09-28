@@ -403,14 +403,13 @@ address.contact { font-style: normal; line-height: 1.6; }
         <form class="panel stack" id="context-form">
           <h3>Angaben zum Arbeitsumfeld</h3>
           <div class="field">
-            <label for="ctx-stufe">Schulstufe</label>
-            <select id="ctx-stufe" name="stufe">
+            <label for="ctx-zyklus">Zyklus</label>
+            <select id="ctx-zyklus" name="zyklus">
               <option value="">Keine Angabe</option>
-              <option>Kindergarten</option>
-              <option>Primarstufe 1.–2. Klasse</option>
-              <option>Primarstufe 3.–6. Klasse</option>
-              <option>Sekundarstufe I</option>
-              <option>Stufenübergreifend</option>
+              <option value="Zyklus 1">Zyklus 1 (Kindergarten bis 2. Klasse)</option>
+              <option value="Zyklus 2">Zyklus 2 (3. bis 6. Klasse)</option>
+              <option value="Zyklus 3">Zyklus 3 (Sekundarstufe I)</option>
+              <option value="Zyklusübergreifend">Zyklusübergreifend (z. B. SHP, DaZ, Fachlehrperson)</option>
             </select>
           </div>
           <div class="field">
@@ -468,7 +467,7 @@ address.contact { font-style: normal; line-height: 1.6; }
         <details class="box" id="ctx-details" style="margin-top:28px" hidden>
           <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted">(freiwillig, für die Schulauswertung)</span> <span class="small muted" id="ctx-summary"></span></summary>
           <div class="stack" style="margin-top:14px">
-            <div class="field"><label for="ctx2-stufe">Schulstufe</label><select id="ctx2-stufe"></select></div>
+            <div class="field"><label for="ctx2-zyklus">Zyklus</label><select id="ctx2-zyklus"></select></div>
             <div class="field"><label for="ctx2-funktion">Funktion</label><select id="ctx2-funktion"></select></div>
             <div class="field"><label for="ctx2-erfahrung">Berufserfahrung</label><select id="ctx2-erfahrung"></select></div>
           </div>
@@ -1043,7 +1042,7 @@ window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
     return svg(bottom + 4, g, 'Anteil «keine Gelegenheit» pro Teilbereich');
   }
 
-  /* B4: Stufen nebeneinander – Mittelwert pro Bereich und Schulstufe */
+  /* B4: Gruppen nebeneinander (Zyklen, Schulen …) – Mittelwert pro Bereich und Gruppe */
   const STUFE_COL = ['#E2001A', '#000000', '#8C8C8C', '#EB694B', '#780A00'];
   const shape = (k, x, y, col, s = 5.5) => {
     x = +(+x).toFixed(1); y = +(+y).toFixed(1);
@@ -1060,13 +1059,13 @@ window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
       byStufe.forEach((st, k) => {
         const v = st.areas[r.idx];
         if (v === null) return;
-        g += `<g><title>${esc(st.stufe)}: ${fmt(v)}</title>${shape(k, xf(v).toFixed(1), r.cy, STUFE_COL[k % STUFE_COL.length])}</g>`;
+        g += `<g><title>${esc(st.label || st.stufe)}: ${fmt(v)}</title>${shape(k, xf(v).toFixed(1), r.cy, STUFE_COL[k % STUFE_COL.length])}</g>`;
       });
     });
-    return svg(bottom + 4, g, 'Mittelwerte pro Bereich nach Schulstufe');
+    return svg(bottom + 4, g, 'Mittelwerte pro Bereich nach Gruppe');
   }
   function stufenLegend(byStufe) {
-    return byStufe.map((st, k) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${shape(k, 7, 7, STUFE_COL[k % STUFE_COL.length], 5)}</svg> ${esc(st.stufe)} (${st.n})</span>`).join('');
+    return byStufe.map((st, k) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${shape(k, 7, 7, STUFE_COL[k % STUFE_COL.length], 5)}</svg> ${esc(st.label || st.stufe)} (${st.n})</span>`).join('');
   }
 
   /* Diagramm als PNG speichern */
@@ -1108,6 +1107,9 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   const roman = (v) => (v >= 1 ? LV[v - 1].roman : '–');
   const SUBS = DKCore.allSubareas(ITEMS);
   const subById = Object.fromEntries(SUBS.map((s) => [s.id, s]));
+  // Zyklus einer Ergebnisdatei; ältere Dateien enthalten noch die Schulstufe
+  const STUFE_ZU_ZYKLUS = { 'Kindergarten': 'Zyklus 1', 'Primarstufe 1.–2. Klasse': 'Zyklus 1', 'Primarstufe 3.–6. Klasse': 'Zyklus 2', 'Sekundarstufe I': 'Zyklus 3', 'Stufenübergreifend': 'Zyklusübergreifend' };
+  const zyklusOf = (r) => { const c = (r && r.context) || {}; return c.zyklus || STUFE_ZU_ZYKLUS[c.stufe] || ''; };
   const LEVEL_VARS = ['--l0', '--l1', '--l2', '--l3', '--l4', '--l5', '--l6'];
 
   /* ---------- Zustand ---------- */
@@ -1196,7 +1198,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
       $('#resume-text').textContent = `${p.done} von ${p.total} Fragen beantwortet` + (d ? `, zuletzt bearbeitet am ${d.toLocaleDateString('de-CH')} um ${d.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })} Uhr.` : '.');
       resetControl($('#reset-confirm-start'), 'Löschen und neu beginnen');
     }
-    ['stufe', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx-' + k).value = state.context[k] || ''; });
+    ['zyklus', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx-' + k).value = state.context[k] || ''; });
     $('#btn-start').firstChild.textContent = has ? 'Weiter zur Selbsteinschätzung ' : 'Selbsteinschätzung starten ';
     const blk = blockOf();
     $('#steps-custom').textContent = blk ? ` und ${blk.questions.length} Frage${blk.questions.length === 1 ? '' : 'n'} der Schule` : '';
@@ -1206,7 +1208,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   }
   $('#context-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    ['stufe', 'funktion', 'erfahrung'].forEach((k) => { state.context[k] = $('#ctx-' + k).value || null; });
+    ['zyklus', 'funktion', 'erfahrung'].forEach((k) => { state.context[k] = $('#ctx-' + k).value || null; });
     persist();
     const p = DKCore.progress(ITEMS, state.answers);
     const firstOpen = p.open[0];
@@ -1232,7 +1234,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   });
 
   /* ---------- Fragebogen ---------- */
-  ['stufe', 'funktion', 'erfahrung'].forEach((k) => {
+  ['zyklus', 'funktion', 'erfahrung'].forEach((k) => {
     $('#ctx2-' + k).innerHTML = $('#ctx-' + k).innerHTML;
     $('#ctx2-' + k).addEventListener('change', (e) => { state.context[k] = e.target.value || null; ctxSummary(); persist(); });
   });
@@ -1390,7 +1392,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     }
     const last = areaIdx === steps() - 1;
     $('#ctx-details').hidden = !last;
-    if (last) { ['stufe', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx2-' + k).value = state.context[k] || ''; }); ctxSummary(); }
+    if (last) { ['zyklus', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx2-' + k).value = state.context[k] || ''; }); ctxSummary(); }
     $('#btn-prev').hidden = areaIdx === 0;
     $('#btn-next').textContent = last ? 'Zum Ergebnis' : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
     renderAreaNav();
@@ -1489,7 +1491,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     levelsStrip($('#result-levels'));
     $('#btn-toggle-all').textContent = 'Alle öffnen';
     const ctx = state.context || {};
-    $('#result-chips').innerHTML = [ctx.stufe, ctx.funktion, ctx.erfahrung].filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
+    $('#result-chips').innerHTML = [zyklusOf({ context: ctx }), ctx.funktion, ctx.erfahrung].filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
     const openBox = $('#result-open');
     openBox.hidden = p.open.length === 0;
     if (p.open.length) openBox.innerHTML = `<b>${p.open.length} von ${p.total} Fragen sind noch offen</b> (${p.open.join(', ')}). Das Profil ist darum unvollständig. <button class="btn quiet" type="button" data-go="survey">Offene Fragen beantworten</button>`;
@@ -1571,7 +1573,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     let seed = 20260928;
     const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     const base = { '1': 3.4, '2': 3.1, '3': 2.8, '4': 2.1, '5': 2.4, '6': 2.6 };
-    const stufen = ['Kindergarten', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
+    const stufen = ['Zyklus 1', 'Zyklus 2', 'Zyklusübergreifend'];
     return Array.from({ length: 18 }, (_, k) => {
       const skill = (rnd() - 0.5) * 2.2;
       const answers = {};
@@ -1588,7 +1590,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
         else if (rnd() < 0.4) ca[q.id] = DEMO_TEXTS[k % DEMO_TEXTS.length];
         if (Array.isArray(ca[q.id]) && !ca[q.id].length) delete ca[q.id];
       });
-      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[k % 3] }, answers,
+      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { zyklus: stufen[k % 3] }, answers,
         school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : { id: 'beispiel', name: 'Beispielschule', version: 'beispiel', created: '2026-09-01' },
         custom_block: blk, custom_answers: ca };
     });
@@ -1621,8 +1623,8 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   function heatCell(count, total) {
     if (!total) return `<td class="cell">–</td>`;
     const share = count / total;
-    const bg = count === 0 ? 'transparent' : `rgba(226,0,26,${(0.08 + share * 0.82).toFixed(2)})`;
-    const fg = share > 0.62 ? '#fff' : '#000';
+    const bg = count === 0 ? "transparent" : `rgba(226,0,26,${(0.08 + share * 0.72).toFixed(2)})`;
+    const fg = "#000"; // Deckkraft höchstens 0.8: schwarze Schrift bleibt überall gut lesbar
     return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
   }
   // Darstellung der Schulauswertung (wie Serverversion)
@@ -1643,18 +1645,18 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   // Stufen nebeneinander nur, wenn jede Gruppe (auch ohne Angabe) die Mindestgrösse erreicht
   function stufenGroups(records) {
     const groups = {};
-    records.forEach((r) => { const k = (r.context && r.context.stufe) || ''; (groups[k] = groups[k] || []).push(r); });
+    records.forEach((r) => { const k = zyklusOf(r); (groups[k] = groups[k] || []).push(r); });
     const named = Object.keys(groups).filter((k) => k).sort((a, b) => a.localeCompare(b));
     if (named.length < 2) return null;
     if (!Object.values(groups).every((g) => g.length >= DKCore.MIN_GROUP)) return { hidden: true };
-    return named.map((k) => ({ stufe: k, n: groups[k].length, areas: DKCore.aggregate(ITEMS, groups[k]).areas.map((a) => a.mean) }));
+    return named.map((k) => ({ label: k, n: groups[k].length, areas: DKCore.aggregate(ITEMS, groups[k]).areas.map((a) => a.mean) }));
   }
 
   function renderSchool() {
     const out = $('#school-out');
     if (!school.records.length && !school.sample) { school = { records: sampleRecords(), sample: true, filter: '' }; }
-    const stufen = [...new Set(school.records.map((r) => (r.context && r.context.stufe) || '').filter(Boolean))].sort();
-    const recs = school.filter ? school.records.filter((r) => r.context && r.context.stufe === school.filter) : school.records;
+    const stufen = [...new Set(school.records.map(zyklusOf).filter(Boolean))].sort();
+    const recs = school.filter ? school.records.filter((r) => zyklusOf(r) === school.filter) : school.records;
     const agg = DKCore.aggregate(ITEMS, recs);
     const tooFew = agg.n < DKCore.MIN_GROUP;
     const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
@@ -1673,11 +1675,11 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
           ${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small muted">Bereich ${a.id}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}
         </div>
         <div class="row">
-          <div class="field" style="min-width:220px"><label for="school-filter" class="small">Schulstufe</label>
-            <select id="school-filter"><option value="">Alle Stufen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
+          <div class="field" style="min-width:220px"><label for="school-filter" class="small">Zyklus</label>
+            <select id="school-filter"><option value="">Alle Zyklen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
         </div>
       </div>
-      <nav class="an-jump small no-print" aria-label="Abschnitte der Auswertung"><a href="#sec-profil">Profil</a><a href="#sec-needs">Wer braucht was?</a>${noOppSVG ? '<a href="#sec-noopp">Voraussetzungen</a>' : ''}${Array.isArray(bs) ? '<a href="#sec-stufen">Schulstufen</a>' : ''}<a href="#sec-table">Tabelle</a></nav>
+      <nav class="an-jump small no-print" aria-label="Abschnitte der Auswertung"><a href="#sec-profil">Profil</a><a href="#sec-needs">Wer braucht was?</a>${noOppSVG ? '<a href="#sec-noopp">Voraussetzungen</a>' : ''}${Array.isArray(bs) ? '<a href="#sec-stufen">Zyklen</a>' : ''}<a href="#sec-table">Tabelle</a></nav>
 
       <section class="an-sec stack" id="sec-profil" aria-labelledby="h-profil">
         <div class="row" style="justify-content:space-between;align-items:flex-end">
@@ -1717,11 +1719,11 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
       </section>` : ''}
 
       ${Array.isArray(bs) ? `<section class="an-sec stack" id="sec-stufen" aria-labelledby="h-stufen">
-        <div class="row" style="justify-content:space-between"><h3 id="h-stufen">Schulstufen im Vergleich</h3>${saveBtn('stufen')}</div>
-        <p class="small muted">Mittelwert pro Bereich und Schulstufe. Nur sichtbar, wenn jede Gruppe mindestens ${DKCore.MIN_GROUP} Ergebnisse umfasst.</p>
+        <div class="row" style="justify-content:space-between"><h3 id="h-stufen">Zyklen im Vergleich</h3>${saveBtn('stufen')}</div>
+        <p class="small muted">Mittelwert pro Bereich und Zyklus. Nur sichtbar, wenn jede Gruppe mindestens ${DKCore.MIN_GROUP} Ergebnisse umfasst.</p>
         <div class="legend">${Charts.stufenLegend(bs)}</div>
         <figure tabindex="0" class="chart" data-chart="stufen">${Charts.stufen(bs)}</figure>
-      </section>` : bs && bs.hidden ? `<p class="small muted">Der Vergleich der Schulstufen erscheint, sobald jede Stufe (und die Gruppe ohne Stufenangabe) mindestens ${DKCore.MIN_GROUP} Ergebnisse hat.</p>` : ''}
+      </section>` : bs && bs.hidden ? `<p class="small muted">Der Vergleich der Zyklen erscheint, sobald jeder Zyklus (und die Gruppe ohne Angabe) mindestens ${DKCore.MIN_GROUP} Ergebnisse hat.</p>` : ''}
 
       <details class="an-sec" id="sec-table">
         <summary><b>Tabelle: Anzahl Lehrpersonen pro Stufe</b></summary>
@@ -1759,7 +1761,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     drawMain();
 
     $('#needs-order').addEventListener('change', (e) => { sview.order = e.target.value; $('#chart-needs').innerHTML = Charts.needs(agg, sview.order); });
-    const pngNames = { needs: 'Wer_braucht_was', noopp: 'Voraussetzungen', stufen: 'Schulstufen' };
+    const pngNames = { needs: 'Wer_braucht_was', noopp: 'Voraussetzungen', stufen: 'Zyklen' };
     $$('#school-out .an-sec [data-png]').filter((b) => b.dataset.png !== 'main').forEach((b) => b.addEventListener('click', () =>
       Charts.png($(`[data-chart=${b.dataset.png}] svg`), `${fileBase()}_${pngNames[b.dataset.png]}_${today()}`)));
     $$('.an-jump a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); const t = $(a.getAttribute('href')); if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
@@ -1777,7 +1779,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const split = SUBS.filter((s) => DKCore.needGroups(agg.bySub[s.id]).spread === 'gespalten');
     r.innerHTML = `
       <div class="rp-head"><div><div class="eyebrow">${esc(schoolLabel())}</div><h2>Digitale Kompetenzen des Kollegiums</h2>
-        <p>${agg.n} Ergebnis${agg.n === 1 ? '' : 'se'}${school.filter ? ' · Stufe «' + esc(school.filter) + '»' : ''} · Stand ${new Date().toLocaleDateString('de-CH')}${school.sample ? ' · Beispieldaten' : ''}</p></div></div>
+        <p>${agg.n} Ergebnis${agg.n === 1 ? '' : 'se'}${school.filter ? ' · ' + esc(school.filter) : ''} · Stand ${new Date().toLocaleDateString('de-CH')}${school.sample ? ' · Beispieldaten' : ''}</p></div></div>
       <div class="stat-row rp-stats">${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small">${a.id} ${esc(a.short)}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}</div>
       <div class="rp-grid">
         <div>${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm' })}
