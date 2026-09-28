@@ -135,7 +135,7 @@
     if (saving) { pending = true; return; }
     saving = true;
     try {
-      await api('PUT', 'me/responses/' + cur.id, { answers: cur.answers, context: cur.context });
+      await api('PUT', 'me/responses/' + cur.id, { answers: cur.answers, context: cur.context, custom_answers: cur.custom_answers || {} });
       setSaveState('Gespeichert um ' + new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' Uhr', 'ok');
     } catch (err) {
       setSaveState('Nicht gespeichert: ' + err.message, 'error');
@@ -164,49 +164,117 @@
     cur.context = readCtx('ctx2'); ctxSummary(); scheduleSave();
   }));
 
+  /* Schulblock: eigene Fragen der Schulleitung als zusätzlicher Schritt */
+  const SCALE = ['Trifft nicht zu', 'Trifft eher nicht zu', 'Trifft eher zu', 'Trifft voll zu'];
+  const blockOf = (r) => (r && r.custom_block && Array.isArray(r.custom_block.questions) && r.custom_block.questions.length ? r.custom_block : null);
+  const steps = () => ITEMS.areas.length + (blockOf(cur) ? 1 : 0);
+  const stepTitle = (i) => (i < ITEMS.areas.length ? ITEMS.areas[i].title : blockOf(cur).title);
+
   function renderAreaNav() {
+    const blk = blockOf(cur);
+    const ca = cur.custom_answers || {};
     $('#areanav').innerHTML = ITEMS.areas.map((a, i) => {
       const done = a.subareas.filter((s) => cur.answers[s.id] !== undefined).length;
       const full = done === a.subareas.length;
       return `<button type="button" data-area="${i}" aria-current="${i === areaIdx ? 'step' : 'false'}">
         <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>`;
-    }).join('');
+    }).join('') + (blk ? (() => {
+      const done = blk.questions.filter((q) => ca[q.id] !== undefined).length;
+      const full = done === blk.questions.length;
+      return `<button type="button" data-area="${ITEMS.areas.length}" aria-current="${areaIdx === ITEMS.areas.length ? 'step' : 'false'}" style="margin-top:8px;border-top:1px solid var(--line)">
+        <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>`;
+    })() : '');
     $$('#areanav button').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
     const p = DKCore.progress(ITEMS, cur.answers);
     $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
-    $('#progress-text').textContent = `${p.done} von ${p.total} Fragen beantwortet`;
+    $('#progress-text').textContent = `${p.done} von ${p.total} Kompetenzfragen beantwortet`;
   }
+
+  function customQuestionHTML(q, i) {
+    const v = (cur.custom_answers || {})[q.id];
+    const name = 'cq-' + q.id;
+    let hint = '', body = '';
+    if (q.type === 'scale') {
+      hint = 'Wie weit trifft die Aussage zu?';
+      body = `<div class="opts inline">${SCALE.map((l, k) => `<label class="opt"><input type="radio" name="${name}" id="${name}-${k + 1}" value="${k + 1}" ${v === k + 1 ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
+        <div class="opts"><label class="opt none"><input type="radio" name="${name}" id="${name}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Kann ich nicht beurteilen</span></label></div>`;
+    } else if (q.type === 'levels') {
+      hint = 'Welche Aussage beschreibt das eigene Handeln am besten?';
+      body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="radio" name="${name}" id="${name}-${k + 1}" value="${k + 1}" ${v === k + 1 ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}
+        <label class="opt none"><input type="radio" name="${name}" id="${name}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit.</span></label></div>`;
+    } else if (q.type === 'choice') {
+      hint = q.multiple ? 'Mehrere Antworten möglich.' : 'Eine Antwort wählen.';
+      const sel = [].concat(v === undefined ? [] : v);
+      body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}" id="${name}-${k}" value="${k}" ${sel.includes(k) ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}</div>`;
+    } else {
+      hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen. Die Schulleitung sieht Freitexte erst ab fünf abgeschlossenen Teilnahmen und in zufälliger Reihenfolge.';
+      body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" name="${name}" rows="4" maxlength="1000">${esc(v || '')}</textarea>`;
+    }
+    return `<fieldset class="q" data-qtype="${q.type}"><legend><span class="qid">${i + 1}</span><span>${esc(q.text)}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
+  }
+
+  function renderCustom() {
+    const blk = blockOf(cur);
+    cur.custom_answers = cur.custom_answers || {};
+    $('#area-eyebrow').textContent = 'Zusatzteil der Schule · nicht Teil des Kompetenzprofils';
+    $('#h-area').textContent = blk.title;
+    $('#area-desc').textContent = blk.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten fliessen nur in die Schulauswertung ein, ebenfalls erst ab fünf abgeschlossenen Teilnahmen.';
+    $('#questions').innerHTML = blk.questions.map(customQuestionHTML).join('');
+    blk.questions.forEach((q) => {
+      const name = 'cq-' + q.id;
+      if (q.type === 'text') {
+        $('#' + name).addEventListener('input', (e) => {
+          const val = e.target.value.trim();
+          if (val) cur.custom_answers[q.id] = val; else delete cur.custom_answers[q.id];
+          scheduleSave(); renderAreaNav();
+        });
+        return;
+      }
+      $$(`input[name="${name}"]`).forEach((inp) => inp.addEventListener('change', () => {
+        if (q.type === 'choice' && q.multiple) {
+          const list = $$(`input[name="${name}"]:checked`).map((x) => +x.value);
+          if (list.length) cur.custom_answers[q.id] = list; else delete cur.custom_answers[q.id];
+        } else cur.custom_answers[q.id] = +inp.value;
+        scheduleSave(); renderAreaNav();
+      }));
+    });
+  }
+
   function renderSurvey(focus) {
-    const a = ITEMS.areas[areaIdx];
-    $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
-    $('#h-area').textContent = a.title;
-    $('#area-desc').textContent = a.description;
-    $('#questions').innerHTML = a.subareas.map((s) => {
-      const v = cur.answers[s.id];
-      return `<fieldset class="q">
-        <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
-        <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
-        <div class="opts">${s.levels.map((l) => `
-          <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${v === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('')}
-          <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
-        </div></fieldset>`;
-    }).join('');
-    $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
-      cur.answers[r.name.slice(2)] = +r.value;
-      scheduleSave();
-      renderAreaNav();
-      $('#open-hint').textContent = '';
-    }));
-    const last = areaIdx === ITEMS.areas.length - 1;
+    if (areaIdx >= steps()) areaIdx = steps() - 1;
+    if (areaIdx === ITEMS.areas.length) renderCustom();
+    else {
+      const a = ITEMS.areas[areaIdx];
+      $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
+      $('#h-area').textContent = a.title;
+      $('#area-desc').textContent = a.description;
+      $('#questions').innerHTML = a.subareas.map((s) => {
+        const v = cur.answers[s.id];
+        return `<fieldset class="q">
+          <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
+          <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
+          <div class="opts">${s.levels.map((l) => `
+            <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${v === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('')}
+            <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
+          </div></fieldset>`;
+      }).join('');
+      $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
+        cur.answers[r.name.slice(2)] = +r.value;
+        scheduleSave();
+        renderAreaNav();
+        $('#open-hint').textContent = '';
+      }));
+    }
+    const last = areaIdx === steps() - 1;
     $('#btn-prev').hidden = areaIdx === 0;
-    $('#btn-next').textContent = last ? (cur.status === 'submitted' ? 'Änderungen übernehmen' : 'Abschliessen und Profil anzeigen') : 'Weiter zu «' + ITEMS.areas[areaIdx + 1].title + '»';
+    $('#btn-next').textContent = last ? (cur.status === 'submitted' ? 'Änderungen übernehmen' : 'Abschliessen und Profil anzeigen') : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
     $('#open-hint').textContent = '';
     renderAreaNav();
     if (focus) { window.scrollTo({ top: 0 }); $('#h-area').focus({ preventScroll: true }); }
   }
   $('#btn-prev').addEventListener('click', () => { if (areaIdx > 0) { areaIdx--; renderSurvey(true); } });
   $('#btn-next').addEventListener('click', async () => {
-    if (areaIdx < ITEMS.areas.length - 1) { areaIdx++; return renderSurvey(true); }
+    if (areaIdx < steps() - 1) { areaIdx++; return renderSurvey(true); }
     const p = DKCore.progress(ITEMS, cur.answers);
     if (p.open.length) {
       $('#open-hint').innerHTML = `<span class="error">Noch offen: ${p.open.join(', ')}.</span> Für den Abschluss braucht es eine Antwort pro Frage. Wo etwas nicht zutrifft, die Option «keine Gelegenheit» wählen.`;
@@ -283,6 +351,17 @@
         }).join('')}</div>`;
     }).join('');
 
+    const blk = blockOf(r);
+    const ca = r.custom_answers || {};
+    const ansTxt = (q, v) => {
+      if (v === undefined) return '<span class="muted">Keine Antwort</span>';
+      if (q.type === 'scale') return v === 0 ? 'Kann ich nicht beurteilen' : esc(SCALE[v - 1]);
+      if (q.type === 'levels') return v === 0 ? 'Keine Gelegenheit' : `Stufe ${v} von ${q.options.length}: ${esc(q.options[v - 1])}`;
+      if (q.type === 'choice') return [].concat(v).map((k) => esc(q.options[k])).join(', ');
+      return esc(v);
+    };
+    $('#result-custom').innerHTML = blk ? `<div class="area-block"><h3><span>${esc(blk.title)}</span><span class="avg">Zusatzteil der Schule, nicht Teil des Kompetenzprofils</span></h3>
+      <dl class="custom-list">${blk.questions.map((q) => `<div><dt>${esc(q.text)}</dt><dd>${ansTxt(q, ca[q.id])}</dd></div>`).join('')}</dl></div>` : '';
     const editable = r.campaign_status === 'open';
     $('#btn-edit').hidden = !editable;
     $('#btn-edit').textContent = r.status === 'submitted' ? 'Antworten bearbeiten' : 'Selbsteinschätzung fortsetzen';
@@ -299,7 +378,7 @@
   });
   $('#btn-save').addEventListener('click', () => {
     const r = viewing;
-    const rec = { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: r.id, created: r.created_at, updated: r.updated_at, campaign: r.campaign_title, context: r.context, answers: r.answers };
+    const rec = { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: r.id, created: r.created_at, updated: r.updated_at, campaign: r.campaign_title, context: r.context, answers: r.answers, custom: blockOf(r) ? { block: r.custom_block, answers: r.custom_answers } : undefined };
     download(`Kompetenzprofil_SZ_${today()}.json`, JSON.stringify(rec, null, 1), 'application/json');
   });
 

@@ -64,12 +64,15 @@
           <form class="row" id="form-campaign">
             <label for="camp-title" class="small"><b>Neue Erhebung</b></label>
             <input type="text" id="camp-title" placeholder="z. B. Herbst 2026" style="width:220px">
+            <select id="camp-copy" aria-label="Schulblock übernehmen" style="width:auto" hidden></select>
             <button class="btn" type="submit">Erstellen</button>
           </form>
         </div>
         <p class="error small" id="camp-msg" role="alert"></p>
         <div class="table-scroll"><table class="list" id="camp-table"></table></div>
       </div>
+
+      <div class="stack" style="gap:20px" id="block-editor" hidden></div>
 
       <div class="stack" style="gap:24px" id="analysis" hidden>
         <div class="row" style="justify-content:space-between;align-items:flex-end">
@@ -99,6 +102,7 @@
 <script src="/assets/core.js"></script>
 <script src="/assets/ui.js"></script>
 <script src="/assets/staff.js"></script>
+<script src="/assets/block.js"></script>
 <script src="/assets/leitung.js"></script>
 </body>
 </html>

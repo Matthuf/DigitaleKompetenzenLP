@@ -5,6 +5,7 @@ import {
   hashPassword, verifyPassword, setSession, clearSession, getSession, COOKIE_STAFF, COOKIE_PART,
   newCode, hashCode, newToken, newPassword,
 } from '../lib/auth.js';
+import { validateBlock, cleanCustomAnswers, aggregateCustom } from '../lib/customblock.js';
 
 const require = createRequire(import.meta.url);
 const DKCore = require('../lib/core.cjs');
@@ -57,8 +58,8 @@ async function campaignByToken(token) {
   return c;
 }
 async function myResponses(pid) {
-  return q(`select r.id, r.campaign_id, r.status, r.context, r.answers, r.created_at, r.updated_at, r.submitted_at,
-                   c.title as campaign_title, c.status as campaign_status, c.token as campaign_token
+  return q(`select r.id, r.campaign_id, r.status, r.context, r.answers, r.custom_answers, r.created_at, r.updated_at, r.submitted_at,
+                   c.title as campaign_title, c.status as campaign_status, c.token as campaign_token, c.custom_block
               from responses r join campaigns c on c.id = r.campaign_id
              where r.participant_id = $1 order by r.created_at asc`, [pid]);
 }
@@ -76,14 +77,16 @@ async function ensureResponse(p, campaign, context) {
 }
 
 async function aggregateFor(campaignId, stufe) {
-  const all = await q(`select context->>'stufe' as stufe, answers from responses where campaign_id = $1 and status = 'submitted'`, [campaignId]);
+  const all = await q(`select context->>'stufe' as stufe, answers, custom_answers from responses where campaign_id = $1 and status = 'submitted'`, [campaignId]);
+  const camp = await one(`select custom_block from campaigns where id = $1`, [campaignId]);
   const counts = {};
   all.forEach((r) => { if (r.stufe) counts[r.stufe] = (counts[r.stufe] || 0) + 1; });
   const stufen = Object.entries(counts).filter(([, n]) => n >= MIN).map(([s, n]) => ({ stufe: s, n })).sort((a, b) => a.stufe.localeCompare(b.stufe));
   const recs = stufe ? all.filter((r) => r.stufe === stufe) : all;
   if (recs.length < MIN) return { n: recs.length, total: all.length, tooFew: true, min: MIN, stufen };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
-  return { n: recs.length, total: all.length, tooFew: false, min: MIN, stufen, agg };
+  const custom = camp && camp.custom_block ? { block: camp.custom_block, ...aggregateCustom(camp.custom_block, recs.map((r) => r.custom_answers)) } : null;
+  return { n: recs.length, total: all.length, tooFew: false, min: MIN, stufen, agg, custom };
 }
 
 /* ---------- Routen ---------- */
@@ -137,12 +140,13 @@ on('POST', 'me/responses', async ({ req, body }) => {
 
 on('PUT', 'me/responses/:id', async ({ req, params, body }) => {
   const p = participant(req);
-  const r = await one(`select r.id, c.status as cstatus from responses r join campaigns c on c.id = r.campaign_id where r.id = $1 and r.participant_id = $2`, [params.id, p.pid]);
+  const r = await one(`select r.id, c.status as cstatus, c.custom_block from responses r join campaigns c on c.id = r.campaign_id where r.id = $1 and r.participant_id = $2`, [params.id, p.pid]);
   if (!r) fail(404, 'Teilnahme nicht gefunden.');
   if (r.cstatus !== 'open') fail(409, 'Die Erhebung ist abgeschlossen. Antworten lassen sich nicht mehr ändern.');
   const answers = cleanAnswers(body.answers);
-  await q(`update responses set answers = $1, context = $2, updated_at = now() where id = $3`,
-    [JSON.stringify(answers), JSON.stringify(cleanContext(body.context)), r.id]);
+  const custom = cleanCustomAnswers(r.custom_block, body.custom_answers);
+  await q(`update responses set answers = $1, context = $2, custom_answers = $3, updated_at = now() where id = $4`,
+    [JSON.stringify(answers), JSON.stringify(cleanContext(body.context)), JSON.stringify(custom), r.id]);
   return { ok: true, saved: new Date().toISOString() };
 });
 
@@ -194,7 +198,7 @@ on('POST', 'auth/password', async ({ req, body }) => {
 // Schulleitung: Erhebungen
 on('GET', 'leitung/campaigns', async ({ req }) => {
   const s = staff(req, 'leitung');
-  return q(`select c.id, c.title, c.token, c.status, c.created_at, c.closed_at,
+  return q(`select c.id, c.title, c.token, c.status, c.created_at, c.closed_at, c.custom_block,
                    count(r.id) filter (where r.status = 'submitted')::int as submitted,
                    count(r.id) filter (where r.status = 'draft')::int as drafts
               from campaigns c left join responses r on r.campaign_id = c.id
@@ -204,8 +208,13 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
   const s = staff(req, 'leitung');
   const title = String(body.title || '').trim().slice(0, 80);
   if (!title) fail(400, 'Bitte einen Titel angeben, zum Beispiel «Herbst 2026».');
+  let block = null;
+  if (body.copyBlockFrom) {
+    const src = await one(`select custom_block from campaigns where id = $1 and school_id = $2`, [body.copyBlockFrom, s.sid]);
+    block = src ? src.custom_block : null; // gleiche Fragen-IDs: Vergleich zwischen Erhebungen bleibt möglich
+  }
   const id = newId();
-  await q(`insert into campaigns (id, school_id, title, token) values ($1,$2,$3,$4)`, [id, s.sid, title, newToken()]);
+  await q(`insert into campaigns (id, school_id, title, token, custom_block) values ($1,$2,$3,$4,$5)`, [id, s.sid, title, newToken(), block ? JSON.stringify(block) : null]);
   return { id };
 });
 on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
@@ -217,6 +226,17 @@ on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
   }
   if (typeof body.title === 'string' && body.title.trim()) await q(`update campaigns set title = $1 where id = $2`, [body.title.trim().slice(0, 80), c.id]);
   return { ok: true };
+});
+on('PUT', 'leitung/campaigns/:id/block', async ({ req, params, body }) => {
+  const s = staff(req, 'leitung');
+  const c = await one(`select c.id, (select count(*)::int from responses r where r.campaign_id = c.id and r.status = 'submitted') as submitted
+                         from campaigns c where c.id = $1 and c.school_id = $2`, [params.id, s.sid]);
+  if (!c) fail(404, 'Erhebung nicht gefunden.');
+  if (c.submitted > 0) fail(409, 'Es gibt bereits abgeschlossene Teilnahmen. Die Fragen lassen sich darum nicht mehr ändern. Für neue Fragen eine neue Erhebung eröffnen.');
+  const v = validateBlock(body.block);
+  if (v.error) fail(400, v.error);
+  await q(`update campaigns set custom_block = $1 where id = $2`, [v.block ? JSON.stringify(v.block) : null, c.id]);
+  return { block: v.block };
 });
 on('GET', 'leitung/campaigns/:id/aggregate', async ({ req, params, query }) => {
   const s = staff(req, 'leitung');

@@ -1,7 +1,7 @@
 // Dashboard der Schulleitung: Erhebungen verwalten und zusammengefasste Auswertung ansehen.
 (function () {
   'use strict';
-  const { ITEMS, LV, $, $$, esc, fmt, date, api, radarSVG, download, today, copyText, heatTable } = UI;
+  const { ITEMS, LV, $, $$, esc, fmt, date, api, radarSVG, download, today, copyText, heatTable, confirmButton } = UI;
   const SUBS = DKCore.allSubareas(ITEMS);
   let campaigns = [];
   let sel = { id: null, compare: '', stufe: '' };
@@ -18,15 +18,17 @@
     if (!campaigns.length) {
       t.innerHTML = `<tbody><tr><td class="muted">Noch keine Erhebung. Mit «Erstellen» die erste Erhebung anlegen und den Link ans Kollegium weitergeben.</td></tr></tbody>`;
       $('#analysis').hidden = true;
+      renderCopySelect();
       return;
     }
-    t.innerHTML = `<thead><tr><th scope="col">Erhebung</th><th scope="col">Status</th><th scope="col">Erstellt</th><th scope="col" class="num">Abgeschlossen</th><th scope="col" class="num">In Bearbeitung</th><th scope="col">Link für das Kollegium</th><th scope="col"></th></tr></thead>
+    t.innerHTML = `<thead><tr><th scope="col">Erhebung</th><th scope="col">Status</th><th scope="col">Erstellt</th><th scope="col" class="num">Abgeschlossen</th><th scope="col" class="num">In Bearbeitung</th><th scope="col">Schulblock</th><th scope="col">Link für das Kollegium</th><th scope="col"></th></tr></thead>
       <tbody>${campaigns.map((c) => `<tr>
         <td><b>${esc(c.title)}</b></td>
         <td><span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></td>
         <td>${date(c.created_at)}</td>
         <td class="num">${c.submitted}</td>
         <td class="num">${c.drafts}</td>
+        <td>${Block.count(c) ? Block.count(c) + ' Frage' + (Block.count(c) === 1 ? '' : 'n') : '<span class="muted">keiner</span>'}<br><button class="btn quiet" type="button" data-block="${c.id}">${c.submitted > 0 ? 'Ansehen' : Block.count(c) ? 'Bearbeiten' : 'Fragen ergänzen'}</button></td>
         <td>${c.status === 'open' ? `<div class="linkbox"><code>${esc(linkFor(c))}</code><button class="btn quiet" type="button" data-copy="${c.id}">Kopieren</button></div>` : '<span class="small muted">Keine neuen Teilnahmen möglich</span>'}</td>
         <td><div class="row" style="gap:4px">
           <button class="btn ${sel.id === c.id ? '' : 'secondary'}" type="button" data-show="${c.id}">Auswertung</button>
@@ -34,6 +36,8 @@
         </div></td></tr>`).join('')}</tbody>`;
     $$('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(linkFor(campaigns.find((c) => c.id === b.dataset.copy)), b)));
     $$('[data-show]').forEach((b) => b.addEventListener('click', () => { sel = { id: b.dataset.show, compare: '', stufe: '' }; renderCampaigns(); loadAnalysis(); }));
+    $$('[data-block]').forEach((b) => b.addEventListener('click', () => Block.open(b.dataset.block, { campaigns: () => campaigns, reload: loadCampaigns })));
+    renderCopySelect();
     $$('[data-toggle]').forEach((b) => b.addEventListener('click', async () => {
       const c = campaigns.find((x) => x.id === b.dataset.toggle);
       await api('PATCH', 'leitung/campaigns/' + c.id, { status: c.status === 'open' ? 'closed' : 'open' });
@@ -46,7 +50,7 @@
     e.preventDefault();
     $('#camp-msg').textContent = '';
     try {
-      const r = await api('POST', 'leitung/campaigns', { title: $('#camp-title').value });
+      const r = await api('POST', 'leitung/campaigns', { title: $('#camp-title').value, copyBlockFrom: $('#camp-copy').value || undefined });
       $('#camp-title').value = '';
       sel = { id: r.id, compare: '', stufe: '' };
       await loadCampaigns();
@@ -120,9 +124,17 @@
         <p class="small muted">Anzahl Lehrpersonen pro Stufe. Je dunkler, desto grösser der Anteil.</p>
         ${heatTable(agg)}
       </div>
+      ${data.custom ? Block.section(data.custom, data.n) : ''}
       ${stufeNote}
       <div class="row"><button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button></div>`;
-    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_${c.title.replace(/[^\wäöüÄÖÜ-]+/g, '_')}_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg), 'text/csv;charset=utf-8'));
+    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_${c.title.replace(/[^\wäöüÄÖÜ-]+/g, '_')}_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg) + Block.csv(data.custom), 'text/csv;charset=utf-8'));
+  }
+
+  function renderCopySelect() {
+    const withBlock = campaigns.filter((c) => Block.count(c));
+    const sel = $('#camp-copy');
+    sel.hidden = !withBlock.length;
+    sel.innerHTML = `<option value="">Ohne Schulblock</option>` + withBlock.map((c) => `<option value="${c.id}">Schulblock von «${esc(c.title)}» übernehmen</option>`).join('');
   }
 
   Staff.start('leitung', (user) => {

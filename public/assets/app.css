@@ -216,3 +216,25 @@ table.list td.num { font-variant-numeric: tabular-nums; text-align: right; }
 .delta { font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 .delta.up { color: #1f6b33; } .delta.down { color: var(--red-dark); }
 .box--success { background: #E3F1E6; }
+.opts.inline { flex-direction: row; flex-wrap: wrap; }
+.opts.inline .opt { flex: 1 1 150px; }
+textarea { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 2px; background: var(--bg); color: var(--ink); resize: vertical; }
+textarea:focus { outline: 3px solid var(--ink); outline-offset: 1px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.custom-list { margin: 0; display: grid; gap: 14px; max-width: 80ch; }
+.custom-list dt { font-weight: 700; }
+.custom-list dd { margin: 2px 0 0; }
+.qedit { border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; }
+.qedit-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.qedit-head .num { font-weight: 700; color: var(--red); }
+.btn.small { padding: 5px 10px; font-size: 0.85rem; }
+.dist { display: flex; height: 22px; width: 100%; max-width: 560px; background: var(--box); }
+.dist span { display: block; height: 100%; min-width: 0; }
+.dist-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dist-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; }
+.choice-rows { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 280px) 70px; gap: 6px 12px; align-items: center; font-size: 0.9rem; max-width: 820px; font-variant-numeric: tabular-nums; }
+.choice-rows .bar { height: 14px; background: var(--box); }
+.choice-rows .bar span { display: block; height: 100%; background: var(--red); }
+.texts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 80ch; }
+.texts li { background: var(--box); padding: 10px 14px; white-space: pre-wrap; }
+.cq-card { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 10px; }

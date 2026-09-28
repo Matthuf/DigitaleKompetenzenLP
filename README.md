@@ -13,6 +13,7 @@ Zwei Versionen aus derselben Quelle:
 
 - **AVS (Admin)**, `/admin`: erfasst Schulen und Zugänge für Schulleitungen. Sieht nur Anzahlen, keine Antworten.
 - **Schulleitung**, `/leitung`: eröffnet Erhebungen (z. B. «Herbst 2026»), gibt den Link ans Kollegium weiter und sieht die Auswertung **nur der eigenen Schule** und **erst ab 5 abgeschlossenen Teilnahmen**. Keine Einzelprofile. Vergleich zwischen Erhebungen und Filter nach Schulstufe (ebenfalls nur ab 5).
+- **Schulblock**: Pro Erhebung kann die Schulleitung bis zu 15 eigene Fragen ergänzen und dabei vier Formen mischen: Zustimmungsskala (4 Stufen), eigene Stufenaussagen (3–6), Auswahl (einfach oder mehrfach) und Freitext. Die Fragen erscheinen als zusätzlicher Schritt nach den sechs Bereichen, fliessen nicht ins Kompetenzprofil ein und werden ebenfalls erst ab 5 Teilnahmen ausgewertet (Freitexte in zufälliger Reihenfolge). Nach der ersten abgeschlossenen Teilnahme ist der Block gesperrt. Er lässt sich in eine neue Erhebung übernehmen; die Fragen behalten dabei ihre Kennung.
 - **Lehrperson**, `/t/<link>`: nimmt ohne Namen und E-Mail teil und erhält einen **persönlichen Code** (z. B. `K7QM-4RTX-9P2C`). Damit: fortsetzen, Profil wieder ansehen (`/mein-profil`), bei der nächsten Erhebung erneut ausfüllen mit Vergleich, alle eigenen Daten löschen.
 
 ## Aufbau
@@ -24,6 +25,7 @@ src/core.js                Auswertungslogik (Offline und Server gemeinsam)
 src/template.html          Offline-Version
 build.py                   erzeugt dist/, public/assets/core.js, public/assets/items.js, lib/core.cjs, lib/items.json
 api/router.js              einzige Serverfunktion (alle /api/*-Aufrufe)
+lib/customblock.js         Schulblock: Validierung und Auswertung der eigenen Fragen
 lib/db.js, lib/auth.js     Datenbank (Schema wird automatisch angelegt), Passwörter, Sitzungen, Codes
 public/                    Seiten: index, teilnahme, leitung, admin
 ```
