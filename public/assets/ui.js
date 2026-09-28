@@ -54,12 +54,14 @@
       const lines = [];
       a.short.split(' ').forEach((w) => { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= 16) lines[lines.length - 1] += ' ' + w; else lines.push(w); });
       const val = opts.valueLabels ? series[0].values[i] : undefined;
-      const nl = lines.length + (opts.valueLabels ? 1 : 0);
+      const stage = opts.valueLabels && val !== null && val !== undefined ? LV[Math.min(5, Math.max(0, Math.round(val) - 1))].label : '';
+      const nl = lines.length + (opts.valueLabels ? 1 : 0) + (stage ? 1 : 0);
       const lx = x + c * 16;
       const ly = s < -0.3 ? y - 12 - 15 * (nl - 1) : s > 0.3 ? y + 22 : y + 4 - 7.5 * (nl - 1);
       g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" font-size="13" fill="#000">` +
         lines.map((l, k) => `<tspan x="${lx.toFixed(1)}" dy="${k === 0 ? 0 : 15}">${k === 0 ? '<tspan font-weight="700">' + a.id + '</tspan> ' : ''}${esc(l)}</tspan>`).join('') +
-        (opts.valueLabels ? `<tspan x="${lx.toFixed(1)}" dy="15" fill="#464646">Ø ${fmt(val)}</tspan>` : '') + `</text>`;
+        (opts.valueLabels ? `<tspan x="${lx.toFixed(1)}" dy="15" fill="#464646">Ø ${fmt(val)}</tspan>` : '') +
+        (stage ? `<tspan x="${lx.toFixed(1)}" dy="14" fill="#464646" font-size="12">${esc(stage)}</tspan>` : '') + `</text>`;
     });
     series.forEach((se) => {
       const pts = se.values.map((v, i) => pt(i, v || 0).map((x) => x.toFixed(1)).join(',')).join(' ');

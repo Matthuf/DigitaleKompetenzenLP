@@ -177,8 +177,9 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
 
 @media print {
   .site-header .nav, footer .links, .no-print, .actions { display: none !important; }
-  .view:not(#view-result) { display: none !important; }
-  #view-result { display: block !important; }
+  main > .view[hidden] { display: none !important; }
+  .userstrip, .tabs, .nav-toggle, #code-panel, .sum-hint { display: none !important; }
+  details.sub summary::after { content: "" !important; }
   main { padding: 0; }
   details.sub .sub-body { display: grid !important; }
   details.sub summary .t::before { content: ""; }
@@ -330,3 +331,17 @@ details.create[open] summary::before { content: "− "; }
 .inline-edit { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .inline-edit input { width: 90px; }
 .preview { border: 2px dashed var(--ink-3); padding: 20px 24px; background: #FCFCFC; }
+
+/* Profil: aufklappbare Teilbereiche deutlich als klickbar */
+details.sub summary { grid-template-columns: minmax(0, 1fr) minmax(140px, 240px) 150px 18px; padding: 10px 8px; margin-inline: -8px; border-radius: 2px; }
+details.sub summary:hover { background: #F7F7F7; }
+details.sub summary:hover .t { text-decoration: underline; text-underline-offset: 2px; }
+details.sub summary .t::before { content: none; }
+details.sub summary::after { content: "▾"; color: var(--red); font-weight: 700; text-align: right; transition: transform .2s; }
+details.sub[open] summary::after { transform: rotate(180deg); }
+@media (max-width: 620px) { details.sub summary { grid-template-columns: 1fr 96px 18px; } details.sub summary .meter { grid-column: 1 / -1; grid-row: 2; } }
+.details-head { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: baseline; padding-top: 12px; }
+.levels-strip.compact div { padding: 5px 4px; font-size: 0.72rem; }
+.levels-strip.compact b { font-size: 0.8rem; }
+.howto { background: var(--box); padding: 20px 24px; display: grid; gap: 10px; margin-block: 8px 20px; }
+.howto ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; }

@@ -446,7 +446,9 @@
     const r = viewing;
     const answers = r.answers;
     const prev = previousOf(r);
-    $('#result-date').textContent = `${r.campaign_title} · ${r.status === 'submitted' ? 'abgeschlossen am ' + date(r.submitted_at) : 'in Bearbeitung'}`;
+    $('#result-date').textContent = `${me.school.name} · ${r.campaign_title} · ${r.status === 'submitted' ? 'abgeschlossen am ' + date(r.submitted_at) : 'in Bearbeitung'}`;
+    UI.levelsStrip($('#result-levels'));
+    $('#btn-toggle-all').textContent = 'Alle öffnen';
     const ctx = r.context || {};
     $('#result-chips').innerHTML = Object.values(ctx).filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
     $('#history').innerHTML = `<button class="btn secondary" type="button" id="btn-all">Alle meine Teilnahmen${me.responses.length > 1 ? ' (' + me.responses.length + ')' : ''}</button>`;
@@ -465,7 +467,7 @@
     if (prevScores) series.push({ values: prevScores.map((s) => s.mean), fill: 'none', stroke: '#6E6E6E', dash: true });
     $('#radar').innerHTML = radarSVG(series, { valueLabels: true, label: 'Netzdiagramm: Mittelwert der Stufen pro Kompetenzbereich' });
     $('#legend').innerHTML = (prev ? `<span><i style="background:#E2001A"></i>${esc(r.campaign_title)}</span><span><i style="background:#6E6E6E"></i>${esc(prev.campaign_title)}</span>` : '') +
-      '<span>Mittelwert der gewählten Stufen pro Bereich (I = 1 bis VI = 6). «Keine Gelegenheit» zählt nicht.</span>';
+      '<span>Pro Bereich der Mittelwert der gewählten Stufen, von I Einsteigen (1) bis VI Weitergeben (6). Darunter die gerundete Stufe. «Keine Gelegenheit» zählt nicht.</span>';
 
     const sg = DKCore.strengthsAndGaps(ITEMS, answers, 3);
     $('#list-strengths').innerHTML = sg.strengths.map((x) => `<li class="focus-item">${badge(x.v)}<span><b>${x.s.id}</b> ${esc(x.s.title)}</span></li>`).join('') || '<li class="muted small">Noch keine Angaben.</li>';
@@ -518,10 +520,15 @@
     setHash('profil-' + r.id);
   }
   $('#btn-edit').addEventListener('click', () => { cur = viewing; startSurvey(); });
-  $('#btn-print').addEventListener('click', () => {
-    $$('details.sub').forEach((d) => { d.dataset.wasOpen = d.open; d.open = true; });
-    window.print();
-    $$('details.sub').forEach((d) => { d.open = d.dataset.wasOpen === 'true'; });
+  // Beim Drucken (auch über das Browsermenü) alle Teilbereiche öffnen
+  window.addEventListener('beforeprint', () => { $$('details.sub').forEach((d) => { d.dataset.wasOpen = d.open; d.open = true; }); });
+  window.addEventListener('afterprint', () => { $$('details.sub').forEach((d) => { if (d.dataset.wasOpen !== undefined) d.open = d.dataset.wasOpen === 'true'; }); });
+  $('#btn-print').addEventListener('click', () => window.print());
+  $('#btn-toggle-all').addEventListener('click', (e) => {
+    const all = $$('#result-areas details.sub');
+    const open = all.some((d) => !d.open);
+    all.forEach((d) => { d.open = open; });
+    e.currentTarget.textContent = open ? 'Alle schliessen' : 'Alle öffnen';
   });
   $('#btn-save').addEventListener('click', () => {
     const r = viewing;
