@@ -11,9 +11,9 @@
   /* ---------- Reiter ---------- */
   function route() {
     const tab = decodeURIComponent(location.hash.slice(1)).split('/')[0];
-    const name = ['traeger', 'runden', 'auswertung'].includes(tab) ? tab : 'traeger';
+    const name = ['traeger', 'import', 'runden', 'auswertung'].includes(tab) ? tab : 'traeger';
     $$('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.tab === name ? 'page' : 'false'));
-    ['traeger', 'runden', 'auswertung'].forEach((t) => { $('#tab-' + t).hidden = t !== name; });
+    ['traeger', 'import', 'runden', 'auswertung'].forEach((t) => { $('#tab-' + t).hidden = t !== name; });
     if (name === 'runden') loadRounds();
     if (name === 'auswertung') openKanton();
   }
@@ -51,31 +51,32 @@
       const s = t.schools.find((x) => x.id === el.dataset.scdel);
       confirmButton(el, 'Entfernen', `«${s.name}» mit allen Links, Antworten und Zugängen löschen?`, 'Ja, löschen', async () => { await api('DELETE', `admin/schools/${s.id}`); loadTraeger(); }, 'btn quiet small');
     });
-    $('#user-scope').innerHTML = `<option value="">Rektorat / Hauptschulleitung (ganzer Träger)</option>` + t.schools.map((s) => `<option value="${s.id}">Schulleitung ${esc(s.name)}</option>`).join('');
-    const users = await api('GET', `admin/traeger/${t.id}/users`);
-    $('#user-table').innerHTML = users.length ? `<thead><tr><th scope="col">Benutzername</th><th scope="col">Rolle</th><th scope="col">Name</th><th scope="col">Letzte Anmeldung</th><th scope="col"></th></tr></thead>
-      <tbody>${users.map((u) => `<tr><td><b>${esc(u.username)}</b>${u.must_change_password ? ' <span class="status draft">Startpasswort</span>' : ''}</td>
-        <td>${u.role === 'traeger' ? 'Rektorat' : 'Schulleitung ' + esc(u.school_name || '')}</td><td>${esc(u.display_name || '')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
-        <td><div class="row" style="gap:4px"><button class="btn quiet" type="button" data-reset="${u.id}">Passwort zurücksetzen</button><span class="confirm" data-del="${u.id}"></span></div></td></tr>`).join('')}</tbody>`
+    $('#user-scope').innerHTML = `<option value="">Schulträger: Rektorat / Hauptschulleitung</option>` + t.schools.map((s) => `<option value="${s.id}">Schulleitung ${esc(s.name)}</option>`).join('');
+    const [users, invs] = await Promise.all([api('GET', `admin/traeger/${t.id}/users`), api('GET', `admin/traeger/${t.id}/invitations`)]);
+    $('#user-table').innerHTML = users.length ? `<thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"></th></tr></thead>
+      <tbody>${users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b><br><span class="small muted">${esc(u.username)}</span></td>
+        <td>${u.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + esc(u.school_name || '')}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
+        <td><div class="row" style="gap:4px"><button class="btn quiet" type="button" data-reset="${u.id}">Link für neues Passwort</button><span class="confirm" data-del="${u.id}"></span></div></td></tr>`).join('')}</tbody>`
       : `<tbody><tr><td class="muted">Noch kein Zugang für diesen Schulträger.</td></tr></tbody>`;
-    $$('[data-reset]').forEach((b) => b.addEventListener('click', async () => showPw(await api('POST', `admin/users/${b.dataset.reset}/reset`))));
+    $('#inv-open').innerHTML = invs.length ? `<h3>Offene Einladungen</h3><ul class="list-plain team-list">${invs.map((i) => `<li><span>${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.email || '')} · ${i.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + esc(i.school_name || '')} · ${i.expired ? '<b>abgelaufen</b>' : 'gültig bis ' + date(i.expires_at)}</span></span>
+      <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">Neuer Link</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>` : '';
+    const roleText = (i) => (i.role === 'traeger' || !i.school_name ? 'Schulträger ' + t.name : 'Schulleitung ' + i.school_name);
+    $$('[data-reset]').forEach((b) => b.addEventListener('click', async () => {
+      const u = users.find((x) => x.id === b.dataset.reset);
+      const r = await api('POST', `admin/users/${u.id}/reset`);
+      UI.invitePanel($('#pw-once'), { ...r, reset: true, name: u.display_name, from: 'Amt für Volksschulen und Sport' });
+    }));
     $$('[data-del]').forEach((el) => confirmButton(el, 'Löschen', 'Zugang löschen?', 'Ja, löschen', async () => { await api('DELETE', `admin/users/${el.dataset.del}`); loadTraeger(); }, 'btn quiet'));
+    $$('[data-irenew]').forEach((b) => b.addEventListener('click', async () => {
+      const i = invs.find((x) => x.id === b.dataset.irenew);
+      const r = await api('POST', `admin/invitations/${i.id}/renew`);
+      await renderPanel();
+      UI.invitePanel($('#pw-once'), { ...r, email: i.email, name: i.name, roleText: roleText(i), from: 'Amt für Volksschulen und Sport' });
+    }));
+    $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', `admin/invitations/${el.dataset.idel}`); renderPanel(); }, 'btn quiet small'));
     confirmButton($('#tr-delete'), 'Schulträger löschen', `«${t.name}» mit allen Schulen, Erhebungen und Antworten endgültig löschen?`, 'Ja, endgültig löschen', async () => {
       await api('DELETE', `admin/traeger/${t.id}`); current = null; loadTraeger(); $('#tr-panel').hidden = true;
     });
-  }
-
-  function showPw(r) {
-    const box = $('#pw-once');
-    box.hidden = false;
-    box.innerHTML = `<p><b>Startpasswort für ${esc(r.username)}:</b> <code id="pw-value" style="font-size:1.1rem">${esc(r.password)}</code>
-      <button class="btn quiet" type="button" id="btn-copy-pw">Kopieren</button></p>
-      <p class="small">Wird nur jetzt angezeigt. Beim ersten Anmelden unter /leitung muss ein eigenes Passwort festgelegt werden. Falls es verloren geht: «Passwort zurücksetzen».</p>
-      <div><button class="btn quiet" type="button" id="btn-pw-done">Notiert, ausblenden</button></div>`;
-    $('#btn-copy-pw').addEventListener('click', (e) => copyText(r.password, e.currentTarget));
-    $('#btn-pw-done').addEventListener('click', () => { box.hidden = true; });
-    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    loadTraeger();
   }
 
   $('#tr-filter').addEventListener('input', (e) => { filter = e.target.value.trim().toLowerCase(); renderTraeger(); });
@@ -94,12 +95,83 @@
   $('#form-user').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#user-msg').textContent = '';
+    const t = traeger.find((x) => x.id === current);
+    const schoolId = $('#user-scope').value || undefined;
+    const body = { name: $('#user-new-name').value.trim(), email: $('#user-new').value.trim(), schoolId };
+    if (!body.name && !body.email) { $('#user-msg').textContent = 'Bitte mindestens Name oder E-Mail angeben.'; return; }
     try {
-      const r = await api('POST', `admin/traeger/${current}/users`, { username: $('#user-new').value, display_name: $('#user-new-name').value, schoolId: $('#user-scope').value || undefined });
+      const r = await api('POST', `admin/traeger/${current}/invitations`, body);
       $('#user-new').value = ''; $('#user-new-name').value = '';
-      showPw(r);
+      await renderPanel();
+      const school = schoolId ? t.schools.find((s) => s.id === schoolId) : null;
+      UI.invitePanel($('#pw-once'), { ...r, email: body.email, name: body.name, roleText: school ? 'Schulleitung ' + school.name : 'Schulträger ' + t.name, from: 'Amt für Volksschulen und Sport' });
     } catch (err) { $('#user-msg').textContent = err.message; }
   });
+
+  /* ---------- Liste importieren ---------- */
+  let parsed = [];
+  function parseList(text) {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (!lines.length) return [];
+    const delim = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : ',';
+    const split = (l) => {
+      // einfache CSV-Regeln: Felder in Anführungszeichen dürfen das Trennzeichen enthalten
+      const out = []; let cur = '', q = false;
+      for (let i = 0; i < l.length; i++) {
+        const ch = l[i];
+        if (ch === '"') { if (q && l[i + 1] === '"') { cur += '"'; i++; } else q = !q; }
+        else if (ch === delim && !q) { out.push(cur); cur = ''; }
+        else cur += ch;
+      }
+      out.push(cur);
+      return out.map((x) => x.trim());
+    };
+    const rows = lines.map(split);
+    if (/träger|traeger/i.test(rows[0][0] || '')) rows.shift();
+    return rows.filter((r) => r[0]).map((r) => ({
+      traeger: r[0], kind: /sek|bezirk|zyklus\s*3/i.test(r[1] || '') ? 'sek' : 'primar', name: r[2] || '', email: r[3] || '',
+      schools: (r[4] || '').split(delim === ',' ? /[;|]/ : /[,;|]/).map((x) => x.trim()).filter(Boolean),
+    }));
+  }
+  const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  function preview() {
+    parsed = parseList($('#imp-text').value);
+    $('#imp-msg').textContent = parsed.length ? '' : 'Keine Zeilen erkannt.';
+    if (!parsed.length) { $('#imp-out').innerHTML = ''; return; }
+    const known = new Set(traeger.map((t) => t.name.toLowerCase()));
+    $('#imp-out').innerHTML = `<h3>Vorschau: ${parsed.length} Schulträger</h3>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Vorschau Import"><table class="list">
+        <thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Rektorat</th><th scope="col">E-Mail</th><th scope="col">Schulhäuser</th><th scope="col">Hinweis</th></tr></thead>
+        <tbody>${parsed.map((r) => `<tr><td><b>${esc(r.traeger)}</b></td><td>${KIND[r.kind]}</td><td>${esc(r.name)}</td><td class="small">${esc(r.email)}</td><td class="small">${esc(r.schools.join(', ') || '–')}</td>
+          <td class="small">${[known.has(r.traeger.toLowerCase()) ? 'bereits vorhanden, wird ergänzt' : '', validEmail(r.email) ? '' : '<b>keine gültige E-Mail, keine Einladung</b>'].filter(Boolean).join(' · ') || 'neu'}</td></tr>`).join('')}</tbody></table></div>
+      <div class="row"><button class="btn" type="button" id="imp-run">${parsed.length} Schulträger importieren und Einladungen erstellen</button></div>`;
+    $('#imp-run').addEventListener('click', runImport);
+  }
+  async function runImport() {
+    $('#imp-run').disabled = true;
+    let res;
+    try { res = await api('POST', 'admin/import', { rows: parsed }); }
+    catch (err) { $('#imp-msg').textContent = err.message; $('#imp-run').disabled = false; return; }
+    await loadTraeger();
+    const withLink = res.rows.filter((r) => r.token);
+    $('#imp-out').innerHTML = `<div class="box box--success"><b>Import abgeschlossen.</b> ${withLink.length} Einladung${withLink.length === 1 ? '' : 'en'} erstellt. Die Links werden nur jetzt angezeigt: jetzt per E-Mail verschicken oder die Liste für einen Serienbrief speichern. Später lässt sich pro Schulträger ein neuer Link erzeugen.</div>
+      <div class="row"><button class="btn" type="button" id="imp-csv">Einladungen als CSV (Serienbrief)</button></div>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Ergebnis Import"><table class="list">
+        <thead><tr><th scope="col">Schulträger</th><th scope="col">Rektorat</th><th scope="col">Ergebnis</th><th scope="col"></th></tr></thead>
+        <tbody>${res.rows.map((r, k) => `<tr><td><b>${esc(r.traeger)}</b></td><td class="small">${esc(r.name || '')}<br>${esc(r.email || '')}</td><td class="small">${esc(r.status)}</td>
+          <td>${r.token ? `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-icopy="${k}">Link kopieren</button><a class="btn secondary small" data-imail="${k}" href="#">E-Mail öffnen</a></div>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+    const mailOf = (r) => UI.inviteMail({ token: r.token, expires_at: r.expires_at, name: r.name, roleText: 'Schulträger ' + r.traeger, from: 'Amt für Volksschulen und Sport' });
+    $$('[data-icopy]').forEach((b) => b.addEventListener('click', () => copyText(UI.inviteLink(res.rows[b.dataset.icopy].token), b)));
+    $$('[data-imail]').forEach((a) => { const r = res.rows[a.dataset.imail]; const m = mailOf(r); a.href = `mailto:${encodeURIComponent(r.email)}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}`; });
+    $('#imp-csv').addEventListener('click', () => {
+      const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+      const rows = [['Schulträger', 'Name', 'E-Mail', 'Einladungslink', 'Gültig bis']].concat(withLink.map((r) => [r.traeger, r.name, r.email, UI.inviteLink(r.token), date(r.expires_at)]));
+      UI.download(`Einladungen_Schultraeger_${UI.today()}.csv`, '﻿' + rows.map((r) => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
+    });
+  }
+  $('#imp-preview').addEventListener('click', preview);
+  $('#imp-file').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; $('#imp-text').value = await f.text(); e.target.value = ''; preview(); });
+  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat;E-Mail;Schulhäuser\r\nGemeinde Musterdorf;Gemeinde;Maria Muster;rektorat@musterdorf.ch;Schulhaus Dorf, Schulhaus Berg\r\nBezirk Muster;Bezirk;Hans Beispiel;hauptschulleitung@bezirk-muster.ch;Schulhaus Nord, Schulhaus Süd\r\n', 'text/csv;charset=utf-8'));
 
   /* ---------- Runden ---------- */
   async function loadRounds() {

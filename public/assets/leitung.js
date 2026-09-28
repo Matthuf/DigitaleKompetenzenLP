@@ -18,11 +18,12 @@
     const h = decodeURIComponent(location.hash.slice(1));
     const [tab, ...rest] = h.split('/');
     const id = rest.join('/');
-    const name = ['erhebungen', 'auswertung', 'fragen'].includes(tab) ? tab : 'erhebungen';
+    const name = ['erhebungen', 'auswertung', 'fragen', 'team'].includes(tab) ? tab : 'erhebungen';
     $$('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.tab === name ? 'page' : 'false'));
-    ['erhebungen', 'auswertung', 'fragen'].forEach((t) => { $('#tab-' + t).hidden = t !== name; });
+    ['erhebungen', 'auswertung', 'fragen', 'team'].forEach((t) => { $('#tab-' + t).hidden = t !== name; });
     if (name === 'auswertung') openAnalysis(id);
     if (name === 'fragen') openQuestions(id);
+    if (name === 'team') loadTeam();
     window.scrollTo({ top: 0 });
   }
   window.addEventListener('hashchange', route);
@@ -295,11 +296,113 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
   }
   $('#fq-campaign').addEventListener('change', (e) => { location.hash = 'fragen/' + e.target.value; });
 
+
+  /* ---------- Schulen und Zugänge (Selbstverwaltung) ---------- */
+  const ROLE_LABEL = (u) => (u.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + (u.school_name || ''));
+  async function loadTeam() {
+    const box = $('#tab-team');
+    let t;
+    try { t = await api('GET', 'leitung/team'); } catch (err) { box.innerHTML = `<p class="error">${esc(err.message)}</p>`; return; }
+    const R = isRektorat();
+    box.innerHTML = `
+      <div class="stack" style="gap:6px"><h2>${R ? 'Schulen und Zugänge' : 'Zugänge'}</h2>
+        <p class="muted small" style="max-width:74ch">${R
+          ? `Hier verwaltet der Schulträger seine Schulhäuser und lädt weitere Personen ein: Schulleitungen für ein Schulhaus oder weitere Personen auf Ebene Schulträger, zum Beispiel eine Stellvertretung oder die Schulverwaltung. Eingeladene legen Benutzername und Passwort selbst fest.`
+          : `Hier lädt die Schulleitung weitere Personen für diese Schule ein, zum Beispiel eine Co-Leitung. Eingeladene legen Benutzername und Passwort selbst fest.`}</p></div>
+
+      ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
+        <h3 id="h-schools">Schulhäuser</h3>
+        <ul class="list-plain team-list">${t.schools.map((s) => `<li data-school="${s.id}"><span class="team-name">${esc(s.name)}</span>
+          <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></li>`).join('')}</ul>
+        <form class="row" id="form-team-school" style="align-items:flex-end">
+          <div class="field"><label for="team-school-new" class="small">Weiteres Schulhaus</label><input type="text" id="team-school-new" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
+          <button class="btn secondary" type="submit">Hinzufügen</button><span class="error small" id="team-school-msg" role="alert"></span>
+        </form>
+      </section>` : ''}
+
+      <section class="stack" style="gap:12px" aria-labelledby="h-users">
+        <h3 id="h-users">Zugänge</h3>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Zugänge"><table class="list">
+          <thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"></th></tr></thead>
+          <tbody>${t.users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b><br><span class="small muted">${esc(u.username)}</span>${u.self ? ' <span class="status open">Sie</span>' : ''}</td>
+            <td>${esc(ROLE_LABEL(u))}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
+            <td>${u.self || (!R && u.role !== 'leitung') ? '' : `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-ureset="${u.id}">Link für neues Passwort</button><span class="confirm" data-udel="${u.id}"></span></div>`}</td></tr>`).join('')}</tbody></table></div>
+        <div class="box box--success" id="team-inv-out" hidden></div>
+      </section>
+
+      <section class="stack" style="gap:12px" aria-labelledby="h-invite">
+        <h3 id="h-invite">Person einladen</h3>
+        <form class="stack" id="form-invite" style="gap:10px;max-width:760px">
+          ${R ? `<div class="field"><label for="inv-scope">Zugang für</label><select id="inv-scope">
+            <option value="traeger">Schulträger (Rektorat, Hauptschulleitung, Verwaltung): alle Schulen</option>
+            ${t.schools.map((s) => `<option value="${s.id}">Schulleitung ${esc(s.name)}</option>`).join('')}</select></div>` : ''}
+          <div class="row">
+            <div class="field"><label for="inv-name" class="small">Name</label><input type="text" id="inv-name" style="width:240px"></div>
+            <div class="field"><label for="inv-email" class="small">E-Mail</label><input type="text" id="inv-email" inputmode="email" autocomplete="off" style="width:280px"></div>
+          </div>
+          <div class="row"><button class="btn" type="submit">Einladung erstellen</button><span class="error small" id="inv-msg" role="alert"></span></div>
+        </form>
+      </section>
+
+      ${t.invites.length ? `<section class="stack" style="gap:12px" aria-labelledby="h-open">
+        <h3 id="h-open">Offene Einladungen</h3>
+        <ul class="list-plain team-list">${t.invites.map((i) => `<li><span class="team-name">${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + (i.school_name || ''))} · ${i.expired ? '<b>abgelaufen</b>' : 'gültig bis ' + date(i.expires_at)}</span></span>
+          <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">Neuer Link</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>
+      </section>` : ''}`;
+
+    const out = $('#team-inv-out');
+    const from = () => (R ? 'Rektorat ' + ctx.traeger.name : orgName());
+    if (R) {
+      $('#form-team-school').addEventListener('submit', async (e) => {
+        e.preventDefault(); $('#team-school-msg').textContent = '';
+        try { await api('POST', 'leitung/schools', { name: $('#team-school-new').value }); await refreshCtx(); loadTeam(); }
+        catch (err) { $('#team-school-msg').textContent = err.message; }
+      });
+      $$('[data-rename]').forEach((b) => b.addEventListener('click', () => {
+        const li = b.closest('li'); const s = t.schools.find((x) => x.id === b.dataset.rename);
+        li.innerHTML = `<span class="inline-edit"><label class="sr-only" for="ren-${s.id}">Neuer Name</label><input type="text" id="ren-${s.id}" value="${esc(s.name)}" style="width:260px">
+          <button class="btn secondary small" type="button">Speichern</button><button class="btn quiet small" type="button">Abbrechen</button><span class="error small"></span></span>`;
+        const [save, cancel] = li.querySelectorAll('button');
+        li.querySelector('input').focus();
+        save.addEventListener('click', async () => { try { await api('PATCH', 'leitung/schools/' + s.id, { name: li.querySelector('input').value }); await refreshCtx(); loadTeam(); } catch (err) { li.querySelector('.error').textContent = err.message; } });
+        cancel.addEventListener('click', loadTeam);
+      }));
+      $$('[data-sdel]').forEach((el) => confirmButton(el, 'Entfernen', 'Schulhaus entfernen?', 'Ja, entfernen', async () => { await api('DELETE', 'leitung/schools/' + el.dataset.sdel); await refreshCtx(); loadTeam(); }, 'btn quiet small'));
+    }
+    $$('[data-ureset]').forEach((b) => b.addEventListener('click', async () => {
+      const u = t.users.find((x) => x.id === b.dataset.ureset);
+      try { const r = await api('POST', `leitung/users/${u.id}/reset`); UI.invitePanel(out, { ...r, reset: true, name: u.display_name, from: from() }); }
+      catch (err) { out.hidden = false; out.textContent = err.message; }
+    }));
+    $$('[data-udel]').forEach((el) => confirmButton(el, 'Löschen', 'Zugang löschen?', 'Ja, löschen', async () => { await api('DELETE', 'leitung/users/' + el.dataset.udel); loadTeam(); }, 'btn quiet small'));
+    $$('[data-irenew]').forEach((b) => b.addEventListener('click', async () => {
+      const i = t.invites.find((x) => x.id === b.dataset.irenew);
+      const r = await api('POST', `leitung/invitations/${i.id}/renew`);
+      await loadTeam();
+      UI.invitePanel($('#team-inv-out'), { ...r, email: i.email, name: i.name, roleText: i.role === 'traeger' ? 'Schulträger ' + ctx.traeger.name : 'Schulleitung ' + i.school_name, from: from() });
+    }));
+    $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', 'leitung/invitations/' + el.dataset.idel); loadTeam(); }, 'btn quiet small'));
+    $('#form-invite').addEventListener('submit', async (e) => {
+      e.preventDefault(); $('#inv-msg').textContent = '';
+      const scope = R ? $('#inv-scope').value : ctx.schools[0].id;
+      const body = { name: $('#inv-name').value, email: $('#inv-email').value, role: scope === 'traeger' ? 'traeger' : 'leitung', schoolId: scope === 'traeger' ? undefined : scope };
+      if (!body.email.trim() && !body.name.trim()) { $('#inv-msg').textContent = 'Bitte mindestens Name oder E-Mail angeben.'; return; }
+      try {
+        const r = await api('POST', 'leitung/invitations', body);
+        const school = t.schools.find((s) => s.id === scope);
+        await loadTeam();
+        UI.invitePanel($('#team-inv-out'), { ...r, email: body.email.trim(), name: body.name.trim(), roleText: scope === 'traeger' ? 'Schulträger ' + ctx.traeger.name : 'Schulleitung ' + (school ? school.name : ''), from: from() });
+      } catch (err) { $('#inv-msg').textContent = err.message; }
+    });
+  }
+  async function refreshCtx() { ctx = await api('GET', 'leitung/context'); fillCreateForm(); }
+
   Staff.start(['traeger', 'leitung'], async () => {
     try {
       ctx = await api('GET', 'leitung/context');
       $('#school-name').textContent = isRektorat() ? `Rektorat · ${ctx.traeger.name}` : `${orgName()} · ${ctx.traeger.name}`;
       fillCreateForm();
+      $('#tab-team-link').textContent = isRektorat() ? 'Schulen und Zugänge' : 'Zugänge';
       await loadCampaigns();
     } catch (err) { $('#camp-list').innerHTML = `<p class="error">${esc(err.message)}</p>`; }
     route();

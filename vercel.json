@@ -8,7 +8,8 @@
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/router?route=:path*" },
     { "source": "/t/:token", "destination": "/teilnahme" },
-    { "source": "/mein-profil", "destination": "/teilnahme" }
+    { "source": "/mein-profil", "destination": "/teilnahme" },
+    { "source": "/einladung/:token", "destination": "/einladung" }
   ],
   "headers": [
     {

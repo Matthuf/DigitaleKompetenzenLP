@@ -41,7 +41,7 @@
       <div class="field"><label for="login-pw">Passwort</label><input type="password" id="login-pw" autocomplete="current-password"></div>
       <button class="btn" type="submit">Anmelden</button>
       <p class="error small" id="login-msg" role="alert"></p>
-      <p class="small muted">Zugangsdaten erhalten Rektorate und Schulleitungen vom Amt für Volksschulen und Sport.</p>
+      <p class="small muted">Zugang per Einladung: Rektorate erhalten sie vom Amt für Volksschulen und Sport, Schulleitungen vom Rektorat. Passwort vergessen? Beim Rektorat bzw. beim AVS einen Link für ein neues Passwort anfordern.</p>
     </form>
   </section>
 
@@ -62,6 +62,7 @@
       <a href="#erhebungen" data-tab="erhebungen">Erhebungen</a>
       <a href="#auswertung" data-tab="auswertung">Auswertung</a>
       <a href="#fragen" data-tab="fragen">Eigene Fragen</a>
+      <a href="#team" data-tab="team" id="tab-team-link">Schulen und Zugänge</a>
     </nav>
 
     <div class="tabpanel stack" id="tab-erhebungen" style="gap:24px">
@@ -105,6 +106,7 @@
       </div>
       <div class="stack" style="gap:20px" id="block-editor"></div>
     </div>
+    <div class="tabpanel stack" id="tab-team" style="gap:32px" hidden></div>
   </section>
   <section id="report" class="report" hidden aria-hidden="true"></section>
 </main>

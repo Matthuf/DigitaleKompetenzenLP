@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { q, one, newId } from '../lib/db.js';
 import {
   hashPassword, verifyPassword, setSession, clearSession, getSession, COOKIE_STAFF, COOKIE_PART,
-  newCode, hashCode, newToken, newPassword, encryptCode, decryptCode, formatCode,
+  newCode, hashCode, newToken, newPassword, encryptCode, decryptCode, formatCode, newInviteToken, hashInviteToken,
 } from '../lib/auth.js';
 import { validateBlock, cleanCustomAnswers, aggregateCustom } from '../lib/customblock.js';
 
@@ -417,6 +417,226 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
   return { ...base, n: recs.length, tooFew: false, agg, custom, groups };
 });
 
+/* ---------- Einladungen und Passwort-Links ----------
+ * Das AVS lädt das Rektorat bzw. die Hauptschulleitung ein. Danach laden Träger und Schulleitungen selbst ein.
+ * Niemand kennt fremde Passwörter: Wer eingeladen wird, legt Benutzername und Passwort selbst fest. */
+const INVITE_DAYS = 30, RESET_DAYS = 7;
+const cleanEmail = (e) => { const v = String(e || '').trim().toLowerCase().slice(0, 160); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : ''; };
+async function createInvite({ kind, role = null, tid = null, sid = null, userId = null, name = '', email = '', by = null }) {
+  const token = newInviteToken();
+  const id = newId();
+  const r = await one(`insert into invitations (id, token_hash, kind, role, traeger_id, school_id, user_id, name, email, created_by, expires_at)
+                       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now() + ($11 || ' days')::interval) returning expires_at`,
+    [id, hashInviteToken(token), kind, role, tid, sid, userId, String(name || '').trim().slice(0, 80) || null, cleanEmail(email) || null, by, String(kind === 'reset' ? RESET_DAYS : INVITE_DAYS)]);
+  return { id, token, expires_at: r.expires_at };
+}
+async function renewInvite(id) {
+  const token = newInviteToken();
+  const r = await one(`update invitations set token_hash = $1, expires_at = now() + ($2 || ' days')::interval, created_at = now()
+                        where id = $3 and used_at is null returning id, expires_at, kind`, [hashInviteToken(token), String(INVITE_DAYS), id]);
+  if (!r) fail(404, 'Einladung nicht gefunden oder bereits angenommen.');
+  return { id: r.id, token, expires_at: r.expires_at };
+}
+async function inviteByToken(token) {
+  const i = await one(`select i.*, t.name as traeger_name, t.kind as traeger_kind, s.name as school_name, u.username
+                         from invitations i left join users u on u.id = i.user_id
+                         left join schools s on s.id = coalesce(i.school_id, u.school_id)
+                         left join traeger t on t.id = coalesce(i.traeger_id, u.traeger_id, s.traeger_id)
+                        where i.token_hash = $1`, [hashInviteToken(token)]);
+  if (!i) fail(404, 'Dieser Link ist ungültig. Bitte einen neuen Link anfordern.');
+  if (i.used_at) fail(410, 'Dieser Link wurde bereits verwendet. Bitte unter «Für Schulleitungen» anmelden.');
+  if (new Date(i.expires_at) < new Date()) fail(410, 'Dieser Link ist abgelaufen. Bitte einen neuen Link anfordern.');
+  return i;
+}
+async function suggestUsername(email, name) {
+  let base = (email ? email.split('@')[0] : String(name || '').trim().replace(/\s+/g, '.')).toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9._-]/g, '').slice(0, 36);
+  if (base.length < 3) return '';
+  let u = base, n = 2;
+  while (await one(`select 1 from users where username = $1`, [u])) u = base + n++;
+  return u;
+}
+const roleText = (i) => (i.role === 'traeger' ? `Schulträger ${i.traeger_name}` : `Schulleitung ${i.school_name || ''}`);
+
+on('GET', 'invite/:token', async ({ params }) => {
+  const i = await inviteByToken(params.token);
+  return { kind: i.kind, role: i.role, roleText: i.kind === 'invite' ? roleText(i) : null, traeger: i.traeger_name, school: i.school_name,
+    name: i.name, email: i.email, username: i.username, suggestedUsername: i.kind === 'invite' ? await suggestUsername(i.email, i.name) : null, expires_at: i.expires_at };
+});
+on('POST', 'invite/:token', async ({ params, body, res }) => {
+  const i = await inviteByToken(params.token);
+  const password = String(body.password || '');
+  if (password.length < 10) fail(400, 'Das Passwort muss mindestens 10 Zeichen lang sein.');
+  let uid, role, sid = null;
+  if (i.kind === 'reset') {
+    await q(`update users set password_hash = $1, must_change_password = false where id = $2`, [await hashPassword(password), i.user_id]);
+    const u = await one(`select id, role, school_id from users where id = $1`, [i.user_id]);
+    if (!u) fail(404, 'Konto nicht gefunden.');
+    uid = u.id; role = u.role; sid = u.school_id;
+  } else {
+    const username = String(body.username || '').trim().toLowerCase();
+    if (!/^[a-z0-9._-]{3,40}$/.test(username)) fail(400, 'Benutzername: 3 bis 40 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt, Bindestrich.');
+    if (await one(`select 1 from users where username = $1`, [username])) fail(409, 'Dieser Benutzername ist bereits vergeben. Bitte einen anderen wählen.');
+    uid = newId(); role = i.role; sid = i.role === 'leitung' ? i.school_id : null;
+    await q(`insert into users (id, school_id, traeger_id, role, username, display_name, email, password_hash, must_change_password) values ($1,$2,$3,$4,$5,$6,$7,$8,false)`,
+      [uid, sid, i.role === 'traeger' ? i.traeger_id : null, i.role, username, String(body.display_name || i.name || '').trim().slice(0, 80) || null, i.email, await hashPassword(password)]);
+  }
+  await q(`update invitations set used_at = now() where id = $1`, [i.id]);
+  if (i.kind === 'reset') await q(`update invitations set used_at = now() where user_id = $1 and used_at is null`, [i.user_id]);
+  setSession(res, COOKIE_STAFF, { uid, role, sid }, 8);
+  return { ok: true, role };
+});
+
+/* ---------- Selbstverwaltung: Schulen und Zugänge ----------
+ * Schulträger (Rektorat, Hauptschulleitung, Verwaltung): Schulhäuser und alle Zugänge des Trägers.
+ * Schulleitung: Zugänge der eigenen Schule (z. B. Co-Leitung). Das eigene Konto verwaltet niemand selbst. */
+async function teamTarget(u, userId) {
+  const t = await one(`select u.id, u.role, u.school_id, coalesce(u.traeger_id, s.traeger_id) as traeger_id
+                         from users u left join schools s on s.id = u.school_id where u.id = $1`, [userId]);
+  if (!t || t.traeger_id !== u.tid || t.role === 'admin') fail(404, 'Zugang nicht gefunden.');
+  if (t.id === u.uid) fail(400, 'Das eigene Konto lässt sich hier nicht ändern. Passwort ändern oben rechts.');
+  if (u.role === 'leitung' && !(t.role === 'leitung' && t.school_id === u.sid)) fail(403, 'Schulleitungen verwalten nur Zugänge der eigenen Schule.');
+  return t;
+}
+async function teamInvite(u, id) {
+  const i = await one(`select i.* from invitations i left join schools s on s.id = i.school_id where i.id = $1 and i.kind = 'invite' and i.used_at is null
+                        and coalesce(i.traeger_id, s.traeger_id) = $2`, [id, u.tid]);
+  if (!i || (u.role === 'leitung' && !(i.role === 'leitung' && i.school_id === u.sid))) fail(404, 'Einladung nicht gefunden.');
+  return i;
+}
+
+on('GET', 'leitung/team', async ({ req }) => {
+  const u = await lead(req);
+  const schools = await q(`select s.id, s.name, (select count(*)::int from campaign_links l where l.school_id = s.id) as links
+                             from schools s where s.traeger_id = $1 ${u.role === 'leitung' ? 'and s.id = $2' : ''} order by s.name`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
+  const users = await q(`select u.id, u.username, u.display_name, u.email, u.role, u.last_login, u.school_id, s.name as school_name
+                           from users u left join schools s on s.id = u.school_id
+                          where (u.traeger_id = $1 or s.traeger_id = $1) ${u.role === 'leitung' ? 'and u.school_id = $2' : ''}
+                          order by u.role desc, s.name nulls first, u.username`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
+  const invites = await q(`select i.id, i.role, i.name, i.email, i.school_id, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired
+                             from invitations i left join schools s on s.id = i.school_id
+                            where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 ${u.role === 'leitung' ? 'and i.school_id = $2' : ''}
+                            order by i.created_at desc`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
+  return { role: u.role, me: u.uid, schools, users: users.map((x) => ({ ...x, self: x.id === u.uid })), invites };
+});
+on('POST', 'leitung/schools', async ({ req, body }) => {
+  const u = await lead(req);
+  if (u.role !== 'traeger') fail(403, 'Schulen erfasst der Schulträger.');
+  const name = String(body.name || '').trim().slice(0, 120);
+  if (!name) fail(400, 'Bitte den Namen der Schule bzw. des Schulhauses angeben.');
+  const id = newId();
+  await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [id, name, u.tid]);
+  return { id };
+});
+on('PATCH', 'leitung/schools/:id', async ({ req, params, body }) => {
+  const u = await lead(req);
+  if (u.role !== 'traeger') fail(403, 'Schulen verwaltet der Schulträger.');
+  const name = String(body.name || '').trim().slice(0, 120);
+  if (!name) fail(400, 'Bitte einen Namen angeben.');
+  const r = await one(`update schools set name = $1 where id = $2 and traeger_id = $3 returning id`, [name, params.id, u.tid]);
+  if (!r) fail(404, 'Schule nicht gefunden.');
+  return { ok: true };
+});
+on('DELETE', 'leitung/schools/:id', async ({ req, params }) => {
+  const u = await lead(req);
+  if (u.role !== 'traeger') fail(403, 'Schulen verwaltet der Schulträger.');
+  const s = await one(`select id, (select count(*)::int from campaign_links l where l.school_id = schools.id) as links from schools where id = $1 and traeger_id = $2`, [params.id, u.tid]);
+  if (!s) fail(404, 'Schule nicht gefunden.');
+  if (s.links > 0) fail(409, 'Diese Schule hat bereits an Erhebungen teilgenommen und lässt sich darum nur durch das AVS löschen.');
+  await q(`delete from schools where id = $1`, [s.id]);
+  return { ok: true };
+});
+on('POST', 'leitung/invitations', async ({ req, body }) => {
+  const u = await lead(req);
+  const role = u.role === 'leitung' ? 'leitung' : (body.role === 'traeger' ? 'traeger' : 'leitung');
+  let sid = null;
+  if (role === 'leitung') {
+    sid = u.role === 'leitung' ? u.sid : String(body.schoolId || '');
+    if (!(await one(`select 1 from schools where id = $1 and traeger_id = $2`, [sid, u.tid]))) fail(400, 'Bitte die Schule wählen.');
+  }
+  const inv = await createInvite({ kind: 'invite', role, tid: role === 'traeger' ? u.tid : null, sid, name: body.name, email: body.email, by: u.uid });
+  return inv;
+});
+on('POST', 'leitung/invitations/:id/renew', async ({ req, params }) => {
+  const u = await lead(req);
+  await teamInvite(u, params.id);
+  return renewInvite(params.id);
+});
+on('DELETE', 'leitung/invitations/:id', async ({ req, params }) => {
+  const u = await lead(req);
+  await teamInvite(u, params.id);
+  await q(`delete from invitations where id = $1`, [params.id]);
+  return { ok: true };
+});
+on('POST', 'leitung/users/:id/reset', async ({ req, params }) => {
+  const u = await lead(req);
+  const t = await teamTarget(u, params.id);
+  const inv = await createInvite({ kind: 'reset', userId: t.id, by: u.uid });
+  const x = await one(`select username, email from users where id = $1`, [t.id]);
+  return { ...inv, username: x.username, email: x.email };
+});
+on('DELETE', 'leitung/users/:id', async ({ req, params }) => {
+  const u = await lead(req);
+  const t = await teamTarget(u, params.id);
+  await q(`delete from users where id = $1`, [t.id]);
+  return { ok: true };
+});
+
+/* AVS: Trägerliste importieren und Rektorate einladen */
+on('POST', 'admin/import', async ({ req, body }) => {
+  const s = staff(req, 'admin');
+  const rows = Array.isArray(body.rows) ? body.rows.slice(0, 300) : [];
+  if (!rows.length) fail(400, 'Keine Zeilen zum Importieren.');
+  const out = [];
+  for (const r of rows) {
+    const name = String(r.traeger || '').trim().slice(0, 120);
+    if (!name) { out.push({ traeger: '', status: 'übersprungen: kein Name' }); continue; }
+    const kind = r.kind === 'sek' ? 'sek' : 'primar';
+    let t = await one(`select id, kind from traeger where lower(name) = lower($1)`, [name]);
+    let created = false;
+    if (!t) { t = { id: newId(), kind }; await q(`insert into traeger (id, name, kind) values ($1,$2,$3)`, [t.id, name, kind]); created = true; }
+    else if (t.kind !== kind) await q(`update traeger set kind = $1 where id = $2`, [kind, t.id]);
+    const schools = (Array.isArray(r.schools) ? r.schools : []).map((x) => String(x || '').trim().slice(0, 120)).filter(Boolean);
+    if (!schools.length && created) schools.push(name);
+    let added = 0;
+    for (const sn of schools) {
+      if (!(await one(`select 1 from schools where traeger_id = $1 and lower(name) = lower($2)`, [t.id, sn]))) { await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [newId(), sn, t.id]); added++; }
+    }
+    const email = cleanEmail(r.email);
+    let invite = null, status = created ? 'neu erfasst' : 'bereits vorhanden';
+    if (email) {
+      const hasUser = await one(`select 1 from users where lower(email) = $1 and traeger_id = $2`, [email, t.id]);
+      if (hasUser) status += ', Zugang besteht bereits';
+      else {
+        const pending = await one(`select id from invitations where kind = 'invite' and used_at is null and lower(email) = $1 and traeger_id = $2`, [email, t.id]);
+        invite = pending ? await renewInvite(pending.id) : await createInvite({ kind: 'invite', role: 'traeger', tid: t.id, name: r.name, email, by: s.uid });
+        status += pending ? ', Einladung erneuert' : ', Einladung erstellt';
+      }
+    } else status += ', keine gültige E-Mail';
+    if (added) status += `, ${added} Schule${added === 1 ? '' : 'n'} ergänzt`;
+    out.push({ traeger: name, kind, name: r.name || '', email, status, token: invite ? invite.token : null, expires_at: invite ? invite.expires_at : null });
+  }
+  return { rows: out };
+});
+on('GET', 'admin/traeger/:id/invitations', async ({ req, params }) => {
+  staff(req, 'admin');
+  return q(`select i.id, i.role, i.name, i.email, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired
+              from invitations i left join schools s on s.id = i.school_id
+             where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 order by i.created_at desc`, [params.id]);
+});
+on('POST', 'admin/traeger/:id/invitations', async ({ req, params, body }) => {
+  const s = staff(req, 'admin');
+  if (!(await one(`select 1 from traeger where id = $1`, [params.id]))) fail(404, 'Schulträger nicht gefunden.');
+  let sid = null;
+  if (body.schoolId) {
+    if (!(await one(`select 1 from schools where id = $1 and traeger_id = $2`, [body.schoolId, params.id]))) fail(404, 'Schule nicht gefunden.');
+    sid = body.schoolId;
+  }
+  return createInvite({ kind: 'invite', role: sid ? 'leitung' : 'traeger', tid: sid ? null : params.id, sid, name: body.name, email: body.email, by: s.uid });
+});
+on('POST', 'admin/invitations/:id/renew', async ({ req, params }) => { staff(req, 'admin'); return renewInvite(params.id); });
+on('DELETE', 'admin/invitations/:id', async ({ req, params }) => { staff(req, 'admin'); await q(`delete from invitations where id = $1`, [params.id]); return { ok: true }; });
+
 /* ---------- AVS: Träger, Schulen, Zugänge, Runden ---------- */
 on('GET', 'admin/traeger', async ({ req }) => {
   staff(req, 'admin');
@@ -466,7 +686,7 @@ on('DELETE', 'admin/schools/:id', async ({ req, params }) => {
 });
 on('GET', 'admin/traeger/:id/users', async ({ req, params }) => {
   staff(req, 'admin');
-  return q(`select u.id, u.username, u.display_name, u.role, u.must_change_password, u.created_at, u.last_login, s.name as school_name
+  return q(`select u.id, u.username, u.display_name, u.email, u.role, u.must_change_password, u.created_at, u.last_login, s.name as school_name
               from users u left join schools s on s.id = u.school_id
              where u.traeger_id = $1 or s.traeger_id = $1 order by u.role desc, s.name nulls first, u.username`, [params.id]);
 });
@@ -489,12 +709,11 @@ on('POST', 'admin/traeger/:id/users', async ({ req, params, body }) => {
   return { username, password };
 });
 on('POST', 'admin/users/:id/reset', async ({ req, params }) => {
-  staff(req, 'admin');
-  const u = await one(`select username from users where id = $1 and role in ('leitung','traeger')`, [params.id]);
+  const s = staff(req, 'admin');
+  const u = await one(`select id, username, email from users where id = $1 and role in ('leitung','traeger')`, [params.id]);
   if (!u) fail(404, 'Konto nicht gefunden.');
-  const password = newPassword();
-  await q(`update users set password_hash = $1, must_change_password = true where id = $2`, [await hashPassword(password), params.id]);
-  return { username: u.username, password };
+  const inv = await createInvite({ kind: 'reset', userId: u.id, by: s.uid });
+  return { ...inv, username: u.username, email: u.email };
 });
 on('DELETE', 'admin/users/:id', async ({ req, params }) => {
   staff(req, 'admin');

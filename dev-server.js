@@ -19,6 +19,7 @@ http.createServer(async (req, res) => {
   }
   let p = url.pathname;
   if (/^\/t\/[^/]+$/.test(p) || p === '/mein-profil') p = '/teilnahme';
+  if (/^\/einladung\/[^/]+$/.test(p)) p = '/einladung';
   if (p === '/') p = '/index';
   let file = path.join(PUB, p);
   if (!path.extname(file)) file += '.html';
