@@ -287,6 +287,61 @@ address.contact { font-style: normal; line-height: 1.6; }
   body { font-size: 11pt; }
   .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+/* Schulauswertung: Darstellungen */
+.seg { display: inline-flex; border: 1px solid var(--ink-3); border-radius: 2px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.875rem; padding: 7px 12px; background: var(--bg); color: var(--ink); border: 0; border-left: 1px solid var(--line); cursor: pointer; }
+.seg button:first-child { border-left: 0; }
+.seg button:hover:not(:disabled) { background: var(--box); }
+.seg button[aria-pressed="true"], .seg button[aria-pressed="true"]:hover { background: var(--ink); color: #fff; }
+.seg button:disabled { color: var(--ink-3); cursor: default; }
+.seg button:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+.chart { margin: 0; max-width: 860px; display: flex; flex-direction: column; gap: 10px; }
+.chart > svg { width: 100%; height: auto; display: block; }
+.chart--radar { max-width: 560px; }
+.an-sec { scroll-margin-top: 16px; }
+.an-sec > summary { cursor: pointer; }
+.an-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start; }
+@media (max-width: 960px) { .an-grid { grid-template-columns: 1fr; gap: 24px; } }
+#needs-order { width: auto; }
+.an-jump { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.box-legend { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; margin-right: 10px; }
+.box-legend i { display: inline-block; width: 18px; height: 12px; vertical-align: -1px; margin-right: 5px; }
+.box-legend .lg-box { background: #FAD7C8; border: 1.5px solid #000; }
+.box-legend .lg-med { width: 3px; background: #000; }
+.box-legend .lg-mean { width: 0; border-left: 2px dashed var(--red); }
+.box-legend .lg-wh { height: 0; border-top: 1.5px solid #000; vertical-align: 3px; }
+.lg-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--red); vertical-align: -1px; }
+.lg-dot--cmp { background: #fff; border: 2px solid var(--ink-3); }
+.report { display: none; }
+@media print {
+  body.print-report .site-header .nav, body.print-report main > .view, body.print-report #view-result, body.print-report footer { display: none !important; }
+  body.print-report .report { display: block !important; }
+  body.print-report .site-header .brand { padding-block: 0 8px; }
+  body.print-report .site-header .brand-text { display: none; }
+  body.print-report .site-header .logo-link img { height: 44px; }
+  .report { font-size: 9.5pt; line-height: 1.35; }
+  .report h2 { font-size: 15pt; margin: 2px 0 4px; }
+  .report h3 { font-size: 10.5pt; margin: 10px 0 4px; }
+  .report ul { margin: 0; padding-left: 16px; }
+  .report .muted { color: #464646; }
+  .rp-stats { gap: 14px; margin: 8px 0; }
+  .rp-stats .stat b { font-size: 14pt; }
+  .rp-stats .stat span { display: block; font-size: 8pt; }
+  .report .small { font-size: 8.5pt; }
+  .rp-grid { display: grid; grid-template-columns: 55% 45%; gap: 14px; align-items: start; }
+  .rp-grid svg { width: 100%; height: auto; }
+  .rp-lists h3:first-child { margin-top: 0; }
+  .report > svg { width: 100%; height: auto; }
+  .report svg, .report .legend i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rp-foot { margin-top: 10px; border-top: 1px solid #D2D2D2; padding-top: 6px; color: #464646; }
+  .an-sec, .chart { break-inside: avoid; }
+  #sec-table[open], #sec-table { display: block; }
+  @page { size: A4; margin: 14mm; }
+}
+@media (max-width: 700px) {
+  .chart { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chart > svg { min-width: 640px; }
+}
 </style>
 </head>
 <body>
@@ -515,6 +570,7 @@ address.contact { font-style: normal; line-height: 1.6; }
       <div id="school-out" class="stack" style="gap:28px"></div>
     </div>
   </section>
+  <section id="report" class="report" hidden aria-hidden="true"></section>
 
   <!-- EIGENE FRAGEN -->
   <section class="view" id="view-custom" hidden aria-labelledby="h-custom">
@@ -598,6 +654,16 @@ __CORE_JS__
 </script>
 <script>
 const ITEMS = __ITEMS_JSON__;
+</script>
+<script>
+window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
+  esc: (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+  fmt: (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 })) };
+</script>
+<script>
+__CHARTS_JS__
+</script>
+<script>
 // Schulversion: eigene Fragen der Schule. In der allgemeinen Datei null; beim Herunterladen einer Schulversion ersetzt.
 const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
 (function () {
@@ -1076,8 +1142,8 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     let seed = 20260928;
     const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     const base = { '1': 3.4, '2': 3.1, '3': 2.8, '4': 2.1, '5': 2.4, '6': 2.6 };
-    const stufen = ['Kindergarten', 'Primarstufe 1.–2. Klasse', 'Primarstufe 3.–6. Klasse', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
-    return Array.from({ length: 14 }, (_, k) => {
+    const stufen = ['Kindergarten', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
+    return Array.from({ length: 18 }, (_, k) => {
       const skill = (rnd() - 0.5) * 2.2;
       const answers = {};
       SUBS.forEach((s) => {
@@ -1093,7 +1159,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
         else if (rnd() < 0.4) ca[q.id] = DEMO_TEXTS[k % DEMO_TEXTS.length];
         if (Array.isArray(ca[q.id]) && !ca[q.id].length) delete ca[q.id];
       });
-      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[Math.floor(rnd() * stufen.length)] }, answers,
+      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[k % 3] }, answers,
         school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : { id: 'beispiel', name: 'Beispielschule', version: 'beispiel', created: '2026-09-01' },
         custom_block: blk, custom_answers: ca };
     });
@@ -1130,6 +1196,31 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const fg = share > 0.62 ? '#fff' : '#000';
     return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
   }
+  // Darstellung der Schulauswertung (wie Serverversion)
+  const sview = { chart: 'radar', level: 'areas', order: 'order' };
+  const CHARTS = [['radar', 'Netz'], ['bars', 'Balken'], ['dist', 'Verteilung'], ['box', 'Boxplot']];
+  const seg = (name, label, opts, cur, disabled) => `<div class="seg" role="group" aria-label="${esc(label)}">${opts.map(([v, t]) =>
+    `<button type="button" data-${name}="${v}" aria-pressed="${v === cur}" ${disabled ? 'disabled' : ''}>${esc(t)}</button>`).join('')}</div>`;
+  const saveBtn = (key) => `<button class="btn quiet small no-print" type="button" data-png="${key}">Als Bild speichern</button>`;
+  const schoolLabel = () => (SCHOOL ? SCHOOL.name : school.sample ? 'Beispielschule' : '');
+  const fileBase = () => (schoolLabel() || 'Schule').replace(/[^\wäöüÄÖÜ-]+/g, '_');
+  function chartExplain(chart, level) {
+    if (chart === 'radar') return 'Mittelwert der Teilbereiche pro Bereich. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.';
+    if (chart === 'bars') return `Mittelwert pro ${level === 'areas' ? 'Bereich' : 'Teilbereich'}. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.`;
+    if (chart === 'dist') return `Anteil der Einschätzungen pro Stufe${level === 'areas' ? ' (alle Teilbereiche eines Bereichs zusammen)' : ''}. «k. G.» = Anzahl «keine Gelegenheit», nicht in den Prozenten enthalten.`;
+    return `<span class="box-legend"><span><i class="lg-box"></i>mittlere 50 %</span><span><i class="lg-med"></i>Median</span><span><i class="lg-mean"></i>Mittelwert</span><span><i class="lg-wh"></i>10–90 %</span></span>
+      Minimum und Maximum werden zum Schutz einzelner Personen nicht gezeigt.${level === 'areas' ? ' Grundlage pro Bereich: die persönlichen Mittelwerte der Lehrpersonen.' : ''}`;
+  }
+  // Stufen nebeneinander nur, wenn jede Gruppe (auch ohne Angabe) die Mindestgrösse erreicht
+  function stufenGroups(records) {
+    const groups = {};
+    records.forEach((r) => { const k = (r.context && r.context.stufe) || ''; (groups[k] = groups[k] || []).push(r); });
+    const named = Object.keys(groups).filter((k) => k).sort((a, b) => a.localeCompare(b));
+    if (named.length < 2) return null;
+    if (!Object.values(groups).every((g) => g.length >= DKCore.MIN_GROUP)) return { hidden: true };
+    return named.map((k) => ({ stufe: k, n: groups[k].length, areas: DKCore.aggregate(ITEMS, groups[k]).areas.map((a) => a.mean) }));
+  }
+
   function renderSchool() {
     const out = $('#school-out');
     if (!school.records.length && !school.sample) { school = { records: sampleRecords(), sample: true, filter: '' }; }
@@ -1138,12 +1229,14 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const agg = DKCore.aggregate(ITEMS, recs);
     const tooFew = agg.n < DKCore.MIN_GROUP;
     const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
-    const noOppTop = SUBS.filter((s) => agg.bySub[s.id].counts[0] > 0).sort((a, b) => agg.bySub[b.id].counts[0] - agg.bySub[a.id].counts[0]).slice(0, 3);
     const pd = agg.n ? DKCore.schoolThemes(ITEMS, agg, 3) : { themes: [], multipliers: [], noOpp: [] };
     const custom = customForRecords(recs);
+    const item = (s) => `<li class="focus-item"><span class="badge lv${Math.min(6, Math.max(1, Math.round(agg.bySub[s.id].mean)))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`;
+    const noOppSVG = agg.n ? Charts.noOpp(agg) : '';
+    const bs = school.filter ? null : stufenGroups(school.records);
 
     out.innerHTML = `
-      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> 14 fiktive Lehrpersonen zur Veranschaulichung${SCHOOL ? '' : ', inklusive vier Beispielfragen einer Schule'}. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
+      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> ${school.records.length} fiktive Lehrpersonen zur Veranschaulichung${SCHOOL ? '' : ', inklusive vier Beispielfragen einer Schule'}. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
       ${tooFew && agg.n > 0 ? `<div class="box box--warning"><b>Weniger als ${DKCore.MIN_GROUP} Ergebnisse.</b> Bei so kleinen Gruppen lassen sich Rückschlüsse auf einzelne Personen ziehen. Die Auswertung ist nur zur Kontrolle gedacht.</div>` : ''}
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stat-row">
@@ -1155,42 +1248,128 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
             <select id="school-filter"><option value="">Alle Stufen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
         </div>
       </div>
-      <div class="result-top" style="padding-block:0">
-        <div class="stack"><h3>Profil der Schule</h3><div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>
-          <p class="small muted">Mittelwert der Teilbereiche pro Bereich, Stufen I = 1 bis VI = 6.</p></div>
-        <div class="stack" style="gap:28px">
-          <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3>
-            <ul class="list-plain">${sorted.slice(0, 4).map((s) => `<li class="focus-item"><span class="badge lv${Math.max(1, Math.round(agg.bySub[s.id].mean))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
-          <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3>
-            <ul class="list-plain">${sorted.slice(-3).reverse().map((s) => `<li class="focus-item"><span class="badge lv${Math.round(agg.bySub[s.id].mean)}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
-          ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
-            <ul class="pd-list">${pd.themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
-            <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
-            ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI.</p>` : ''}
-            ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> In ${pd.noOpp.map((s) => s.id).join(', ')} gibt mindestens ein Viertel an, bisher keine Gelegenheit gehabt zu haben. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
-          ${noOppTop.length ? `<div class="stack" style="gap:12px"><h3>Häufig keine Gelegenheit</h3><p class="small muted">Hinweis auf fehlende Voraussetzungen an der Schule.</p>
-            <ul class="list-plain small">${noOppTop.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}: ${agg.bySub[s.id].counts[0]} Nennung${agg.bySub[s.id].counts[0] === 1 ? '' : 'en'}</li>`).join('')}</ul></div>` : ''}
+      <nav class="an-jump small no-print" aria-label="Abschnitte der Auswertung"><a href="#sec-profil">Profil</a><a href="#sec-needs">Wer braucht was?</a>${noOppSVG ? '<a href="#sec-noopp">Voraussetzungen</a>' : ''}${Array.isArray(bs) ? '<a href="#sec-stufen">Schulstufen</a>' : ''}<a href="#sec-table">Tabelle</a></nav>
+
+      <section class="an-sec stack" id="sec-profil" aria-labelledby="h-profil">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <h3 id="h-profil">Profil der Schule</h3>
+          <div class="row no-print" id="chart-controls"></div>
         </div>
+        <figure tabindex="0" class="chart" id="chart-main"></figure>
+      </section>
+
+      <div class="an-grid">
+        <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3><ul class="list-plain">${sorted.slice(0, 4).map(item).join('')}</ul></div>
+        <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3><ul class="list-plain">${sorted.slice(-3).reverse().map(item).join('')}</ul></div>
+        ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
+          <ul class="pd-list">${pd.themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
+          <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
+          ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI.</p>` : ''}
+          ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
       </div>
-      <div class="stack" style="gap:12px">
-        <h3>Verteilung pro Teilbereich</h3>
-        <p class="small muted">Anzahl Lehrpersonen pro Stufe. Je dunkler, desto grösser der Anteil.</p>
+
+      <section class="an-sec stack" id="sec-needs" aria-labelledby="h-needs">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <div class="stack" style="gap:4px"><h3 id="h-needs">Wer braucht was?</h3>
+            <p class="small muted" style="max-width:80ch">Wie viele Lehrpersonen brauchen einen Einstieg, eine Vertiefung oder können ihr Wissen weitergeben? Die Spalte rechts zeigt, ob das Kollegium eher <b>einig</b> ist oder <b>gespalten</b> (mindestens je ein Viertel auf I–II und auf V–VI). Bei gespaltenen Teilbereichen eignen sich Angebote in verschiedenen Niveaus oder Tandems.</p></div>
+          <div class="row no-print"><label class="small" for="needs-order">Sortieren</label><select id="needs-order">
+            <option value="order" ${sview.order === 'order' ? 'selected' : ''}>nach Teilbereich</option>
+            <option value="entry" ${sview.order === 'entry' ? 'selected' : ''}>grösster Bedarf an Einstieg zuerst</option>
+            <option value="spread" ${sview.order === 'spread' ? 'selected' : ''}>gespaltene zuerst</option></select>${saveBtn('needs')}</div>
+        </div>
+        <div class="legend"><span><i style="background:${Charts.NEEDCOL[0]}"></i>Einstieg (I–II)</span><span><i style="background:${Charts.NEEDCOL[1]}"></i>Vertiefung (III–IV)</span><span><i style="background:${Charts.NEEDCOL[2]}"></i>Weitergeben (V–VI)</span><span>Zahlen im Balken: Anzahl Lehrpersonen</span></div>
+        <figure tabindex="0" class="chart" data-chart="needs" id="chart-needs">${Charts.needs(agg, sview.order)}</figure>
+      </section>
+
+      ${noOppSVG ? `<section class="an-sec stack" id="sec-noopp" aria-labelledby="h-noopp">
+        <div class="row" style="justify-content:space-between"><h3 id="h-noopp">Voraussetzungen: «keine Gelegenheit»</h3>${saveBtn('noopp')}</div>
+        <p class="small muted" style="max-width:80ch">Anteil der Lehrpersonen, die in einem Teilbereich bisher keine Gelegenheit hatten. Ab einem Viertel (gestrichelte Linie) lohnt es sich, Voraussetzungen zu klären, zum Beispiel Geräte, Plattformen oder Absprachen im Team.</p>
+        <figure tabindex="0" class="chart" data-chart="noopp">${noOppSVG}</figure>
+      </section>` : ''}
+
+      ${Array.isArray(bs) ? `<section class="an-sec stack" id="sec-stufen" aria-labelledby="h-stufen">
+        <div class="row" style="justify-content:space-between"><h3 id="h-stufen">Schulstufen im Vergleich</h3>${saveBtn('stufen')}</div>
+        <p class="small muted">Mittelwert pro Bereich und Schulstufe. Nur sichtbar, wenn jede Gruppe mindestens ${DKCore.MIN_GROUP} Ergebnisse umfasst.</p>
+        <div class="legend">${Charts.stufenLegend(bs)}</div>
+        <figure tabindex="0" class="chart" data-chart="stufen">${Charts.stufen(bs)}</figure>
+      </section>` : bs && bs.hidden ? `<p class="small muted">Der Vergleich der Schulstufen erscheint, sobald jede Stufe (und die Gruppe ohne Stufenangabe) mindestens ${DKCore.MIN_GROUP} Ergebnisse hat.</p>` : ''}
+
+      <details class="an-sec" id="sec-table">
+        <summary><b>Tabelle: Anzahl Lehrpersonen pro Stufe</b></summary>
+        <div class="stack" style="gap:12px;margin-top:12px"><p class="small muted">Je dunkler, desto grösser der Anteil.</p>
         <div class="table-scroll"><table class="heat">
           <thead><tr><th scope="col">Teilbereich</th>${LV.map((l) => `<th scope="col">${l.roman}<br><span style="font-weight:400">${esc(l.label)}</span></th>`).join('')}<th scope="col">Keine<br>Gelegenheit</th><th scope="col">Ø</th></tr></thead>
           <tbody>${ITEMS.areas.map((a) => `<tr class="area-row"><td colspan="9">${a.id} ${esc(a.title)}</td></tr>` + a.subareas.map((s) => {
             const d = agg.bySub[s.id];
             return `<tr><td>${s.id} ${esc(s.title)}</td>${[1, 2, 3, 4, 5, 6].map((k) => heatCell(d.counts[k], d.answered)).join('')}<td class="cell">${d.counts[0] || ''}</td><td><b>${fmt(d.mean)}</b></td></tr>`;
-          }).join('')).join('')}</tbody></table></div>
-      </div>
+          }).join('')).join('')}</tbody></table></div></div>
+      </details>
       ${custom ? customSection(custom) : ''}
       <div class="actions" style="border-top:0;padding-top:0">
+        <button class="btn" type="button" id="btn-report">Bericht für Konferenz drucken / als PDF</button>
         <button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button>
         ${!school.sample ? '<button class="btn quiet" type="button" id="btn-school-clear">Geladene Dateien entfernen</button>' : ''}
       </div>`;
+
+    function drawMain() {
+      const isRadar = sview.chart === 'radar';
+      $('#chart-controls').innerHTML = seg('chart', 'Darstellung', CHARTS, sview.chart) +
+        seg('level', 'Ebene', [['areas', 'Bereiche'], ['subs', 'Teilbereiche']], isRadar ? 'areas' : sview.level, isRadar) + saveBtn('main');
+      let svg;
+      if (isRadar) svg = `<div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>`;
+      else if (sview.chart === 'bars') svg = Charts.bars(agg, sview.level, null, {});
+      else if (sview.chart === 'dist') svg = Charts.dist(agg, sview.level);
+      else svg = Charts.boxplot(agg, sview.level);
+      const lvLegend = sview.chart === 'dist' ? LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('') : '';
+      $('#chart-main').className = 'chart' + (isRadar ? ' chart--radar' : '');
+      $('#chart-main').innerHTML = svg + `<figcaption class="legend">${lvLegend}<span>${chartExplain(sview.chart, sview.level)}</span></figcaption>`;
+      $$('#chart-controls [data-chart]').forEach((b) => b.addEventListener('click', () => { sview.chart = b.dataset.chart; drawMain(); $('#chart-controls [aria-pressed=true]').focus(); }));
+      $$('#chart-controls [data-level]').forEach((b) => b.addEventListener('click', () => { sview.level = b.dataset.level; drawMain(); $(`#chart-controls [data-level=${sview.level}]`).focus(); }));
+      $('#chart-controls [data-png]').addEventListener('click', () => Charts.png($('#chart-main svg'), `${fileBase()}_${CHARTS.find((x) => x[0] === sview.chart)[1]}_${today()}`));
+    }
+    drawMain();
+
+    $('#needs-order').addEventListener('change', (e) => { sview.order = e.target.value; $('#chart-needs').innerHTML = Charts.needs(agg, sview.order); });
+    const pngNames = { needs: 'Wer_braucht_was', noopp: 'Voraussetzungen', stufen: 'Schulstufen' };
+    $$('#school-out .an-sec [data-png]').filter((b) => b.dataset.png !== 'main').forEach((b) => b.addEventListener('click', () =>
+      Charts.png($(`[data-chart=${b.dataset.png}] svg`), `${fileBase()}_${pngNames[b.dataset.png]}_${today()}`)));
+    $$('.an-jump a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); const t = $(a.getAttribute('href')); if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     $('#school-filter').addEventListener('change', (e) => { school.filter = e.target.value; renderSchool(); });
     $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg) + customCSV(custom), 'text/csv;charset=utf-8'));
+    $('#btn-report').addEventListener('click', () => printReport(agg, sorted, pd));
     const clr = $('#btn-school-clear');
     if (clr) clr.addEventListener('click', () => { school = { records: [], sample: false, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+  }
+
+  /* Bericht auf einer Seite (Schulkonferenz, Schulpflege) */
+  function printReport(agg, sorted, pd) {
+    const r = $('#report');
+    const li = (s) => `<li><b>${s.id}</b> ${esc(s.title)} <span class="muted">(Ø ${fmt(agg.bySub[s.id].mean)})</span></li>`;
+    const split = SUBS.filter((s) => DKCore.needGroups(agg.bySub[s.id]).spread === 'gespalten');
+    r.innerHTML = `
+      <div class="rp-head"><div><div class="eyebrow">${esc(schoolLabel())}</div><h2>Digitale Kompetenzen des Kollegiums</h2>
+        <p>${agg.n} Ergebnis${agg.n === 1 ? '' : 'se'}${school.filter ? ' · Stufe «' + esc(school.filter) + '»' : ''} · Stand ${new Date().toLocaleDateString('de-CH')}${school.sample ? ' · Beispieldaten' : ''}</p></div></div>
+      <div class="stat-row rp-stats">${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small">${a.id} ${esc(a.short)}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}</div>
+      <div class="rp-grid">
+        <div>${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm' })}
+          <p class="small">Mittelwert pro Bereich, Stufe I = 1 bis VI = 6.</p></div>
+        <div class="rp-lists">
+          <h3>Handlungsfelder</h3><ul>${sorted.slice(0, 4).map(li).join('')}</ul>
+          <h3>Stärken</h3><ul>${sorted.slice(-3).reverse().map(li).join('')}</ul>
+          ${pd.themes.length ? `<h3>Themen für die Weiterbildung</h3><ul>${pd.themes.map((t) => `<li>${esc(t.theme)} <span class="muted">(${t.subs.join(', ')})</span></li>`).join('')}</ul>` : ''}
+          ${pd.multipliers.length ? `<p class="small"><b>Interne Weitergabe möglich:</b> ${pd.multipliers.map((s) => s.id).join(', ')}</p>` : ''}
+          ${split.length ? `<p class="small"><b>Kollegium gespalten:</b> ${split.map((s) => s.id).join(', ')}</p>` : ''}
+          ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}</p>` : ''}
+        </div>
+      </div>
+      <h3>Verteilung der Stufen pro Bereich</h3>
+      ${Charts.dist(agg, 'areas')}
+      <div class="legend">${LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('')}</div>
+      <p class="small rp-foot">Zusammengefasste Selbsteinschätzungen der Lehrpersonen nach DigCompEdu. Einzelne Profile werden nicht angezeigt. Kanton Schwyz, Amt für Volksschulen und Sport.</p>`;
+    document.body.classList.add('print-report');
+    const done = () => { document.body.classList.remove('print-report'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    window.print();
   }
 
   /* ---------- Eigene Fragen: Auswertung ---------- */

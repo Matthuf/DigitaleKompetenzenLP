@@ -287,6 +287,61 @@ address.contact { font-style: normal; line-height: 1.6; }
   body { font-size: 11pt; }
   .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+/* Schulauswertung: Darstellungen */
+.seg { display: inline-flex; border: 1px solid var(--ink-3); border-radius: 2px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.875rem; padding: 7px 12px; background: var(--bg); color: var(--ink); border: 0; border-left: 1px solid var(--line); cursor: pointer; }
+.seg button:first-child { border-left: 0; }
+.seg button:hover:not(:disabled) { background: var(--box); }
+.seg button[aria-pressed="true"], .seg button[aria-pressed="true"]:hover { background: var(--ink); color: #fff; }
+.seg button:disabled { color: var(--ink-3); cursor: default; }
+.seg button:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+.chart { margin: 0; max-width: 860px; display: flex; flex-direction: column; gap: 10px; }
+.chart > svg { width: 100%; height: auto; display: block; }
+.chart--radar { max-width: 560px; }
+.an-sec { scroll-margin-top: 16px; }
+.an-sec > summary { cursor: pointer; }
+.an-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start; }
+@media (max-width: 960px) { .an-grid { grid-template-columns: 1fr; gap: 24px; } }
+#needs-order { width: auto; }
+.an-jump { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.box-legend { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; margin-right: 10px; }
+.box-legend i { display: inline-block; width: 18px; height: 12px; vertical-align: -1px; margin-right: 5px; }
+.box-legend .lg-box { background: #FAD7C8; border: 1.5px solid #000; }
+.box-legend .lg-med { width: 3px; background: #000; }
+.box-legend .lg-mean { width: 0; border-left: 2px dashed var(--red); }
+.box-legend .lg-wh { height: 0; border-top: 1.5px solid #000; vertical-align: 3px; }
+.lg-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--red); vertical-align: -1px; }
+.lg-dot--cmp { background: #fff; border: 2px solid var(--ink-3); }
+.report { display: none; }
+@media print {
+  body.print-report .site-header .nav, body.print-report main > .view, body.print-report #view-result, body.print-report footer { display: none !important; }
+  body.print-report .report { display: block !important; }
+  body.print-report .site-header .brand { padding-block: 0 8px; }
+  body.print-report .site-header .brand-text { display: none; }
+  body.print-report .site-header .logo-link img { height: 44px; }
+  .report { font-size: 9.5pt; line-height: 1.35; }
+  .report h2 { font-size: 15pt; margin: 2px 0 4px; }
+  .report h3 { font-size: 10.5pt; margin: 10px 0 4px; }
+  .report ul { margin: 0; padding-left: 16px; }
+  .report .muted { color: #464646; }
+  .rp-stats { gap: 14px; margin: 8px 0; }
+  .rp-stats .stat b { font-size: 14pt; }
+  .rp-stats .stat span { display: block; font-size: 8pt; }
+  .report .small { font-size: 8.5pt; }
+  .rp-grid { display: grid; grid-template-columns: 55% 45%; gap: 14px; align-items: start; }
+  .rp-grid svg { width: 100%; height: auto; }
+  .rp-lists h3:first-child { margin-top: 0; }
+  .report > svg { width: 100%; height: auto; }
+  .report svg, .report .legend i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rp-foot { margin-top: 10px; border-top: 1px solid #D2D2D2; padding-top: 6px; color: #464646; }
+  .an-sec, .chart { break-inside: avoid; }
+  #sec-table[open], #sec-table { display: block; }
+  @page { size: A4; margin: 14mm; }
+}
+@media (max-width: 700px) {
+  .chart { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chart > svg { min-width: 640px; }
+}
 </style>
 </head>
 <body>
@@ -515,6 +570,7 @@ address.contact { font-style: normal; line-height: 1.6; }
       <div id="school-out" class="stack" style="gap:28px"></div>
     </div>
   </section>
+  <section id="report" class="report" hidden aria-hidden="true"></section>
 
   <!-- EIGENE FRAGEN -->
   <section class="view" id="view-custom" hidden aria-labelledby="h-custom">
@@ -773,6 +829,270 @@ if (typeof module !== 'undefined') module.exports = DKCore;
 </script>
 <script>
 const ITEMS = {"instrument": "Digitale Kompetenzen Lehrpersonen Kanton Schwyz", "version": "SZ-2026.0-entwurf", "source": "DigCompEdu Bavaria, ALP Dillingen (Itemtexte ausgelesen am 28.09.2026); Anpassung Kanton Schwyz in Arbeit", "levels": [{"level": 1, "roman": "I", "label": "Einsteigen"}, {"level": 2, "roman": "II", "label": "Entdecken"}, {"level": 3, "roman": "III", "label": "Anwenden"}, {"level": 4, "roman": "IV", "label": "Integrieren"}, {"level": 5, "roman": "V", "label": "Entwickeln"}, {"level": 6, "roman": "VI", "label": "Weitergeben"}], "areas": [{"id": "1", "title": "Berufsbezogenes Handeln", "short": "Berufsbezogenes Handeln", "description": "Digitale Medien für Kommunikation, Zusammenarbeit, Reflexion und die eigene Weiterbildung nutzen.", "subareas": [{"id": "1.1", "title": "Berufliche Kommunikation", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.1-I", "text": "Ich kenne digitale Medien wie E-Mail oder schulische Kommunikationsportale, nutze diese jedoch selten in beruflichen Kontexten."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.1-II", "text": "Ich versuche digitale Medien adressatengerecht für die Kommunikation zu nutzen (z. B. mit Lernenden und Erziehungsberechtigten, im Kollegenkreis oder mit weiterem pädagogischem Personal)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.1-III", "text": "Ich nutze geeignete digitale Kommunikationskanäle und kommuniziere sprachsensibel. Dabei berücksichtige ich Nutzungsbedingungen und vereinbarte Kommunikationsabläufe."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.1-IV", "text": "Ich wähle aus einem breiten Repertoire an Kommunikationskanälen einen angemessenen Kanal, Stil und das Format für einen bestimmten Kommunikationszweck und -kontext aus."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.1-V", "text": "Ich reflektiere, bewerte und diskutiere im Kollegenkreis die Art und Weise, wie digitale Medien effektiv für die schulische Kommunikation genutzt werden. Ich nutze digitale Medien, um schulorganisatorische Verfahren für Lernende und/oder Erziehungsberechtigte transparent zu machen und ihnen zu ermöglichen, informierte Entscheidungen zu treffen."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.1-VI", "text": "Ich trage zur Entwicklung innovativer Konzepte und Strategien für den verantwortungsvollen Einsatz digitaler Technologien für die Kommunikation bei und multipliziere diese auch über die eigene Schule hinaus."}], "pd": {"primary": "Digitale Tools & Anwendungen", "secondary": "Team- und Beziehungsarbeit"}}, {"id": "1.2", "title": "Kollegiale Zusammenarbeit", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.2-I", "text": "Ich bin mir bewusst, dass digitale Medien die Zusammenarbeit mit Kolleginnen und Kollegen - auch ausserhalb meiner Schule - unterstützen, nutze diese jedoch selten (z. B. kollaborative Online-Plattformen oder Videokonferenzwerkzeuge)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.2-II", "text": "Ich versuche mit digitalen Medien mit Kolleginnen und Kollegen an meiner Schule zusammenzuarbeiten (z. B. um Inhalte, Wissen oder Meinungen auszutauschen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.2-III", "text": "Ich nutze Online-Communities (z. B. Twitter oder Internetforen für Lehrkräfte), um neue pädagogische Ressourcen oder Methoden zu entdecken. Auch nutze ich digitale Medien zum Teilen von Materialien und zum Austausch von Wissen und Meinungen in und ausserhalb meiner Schule."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.2-IV", "text": "Ich wähle aktiv Online-Communities aus, um Ideen und digitale Ressourcen auszutauschen und zu erarbeiten (z. B. mebis-TeachSHARE )."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.2-V", "text": "Durch die Nutzung beruflicher Kooperationsnetzwerke entwickle ich meine berufliche Praxis und meine Kompetenzen weiter. Dadurch erhalte ich Feedback zu pädagogischen Konzepten und Unterrichtsideen."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.2-VI", "text": "Mit Hilfe von Online-Communities trage ich zur innovativen Weiterentwicklung pädagogischer Praktiken bei. Dabei fördere und unterstütze ich Lehrkräfte auch ausserhalb des eigenen Kollegiums bei der Weiterentwicklung ihrer digitalen und pädagogischen Kompetenzen."}], "pd": {"primary": "Team- und Beziehungsarbeit", "secondary": "Digitale Tools & Anwendungen"}}, {"id": "1.3", "title": "Reflektiertes Handeln", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.3-I", "text": "Ich bin mir bewusst, dass digitale Medien im schulischen Kontext eingesetzt werden können. Jedoch habe ich hierin kaum Erfahrung und bin mir über die Möglichkeiten noch im Unklaren, wie ich mich hier weiterentwickeln kann."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.3-II", "text": "Ich suche nach Wegen, meine medienbezogenen Lehrkompetenzen weiterzuentwickeln. Dabei bin ich mir der Grenzen meiner eigenen digitalen Kompetenz wie auch notwendiger individueller Entwicklungsbereiche bewusst."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.3-III", "text": "Ich nutze digitale Medien bewusst in verschiedenen schulischen Kontexten und zu unterschiedlichen Zwecken, um mit zeitgemässen pädagogischen Ansätzen zu experimentieren. Dabei möchte ich meine medienbezogenen Lehrkompetenzen durch Erproben und Peer-Learning weiterentwickeln und verbessern."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.3-IV", "text": "Ich analysiere und diskutiere mit Kolleginnen und Kollegen, wie die Nutzung von digitalen Medien zur Erneuerung und Verbesserung der Unterrichtspraxis realisiert werden kann. Ich suche aktiv nach bewährten Praktiken, Kursen oder anderen Ratschlägen, um meine eigenen digitalen pädagogischen Konzepte zu verbessern und digitale Kompetenzen auszuweiten."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.3-V", "text": "Ich unterstütze Kolleginnen und Kollegen dabei, ihre digitalen Kompetenzen weiterzuentwickeln. Ich informiere mich regelmässig, z. B. in Fachzeitschriften oder im Internet über aktuelle wissenschaftliche Erkenntnisse und übertrage diese in meine Praxis. Zudem bewerte, reflektiere und diskutiere ich über Konzepte und Praxis der Schule hinsichtlich der Nutzung digitaler Medien (z.B. Teilnahme an Kongressen und Organisation von SchiLFS)"}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.3-VI", "text": "Mit Hilfe digitaler Medien trage ich dazu bei, individuell oder gemeinsam mit Kolleginnen und Kollegen eine Strategie zur Verbesserung der Bildungspraxis zu entwickeln. Ich reflektiere und evaluiere mit Kolleginnen und Kollegen und/oder Wissenschaftlerinnen und Wissenschaftlern verschiedene digitale Praktiken, Methoden und Strategien mit dem Ziel, innovative Konzepte zu entwickeln. (z.B. Mitwirkung an Kongressen oder Barcamps)"}], "pd": {"primary": "Gesundheit & Professionalisierung", "secondary": "Didaktik & Unterrichtsdesign"}}, {"id": "1.4", "title": "Kontinuierliche Weiterentwicklung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "1.4-I", "text": "Ich bin mir bewusst, dass ich mit Hilfe des Internets mein fachspezifisches oder pädagogisches Wissen aktualisieren oder meine Fähigkeiten erweitern kann."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "1.4-II", "text": "Ich suche nach Wegen, mit Hilfe des Internets mein fachspezifisches oder pädagogisches Wissen zu aktualisieren. (z.B. Onlineportale, Edu-Blogs, Themenseiten des ISB)"}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "1.4-III", "text": "Ich nutze das Internet, um gezielt passende Fort- und Weiterbildungsangebote und andere Chancen für die berufliche Weiterentwicklung zu identifizieren. (z. B. Identifizierung geeigneter Fortbildungsveranstaltungen)"}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "1.4-IV", "text": "Ich wähle zielgerichtet Online-Fortbildungen (z. B. eSessions) oder digitales Weiterbildungsmaterial und Video-Tutorials als Quelle für meine berufliche Weiterentwicklung aus."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "1.4-V", "text": "Ich berate meine Kolleginnen und Kollegen bei der Wahl von Online-Fortbildungsmöglichkeiten. Dazu sichte ich eine Vielzahl von Angeboten und wähle diejenigen aus, die meinen Weiterentwicklungsbedürfnissen und ggf. denen meiner Kolleginnen und Kollegen am besten entsprechen. Ich nehme aktiv an Online-Fortbildungen teil und trage durch gezieltes Feedback zu deren Verbesserung bei."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "1.4-VI", "text": "Ich fördere Kolleginnen und Kollegen mit Hilfe digitaler Technologien (z. B. im Rahmen von Fortbildungen, durch persönliche Blogs oder indem ich für sie neues digitales Fortbildungsmaterial entwickle)."}], "pd": {"primary": "Gesundheit & Professionalisierung", "secondary": "Digitale Tools & Anwendungen"}}]}, {"id": "2", "title": "Digitale Ressourcen", "short": "Digitale Ressourcen", "description": "Digitale Materialien finden, erstellen, anpassen, ordnen und rechtlich korrekt teilen.", "subareas": [{"id": "2.1", "title": "Auswählen digitaler Ressourcen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "2.1-I", "text": "Ich bin mir bewusst, dass ich online nach Lehr- und Lernressourcen suchen kann, nutze die Möglichkeit jedoch nicht oder nur selten (z.B. Arbeitsmaterial, Onlinequizze oder Videos)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "2.1-II", "text": "Ich nutze einfache Internet-Suchstrategien, um digitale Lehr- und Lernressourcen zum Beispiel auf Bildungsplattformen wie mebis zu finden."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "2.1-III", "text": "Ich identifiziere und verwende geeignete Online-Werkzeuge und Bildungsplattformen, um nach vielfältigen digitalen Ressourcen zu suchen, die dem Bildungsbedarf meiner Lernenden entsprechen (z. B. mebis)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "2.1-IV", "text": "Ich wähle digitale Ressourcen auf der Grundlage komplexer Kriterien aus und entwickle meine Suchkriterien mit Blick auf den intendierten Kompetenzerwerb weiter, um meine spezifischen Lehr- und Lernziele zu erfüllen (z. B. Bildungswert, Relevanz, Zuverlässigkeit, Gültigkeit, Qualität, Lizenzierung)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "2.1-V", "text": "Ich reflektiere und bewerte meine Suchergebnisse umfassend und passe meine Auswahlkriterien ggf. neu und flexibel an (z. B. Prüfung von Genauigkeit und Neutralität). Ausserdem berate ich meine Kolleginnen und Kollegen."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "2.1-VI", "text": "Ich entwickle und multipliziere innovative Strategien zur Auswahl, Identifizierung und Auswertung digitaler Ressourcen."}], "pd": {"primary": "Digitale Tools & Anwendungen", "secondary": "Medienkompetenz & Medienkritik"}}, {"id": "2.2", "title": "Erstellen und Anpassen digitaler Ressourcen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "2.2-I", "text": "Ich bin mir der Tatsache bewusst, dass ich bestehende Ressourcen in digitaler Form erstellen oder anpassen kann, verzichte aber meist darauf (z. B. Textverarbeitung, Bilder, Fotos, Audio, Video)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "2.2-II", "text": "Ich entdecke für mich neue digitale Ressourcen und habe bereits versucht, eigene Ressourcen mit Hilfe von einfachen Tools zu erstellen oder anzupassen (z. B. Textverarbeitung, Bilder, Tabellen, Präsentationen, Audio- oder Videodateien)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "2.2-III", "text": "Ich identifiziere und verwende geeignete digitale Tools, um Ressourcen zu erstellen und passe sie ggf. sach-und situationsgerecht an, um den Bedürfnissen der Lernenden zu entsprechen (z. B. interaktive Texte, Multimedia-Präsentationen, Quizze, Spiele, Online-Aktivitäten und Unterricht)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "2.2-IV", "text": "Ich wende Gestaltungsprinzipien und -prozesse an, um digitale Ressourcen zu schaffen oder systematisch anzupassen, damit sie den Lehr- und Lernzielen entsprechen (z.B. Entwerfen eines Onlinelernspiels, digitale Lernumgebungen, Erklärvideos)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "2.2-V", "text": "Ich erstelle Konzepte für komplexe und interaktive digitale Lernaktivitäten und/oder passe diese an (z. B. interaktive Arbeitsbögen, Lernaktivitäten wie Wikis, Blogs, Lernpfade). Ich reflektiere kritisch, inwiefern sich verschiedene Methoden für die Erstellung digitaler Ressourcen eignen und gebe mein Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "2.2-VI", "text": "Ich entwickle und multipliziere komplexe und innovative digitale Ressourcen für Lehr-/Lernkontexte (z. B.digitale Lernumgebungen mit 3D-Animationen) unter Berücksichtigung neuester technischer Entwicklungen."}], "pd": {"primary": "Digitale Tools & Anwendungen", "secondary": "Künstliche Intelligenz"}}, {"id": "2.3", "title": "Organisieren, Schützen und Teilen digitaler Ressourcen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "2.3-I", "text": "Ich speichere und verwalte digitale Ressourcen, wie z. B. Arbeitsmaterial, Fotos oder Videos zur eigenen Verwendung. Ich bin mir der Tatsache bewusst, dass einige der im Internet verbreiteten Ressourcen dem Urheberrecht unterliegen."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "2.3-II", "text": "Ich teile Unterrichtsmaterialien (z. B. Texte und interaktive Aufgaben) unter Beachtung des Urheberrechts als Anhang einer Nachricht oder durch die Weitergabe von Links."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "2.3-III", "text": "Ich teile verantwortungsvoll Unterrichtsmaterialien (z. B. Verschlüsselung von Texten, Videos, Lernspiele und Aufgaben) im Rahmen des digital gestützten Lernens und schütze sensible Inhalte wie Leistungserhebungen oder Berichte der Lehrkräfte effektiv."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "2.3-IV", "text": "Ich teile Ressourcen (z. B. Texte, Videos, Lernspiele und interaktive Aufgaben) professionell, indem ich sie in digitale Lernumgebungen einbette. Ich schütze persönliche und sensible Daten effektiv. Ich kennzeichne Ressourcen, die dem Urheberrecht unterliegen, richtig."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "2.3-V", "text": "Ich durchdenke den Sinn bestehender digitaler Ressourcen und gestalte sie ggf. neu, um sie in interaktive, auf den Lernenden ausgerichtete Aktivitäten zu integrieren. Ich veröffentliche die Ressourcen (online) und mache sie so für die Lernenden und andere Lehrkräfte zugänglich (z. B. Anpassung digitaler Ressourcen und digital erweiterter Aufgaben in einem Online-Kurs, einer Online-Beurteilung, einem kollaborativen Online-Projekt, einem Wiki, einem Blog oder einem virtuellen Lernraum)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "2.3-VI", "text": "Ich erstelle innovative digitale Ressourcen selbst, lizenziere sie und veröffentliche sie für die Lernenden und andere Lehrkräfte (z. B. digital erweiterte Aufgaben in einem Online-Kurs, einer Online-Beurteilung, einem kollaborativen Online-Projekt oder einem virtuellen Lernraum)."}], "pd": {"primary": "Medienkompetenz & Medienkritik", "secondary": "Digitale Tools & Anwendungen"}}]}, {"id": "3", "title": "Lehren und Lernen", "short": "Lehren und Lernen", "description": "Digitale Medien im Unterricht einsetzen, Lernprozesse begleiten, kooperatives und selbstgesteuertes Lernen fördern.", "subareas": [{"id": "3.1", "title": "Lehren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.1-I", "text": "Ich bin mir bewusst, dass digitale Technologien wie beispielsweise Programme, Apps und cloudbasierte Ressourcen das Lehren und Lernen unterstützen und verbessern können, nutze diese Möglichkeit jedoch selten."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.1-II", "text": "Ich versuche digitale Technologien wie beispielsweise Programme, mobile Apps und Tools, onlinebasierte Ressourcen oder interaktive Whiteboards zur Unterstützung oder Verbesserung meiner Unterrichtspraxis zu nutzen und die Lernenden zur Nutzung zu motivieren."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.1-III", "text": "Ich verwende sach- und situationsgerecht verschiedene digitale Technologien, die innovative pädagogische Ansätze unterstützen können und die aktive Beteiligung der Lernenden an ihren Lernprozessen fördern. Diese umfassen z.B. problembasiertes Lernen, Selbstbewertung und Coaching durch andere Lernende."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.1-IV", "text": "Ich wähle digitale Technologien (z.B. Simulationen, interaktive Online-Tools und kollaborative Umgebungen) systematisch aus, um die Lernziele in meinen Lernkonzepten zu erreichen."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.1-V", "text": "Ich bewerte und gestalte den Einsatz digitaler Technologien zur flexiblen Anpassung von Lehrmethoden und innovativen Lernansätzen wie z.B. Coaching durch andere Lernende, Modellierung und Beratung. Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.1-VI", "text": "Ich trage zur Entwicklung innovativer Lernpraktiken mit digitalen Technologien bei wie z.B. Online-Workshops, Co-Teaching und Reflexionsgespräche über die Wirksamkeit des Einsatzes digitaler Technologien. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}], "pd": {"primary": "Didaktik & Unterrichtsdesign", "secondary": "Digitale Tools & Anwendungen"}}, {"id": "3.2", "title": "Lernbegleitung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.2-I", "text": "Ich bin mir bewusst, dass digitale Technologien dazu dienen können, Feedback zu geben und über Lehr- und Lernmethoden zu reflektieren, nutze diese Möglichkeit jedoch kaum oder gar nicht."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.2-II", "text": "Ich versuche digitale Technologien zu nutzen, um den Lernenden Feedback und Unterstützung zu geben (z.B. automatisiertes Feedback, Links zu Online-Tutorials, Chat)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.2-III", "text": "Ich verwende, je nach Anforderung, verschiedene digitale Technologien (z.B.Chats, Diskussionsforen und Umfragen im Unterricht) um den Lernenden ein Feedback zu geben und ihnen die Möglichkeit einzuräumen, über ihr Lernen nachzudenken."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.2-IV", "text": "Ich setze digitale Technologien (z.B. gemeinsame Online-Dokumente, Aufzeichnungen von Lernaktivitäten und begleitete Reflexion) systematisch ein, um den Lernenden die Möglichkeit zu geben, eine Selbstbewertung durchzuführen und dadurch an der Gestaltung des Lernprozesses teilzuhaben."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.2-V", "text": "Ich analysiere und bewerte Lernen neu unter Berücksichtigung von Erkenntnissen, die durch digitale Technologien (z.B. Aufzeichnungen von Lernaktivitäten und Learning Analytics) gewonnen wurden. Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.2-VI", "text": "Ich entwickle innovative Ansätze zur Unterstützung und Begleitung des Lernprozesses. Im Zuge dessen werden digitale Technologien (z.B. Diskussionsforen, gemeinsame Dokumente und FAQ-Sheets) eingesetzt. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}], "pd": {"primary": "Didaktik & Unterrichtsdesign", "secondary": "Leistung, Feedback & Lernstand"}}, {"id": "3.3", "title": "Kollaboratives Lernen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.3-I", "text": "Ich bin mir bewusst, dass digitale Technologien genutzt werden können, um die Zusammenarbeit der Lernenden beim Lernen (z.B. im Rahmen von Online-Zusammenarbeit und der gemeinsamen Nutzung von Lernressourcen) zu fördern und zu verbessern, nutze diese Möglichkeit jedoch selten oder nicht."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.3-II", "text": "Ich versuche digitale Technologien (z.B. gemeinsame Dokumente und Beiträge in Foren) zur Unterstützung und Verbesserung kollaborativer Aktivitäten von Lernenden zu nutzen und die Lernenden dazu zu motivieren."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.3-III", "text": "Ich verwende verschiedene digitale Technologien und Medien situationsgerecht (z.B. Foren, Wikis und kollaborative Lernprodukte), um das kollaborative Lernen zu unterstützen und zu verbessern."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.3-IV", "text": "Ich wende digitale Technologien systematisch in meinen Lernkonzepten an, um das kollaborative Lernen zu verbessern und zu unterstützen (z.B. im Rahmen von Gruppenreflexion, Projektentwicklung und Austausch)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.3-V", "text": "Ich entwickle die Nutzung digitaler Technologien zum Wissensaufbau weiter (z.B. die gemeinsame Teilnahme an Projekten, der virtuelle Austausch und die Nutzung digitaler Tools für Kommunikation). Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.3-VI", "text": "Ich entwickle innovative Lernszenarien, indem ich Möglichkeiten der Zusammenarbeit zur Unterstützung des Lernens (z.B. Nutzung synchroner und asynchroner Online-Umgebungen sowie Mitgestaltung und gemeinsame Erstellung von Lernmaterial) anbiete. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}], "pd": {"primary": "Didaktik & Unterrichtsdesign", "secondary": "Team- und Beziehungsarbeit"}}, {"id": "3.4", "title": "Selbstgesteuertes Lernen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "3.4-I", "text": "Ich bin mir bewusst, dass digitale Technologien genutzt werden können, um aktives und autonomes Lernen (z.B. Planung, Zielsetzung und Aufzeichnung von Fortschritten) zu fördern, nutze diese Möglichkeit jedoch kaum oder gar nicht."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "3.4-II", "text": "Ich versuche digitale Technologien zur Unterstützung der Lernenden bei der Planung ihres eigenen Lernens (z.B. in der Verwendung von digitalen Kalendern und Aufzeichnung von Fortschritten) zu nutzen und sie dazu zu motivieren."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "3.4-III", "text": "Ich verwende verschiedene digitale Technologien (z.B. Online-Lernumgebungen, Werkzeuge und Räume für die Zusammenarbeit) situationsgerecht, um die Lernenden bei der Planung und Steuerung ihres eigenen Lernens zu unterstützen."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "3.4-IV", "text": "Ich wende digitale Technologien in meinen Lernkonzepten systematisch auf der Grundlage ihrer Eigenschaften an, um die selbstgesteuerten Lernfähigkeiten und die Autonomie der Lernenden zu steuern und zu fördern. Diese umfassen z.B. Eigeninitiative in Bezug auf das eigene Lernen, kreatives Eingehen auf neue Lernsituationen und Selbstreflexion, um den eigenen Fortschritt zu planen."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "3.4-V", "text": "Ich gestalte digitale Technologien und passe diese an, damit sie von Lernenden zur Förderung ihres selbstgesteuerten Lernens eingesetzt werden, indem sie z.B. über ihre Lernstrategien reflektieren oder Lernergebnisse sammeln und teilen. Ich berate mit Kolleginnen und Kollegen meine Strategien und gebe dieses Wissen im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "3.4-VI", "text": "Ich entwickle innovative pädagogischer Strategien und Praktiken für das selbstgesteuerte Lernen (z.B. Makerspaces und Lernräume mit digitalen Technologien). Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."}], "pd": {"primary": "Didaktik & Unterrichtsdesign", "secondary": "Inklusion, Differenzierung & Sprachbildung"}}]}, {"id": "4", "title": "Lerndiagnose und Feedback", "short": "Lerndiagnose und Feedback", "description": "Mit digitalen Mitteln Lernstände erheben, auswerten und Rückmeldungen geben.", "subareas": [{"id": "4.1", "title": "Lernstandserhebung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "4.1-I", "text": "Ich bin mir bewusst, dass es digitale Medien und Werkzeuge für die Lernstandserhebung gibt, nutze sie jedoch selten oder nie (z.B. digitale Quizze, Online-Umfragen)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "4.1-II", "text": "Ich setze digitale Medien für überwiegend traditionelle Formen der Lernstandserhebung ein (z.B. Textverarbeitungswerkzeuge, Tools zur Erzeugung von Online-Abfragen wie mobile Apps oder Spiele)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "4.1-III", "text": "Ich verwende verschiedene digitale Technologien zur Bewertung und passe diese bei Bedarf an (z. B. Erstellen eines digitalen Tests, Nutzung von Bewertungsplattformen, die den Schülern zeitnahes Feedback geben)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "4.1-IV", "text": "Ich wähle digitale Technologien aus, um bestimmte Aspekte der Bewertung systematisch zu unterstützen und die Art des zu evaluierenden Lernergebnisses bestmöglich zu erfassen (z. B. Rubriken zur Selbstreflexion, Aufgaben, die den Lernenden zeitnahes Feedback bieten, gemeinsam genutzte Dokumente, die Peer-Reviews/Feedback unterstützen)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "4.1-V", "text": "Ich wähle aus einer Vielzahl digitaler Bewertungstools und -formaten zur Lernstandserhebung kritisch aus, passe diese an und multipliziere sie im Kreis der Kolleginnen und Kollegen (z.B. e-Portfolios, Formate der Selbst- und Peerbewertung)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "4.1-VI", "text": "Ich entwickle neue digitale Bewertungsformate, die es auch ermöglichen, innovative pädagogische Ansätze und überfachliche Fertigkeiten bewerten zu können (z. B. Selbst- und Peer-Bewertung, digitale Test- und Diagnosesysteme, formative Assessments, e-Portfolios). Diese gebe ich in meinem Kollegium und in Fortbildungen weiter."}], "pd": {"primary": "Leistung, Feedback & Lernstand", "secondary": "Digitale Tools & Anwendungen"}}, {"id": "4.2", "title": "Analyse der Lernevidenz", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "4.2-I", "text": "Ich bin mir bewusst, dass die Effektivität von Lernprozessen auch mittels digitaler Medien analysiert werden kann, mache davon aber kaum oder gar keinen Gebrauch."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "4.2-II", "text": "Ich versuche, digitale Tools während des Unterrichts zu nutzen, um zeitnahes Feedback zur grundlegenden Beteiligung und Effektivität des Lernprozesses zu erhalten (z. B. digitale Quizze oder Abfragen, Online-Rückmeldung zum Bearbeitungsstand von Aufgaben)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "4.2-III", "text": "Ich nutze regelmässig digitale Tools und die Nutzungsdaten der Lernenden, um die Beteiligung und Effektivität der Lernprozesse zu beurteilen und zeitnah Feedback zum Lernverhalten geben zu können (z. B. Online-Umfragen, Formulare, Umfragen, Tabellenkalkulationen)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "4.2-IV", "text": "Ich setze digitale Tools systematisch zur Datenerzeugung, -visualisierung und Analyse des Lernverhaltens der Lernenden ein, um zeitnah individuelles Feedback zur Lernentwicklung geben zu können (z. B. Tests, Beurteilungssysteme, Learning Analytics)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "4.2-V", "text": "Ich analysiere und bewerte regelmässig verschiedene Möglichkeiten der Nutzung digitaler Daten zur Optimierung des Lernprozesses und zur Anpassung eigener Lehrstrategien. Meine Kolleginnen und Kollegen unterstütze ich bei der Erhebung und Analyse digital erfasster Daten zum Lernprozess."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "4.2-VI", "text": "Ich initiiere und fördere in meiner Schule und ihrem Umfeld Strategien und Praktiken, die helfen, mittels Datengenerierung Lernprozesse zu beobachten. Mein diesbezügliches Wissen gebe ich in Kollegium und auf Fortbildungen weiter."}], "pd": {"primary": "Leistung, Feedback & Lernstand", "secondary": "Künstliche Intelligenz"}}, {"id": "4.3", "title": "Feedback und Planung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "4.3-I", "text": "Ich bin mir bewusst, dass digitale Technologien genutzt werden können, um Lernenden Feedback zu geben, mache davon aber noch keinen oder kaum Gebrauch (z. B. Online-Übungen, Online-Abfragen, automatisiertes Feedback)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "4.3-II", "text": "Ich versuche digitale Tools zu nutzen, die individuelles Feedback unterstützen (z. B. Forum mit Peer-Feedback, Sternebewertung, digitale Anmerkungen zu Aufgaben)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "4.3-III", "text": "Ich nutze verschiedene digitale Technologien, um den Lernenden inhaltliches (auch automatisiertes) Feedback zu geben (z. B. Online-Tests mit automatischer Auswertung, Online-Umfragen mit visueller Darstellung der Ergebnisse)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "4.3-IV", "text": "Ich setze digitale Medien systematisch zur Verbesserung der Wirksamkeit von Feedback und individueller Lernunterstützung ein."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "4.3-V", "text": "Ich analysiere und bewerte regelmässig verschiedene Methoden zu digital gestütztem Feedback und optimiere dahingehend die Wahl digitaler Werkzeuge und eigener Lehrstrategien. Meine Kolleginnen und Kollegen unterstütze ich dabei."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "4.3-VI", "text": "Ich initiiere und fördere eine Strategie, die das Geben, Empfangen und Analysieren von Feedback erleichtert, um die Planung weiterer Massnahmen zu unterstützen (z. B. e-Portfolios, kontextabhängiges Feedback, digitales Storytelling). Mein zugehöriges Wissen gebe ich in Kollegium und Fortbildung weiter."}], "pd": {"primary": "Leistung, Feedback & Lernstand", "secondary": "Didaktik & Unterrichtsdesign"}}]}, {"id": "5", "title": "Schülerorientierung", "short": "Schülerorientierung", "description": "Mit digitalen Medien Teilhabe ermöglichen, differenzieren und Lernende aktivieren.", "subareas": [{"id": "5.1", "title": "Barrierefreiheit und digitale Teilhabe", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "5.1-I", "text": "Ich kenne die potenziellen Einschränkungen und Barrieren Lernender in Bezug auf digitale Technologien (z. B. begrenzter Zugang zu digitalen Geräten und/oder zum Internet, Lernschwierigkeiten), sehe aber noch keine oder nur geringe Ansätze zur besseren digitalen Teilhabe."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "5.1-II", "text": "Ich versuche digitale Technologien so einzusetzen, dass ein gleichberechtigter Bildungszugang möglich ist. Dabei berücksichtige ich elementar den Kontext und die Bedürfnisse der Lernenden (z. B. Bereitstellung von Geräten, Zugang zur Infrastruktur, familiärer Kontext, besondere Lernbedürfnisse)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "5.1-III", "text": "Ich nutze verschiedene digitale Technologien für eine gleichberechtigte und integrative Bildung und stelle sicher, dass alle Lernenden Zugang zu den von mir bereitgestellten digitalen Lernangeboten haben (z. B. Zugang zur Infrastruktur, adaptive und unterstützende Technologien wie Bildschirmlesegeräte, alternative Tastaturen, barrierefreie Tools, Verwendung von leichter Sprache)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "5.1-IV", "text": "Ich wähle digitale Technologien zielgerichtet aus und setze diese ein, um integrative Lernaktivitäten zu entwickeln. Ich erarbeite Konzepte und gestalte Ressourcen entsprechend den Bedürfnissen der Lernenden (z. B. Integration verschiedener Tools, Verwendung von speziellem Layout, Struktur und Sprache)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "5.1-V", "text": "Ich reflektiere das digitale Lehren und Lernen unter dem Blickwinkel barrierefreier und integrativer Ansätze und tausche mich mit Kolleginnen und Kollegen darüber aus, um den Bedürfnissen und Fähigkeiten aller Lernenden gerecht zu werden (z. B. multimodale Präsentation von Informationen, Anpassung von Merkmalen zur Förderung der Barrierefreiheit wie Schriftgrösse und Layout, Entwicklung der digitalen Fähigkeiten der Schüler)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "5.1-VI", "text": "Ich entwickle und multipliziere Konzepte und fördere Strategien für den gleichberechtigten Zugang zu Bildung durch den Einsatz digitaler Technologien (z. B. Medienbildung für Lernende und deren Eltern, Konzepte für Barrierefreiheit)."}], "pd": {"primary": "Inklusion, Differenzierung & Sprachbildung", "secondary": "Digitale Tools & Anwendungen"}}, {"id": "5.2", "title": "Differenzierung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "5.2-I", "text": "Ich kenne digitale Technologien zur Differenzierung und Individualisierung des Lernens (z. B. Anpassung des Unterrichts an die Bedürfnisse verschiedener Gruppen von Lernenden, individuelle Unterstützung von Lernenden), nutze diese aber nur sehr selten."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "5.2-II", "text": "Ich versuche digitale Technologien für die Differenzierung und Individualisierung meines Unterricht zu integrieren (z. B. Quizze und Lernspiele, Online-Lernumgebungen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "5.2-III", "text": "Ich nutze verschiedene digitale Technologien beim Lehren und Lernen, um auf individuelle Lernbedürfnisse einzugehen (z. B. Quizze mit mit verschiedenen Schwierigkeitsgraden, differenzierte Online-Übungsaktivitäten, differenzierte Lernangebote in mebis, automatisiertes individuelles Feedback)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "5.2-IV", "text": "Ich verwende gezielt digitale Technologien, um individualisierte Lernumgebungen für die spezifischen Bedürfnisse der Lernenden zu entwickeln (z. B. Beachtung des Niveaus, der Lerngeschwindigkeit und der Präferenzen Lernender durch selbst entwickelte und auf die jeweiligen Lernziele abgestimmte Quizze oder Lernspiele, Erstellung von differenziertem Material für Online-Lernumgebungen, wie z.B. mebis)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "5.2-V", "text": "Ich gestalte meinen Unterricht so, dass die Lernenden in die Realisierung ihrer eigenen Lernwege einbezogen werden und ihren individuellen Lernbedürfnissen mithilfe von passenden digitalen Ressourcen folgen (z. B. personalisierte Lernpläne, Online-Tools, um Lernziele festzusetzen und den eigenen Fortschritt zu kontrollieren). Ich reflektiere ausserdem kritisch wie effektiv die eingesetzten Lehrstrategien die Differenzierung und Individualisierung fördern und passe meine Methoden entsprechend an."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "5.2-VI", "text": "Ich entwickle und multipliziere Konzepte für digital gestützte Differenzierung und Individualisierung (z. B. Austausch bewährter inklusiver Lernmethoden, Online-Plattform mit Ressourcen)."}], "pd": {"primary": "Inklusion, Differenzierung & Sprachbildung", "secondary": "Didaktik & Unterrichtsdesign"}}, {"id": "5.3", "title": "Schüleraktivierung", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "5.3-I", "text": "Ich nutze nur selten digitale Technologien, für motivierende und schüleraktivierende Lernformen. (z. B. Lernspiele, interaktive Aktivitäten)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "5.3-II", "text": "Ich suche nach Wegen, um mithilfe digitaler Technologien Lerninhalte motivierend und schülergerecht zu vermitteln (z. B. Lernspiele, interaktive Aktivitäten, Simulationen, OER-Ressourcen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "5.3-III", "text": "Ich nutze sach- und situationsgerecht digitale Technologien zur Förderung des aktiven Engagements der Lernenden (z.B. Lernspiele, Edu-Breakout, Erstellung von Erklärvideos durch die Lernenden, Peer-Reviews, AR-Technologie u.a.)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "5.3-IV", "text": "Ich gestalte meinen Unterricht zielgerichtet mit einer Vielzahl digitaler Technologien, um das aktive Engagement der Lernenden beim individuellen und gemeinschaftlichen Lernen und deren Eigenaktivität zu fördern (z. B. verschiedene sensorische Kanäle, Variation der Aktivitätstypen, kollaboratives Schreiben, Spiele und Simulationen, AR/VR )."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "5.3-V", "text": "Ich gestalte und entwickle didaktische Konzepte, um die aktive Beschäftigung der Lernenden mit dem Lerngegenstand optimal zu fördern und evaluiere, inwiefern sich verschiedene Methoden dazu eignen, die Eigenaktivität der Lernenden zu erhöhen. (z. B. strukturiertes teambasiertes Lernen, Online-Diskussionen, Peer-Coaching und -Unterricht, e-Portfolios)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "5.3-VI", "text": "Ich initiiere, fördere und multipliziere innovative Konzepte zur Förderung des digital gestützten eigenaktiven Lernens (z. B. Makerspace, Robotik, Programmierung, KI-Anwendungen, eigene Erstellung von komplexen Lernspielen)."}], "pd": {"primary": "Didaktik & Unterrichtsdesign", "secondary": "Digitale Tools & Anwendungen"}}]}, {"id": "6", "title": "Medienkompetenz der Lernenden", "short": "Medienkompetenz der Lernenden", "description": "Lernende befähigen, digitale Medien kompetent, kreativ und reflektiert zu nutzen.", "subareas": [{"id": "6.1", "title": "Basiskompetenzen", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.1-I", "text": "Ich bin mir bewusst, dass die Lernenden digitale Medien und Werkzeuge sachorientiert nutzen können, um Aufgaben zu verstehen und dabei auftretende Probleme zu lösen, nutze diese Möglichkeit in meinem Unterricht nicht oder nur selten (z. B. Nutzung einer Suchmaschine, von Hilfefunktionen)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.1-II", "text": "Ich habe Lernaktivitäten ausprobiert, die die Lernenden ermutigen, digitale Medien und Werkzeuge sachgerecht zu nutzen, Aufgaben zu verstehen und dabei auftretende Probleme zu lösen (z. B. einfache technische Lösungsstrategien wie Computer neu starten, Internetverbindung prüfen, Datensicherungen durchführen)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.1-III", "text": "Ich nutze sach- und situationsgerecht Lernaktivitäten, bei denen die Lernenden digitale Medien und Werkzeuge überlegt und systematisch für komplexere Aufgabenfelder nutzen (z. B. Informationen mit digitalen Werkzeugen finden und ordnen, analysieren, Schlussfolgerung ziehen und Ergebnisse fixieren; Erstellung und Konzeption einer Präsentation zu einem umfangreicheren Themenbereich)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.1-IV", "text": "Ich wähle und verwende Lernkonzepte, in denen z.B. im Rahmen von Projektarbeiten Lernende aus einem breiten Medienangebot gezielt das Passende auswählen und dabei nach verschiedenen innovativen und kreativen Lösungen suchen, die in neuen Situationen und Kontexten angewandt werden können (z.B. Projektarbeit im Geografieunterricht unter Verwendung von geografischen Informationssystemen (GIS); Nutzung von virtuellen Umgebungen im Geschichts- oder Biologieunterricht, Modellierungen)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.1-V", "text": "Ich reflektiere kritisch inwiefern sich Strategien und Methoden zur Nutzung von Medienangeboten bei schulischen Lernaktivitäten und Aufgaben didaktisch und pädagogisch eignen, berücksichtige dabei insbesondere auch die Möglichkeiten und Grenzen der digitalen Werkzeuge vor Ort, und gebe mein Wissen im Kollegenkreis weiter (z.B. Mitarbeit im Medienkonzeptteam, Referententätigkeit im SCHILF-Bereich, Multiplikation von Strategien zur Nutzung schulischer IT-Systeme wie mebis)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.1-VI", "text": "Ich trage zur Entwicklung und Multiplikation innovativer und kreativer Lernszenarien für die Nutzung von Medienangeboten bei schulischen Lernaktivitäten und Aufgaben bei. Dabei analysiere und modelliere ich den Einsatz von digitalen Werkzeugen und bereite sie didaktisch auf (z.B. Entwicklung von Lernsoftware oder Schulbüchern mit digitalen Zusatzangeboten, Entwicklung von Unterrichtskonzepten mit digitalen Medien, Verfassen von Handreichungen für den Unterricht, umfassende regionale bzw. zentrale Referententätigkeit)."}], "pd": {"primary": "Medienkompetenz & Medienkritik", "secondary": "Digitale Tools & Anwendungen"}}, {"id": "6.2", "title": "Suchen und Verarbeiten", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.2-I", "text": "Ich kenne Lernaktivitäten mit digitalen Medien, die die Such- und Verarbeitungsstrategien der Lernenden verbessern können, nutze sie jedoch im Unterricht nicht oder nur selten (z.B. Suche nach digitalen Informationen mit einer Suchmaschine, Bewertung der gefundenen Informationen, Lesen von Diagrammen, Lesen und Verstehen von Daten, Erstellung einfacher digitaler Inhalte wie Texte, Tabellen oder Bilder)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.2-II", "text": "Ich habe Lernaktivitäten ausprobiert, die die Lernenden dazu anregen, digitale Medien zur Informationsgewinnung und -verarbeitung einzusetzen. Dabei bringe ich Lernenden bei, Quellen korrekt anzugeben und zu zitieren (z.B. bei Online-Recherchen, Festlegung von Suchkriterien, Vergleich verschiedener Quellen, Interpretation von Daten, Erstellung digitaler Inhalte)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.2-III", "text": "Ich nutze sach- und situationsgerecht Lernaktivitäten und Aufgaben, die von den Lernenden verlangen, Informationen und Daten aus verschiedenen Quellen zu suchen, zu vergleichen, kritisch auf ihre Verlässlichkeit zu bewerten und sie in komplexeren digitalen Inhalten zu kombinieren. (z. B. Nutzung von unterschiedlichen und altersgerechten Suchmaschinen; Verwendung von Suchfiltern; Festlegung von Auswahlkriterien, Erkennen von Ungenauigkeiten, fehlenden Informationen oder Voreingenommenheit, Gegenprüfung verschiedener Quellen zur Beurteilung der Glaubwürdigkeit, Umgang mit Fehlinformationen, Rassismus und Fremdenfeindlichkeit)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.2-IV", "text": "Ich gestalte den Unterricht sach- und situationsgerecht mit einer Vielzahl an verschiedenen Lernaktivitäten und Aufgaben so, dass die Lernenden Informationen und Daten kritisch suchen, bewerten, kombinieren und aufbereiten können. (z. B. systematische Nutzung unterschiedlicher Suchmaschinen und Kombination von Suchfiltern; Analyse der Wahl des Informationsmediums, der Quelle, des Zwecks, der Transparenz der Algorithmen, die verwendet werden, um zu entscheiden, welche Art von Informationen und Daten angezeigt werden)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.2-V", "text": "Ich reflektiere kritisch, inwiefern sich verschiedene Methoden dazu eignen, Such- und Verarbeitungsstrategien beim Einsatz digitaler Medien und Werkzeuge zu fördern, entwickle Unterrichtskonzepte entsprechend weiter und multipliziere mein Wissen im Kollegenkreis (z. B. Entwicklung von Unterrichtskonzepten für Such- und Verarbeitungsstrategien mit digitalen Medien, Verfassen von Handreichungen für den Unterricht, Referententätigkeit auf SCHILF-Ebene)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.2-VI", "text": "Ich trage zur Entwicklung und Multiplikation von innovativen Lernszenarien bei. Diese fördern Kompetenzen zur Informationsgewinnung und -verarbeitung - auch unter Berücksichtigung neuer medialer Entwicklungen (z.B. Entwicklung bestimmter Kriterien zur kritischen Bewertung von Suchergebnissen kommerzieller Suchmaschinen; Nutzung von (neuen) Spezial-Suchmaschinen)."}], "pd": {"primary": "Medienkompetenz & Medienkritik", "secondary": "Künstliche Intelligenz"}}, {"id": "6.3", "title": "Kommunizieren und Kooperieren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.3-I", "text": "Ich kenne Lernaktivitäten, die die digital gestützte Kommunikation und Zusammenarbeit der Lernenden fördern könnten, nutze sie jedoch nicht oder nur selten (z. B. Nutzung von E-Mails, Instant Messaging, sozialen Netzwerken usw. zur Kommunikation mit Lehrkräften und Mitschülerinnen und Mitschülern)."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.3-II", "text": "Ich habe Lernaktivitäten ausprobiert, die Lernende dazu ermutigen, mithilfe digitaler Medien und Werkzeuge mit anderen Lernenden, ihren Lehrkräften und mit Dritten zu kommunizieren und zu kooperieren (z. B. durch Online-Meetings, Diskussionsforen, Klassen-Chat)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.3-III", "text": "Ich setze sach- und situationsgerecht Lernaktivitäten ein, bei denen Lernende digitale Medien und Werkzeuge effektiv und verantwortungsbewusst für die Kommunikation nutzen. Ich entwickle mit den Lernenden Kommunikations- und Verhaltensregeln für den digitalen Raum. Ich unterstütze sie dabei, Kommunikationsstrategien und -kanäle angemessen auszuwählen und sich der kulturellen und sozialen Vielfalt in digitalen Umgebungen bewusst zu sein (z. B. Verwendung eines geeigneten Mediums für die digitale Kommunikation der Lernenden, Etablierung einer „Netiquette“)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.3-IV", "text": "Ich gestalte eine Vielzahl an verschiedenen Lernaktivitäten und Aufgaben, bei denen die Lernenden digitale Medien und Werkzeuge für die Kommunikation und Kooperation nutzen. Dabei unterstütze und motiviere ich sie, digitale Medien und Werkzeuge zum Peer-Feedback sowie zur Teilnahme an öffentlichen Diskursen zu nutzen und diese aktiv und bewusst für die gesellschaftliche Teilhabe zu verwenden. Ich prüfe und reflektiere vereinbarte Kommunikations- und Verhaltensregeln gemeinsam mit den Lernenden (z. B. Verwendung von digitalen Kollaborations-Tools, Nutzung einer gemeinsamen Lernumgebung, Bearbeitung gemeinsamer Online-Dokumente, Respektieren der Ideen und der Vielfalt anderer, während man zur Teamarbeit beiträgt, Austausch von Nachrichten über multikulturelle Netzwerke, Schaffung positiver Verbindungen und Aufbau von Kontakten, Teilnahme an der öffentlichen Diskussion in Foren)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.3-V", "text": "Ich reflektiere kritisch, inwiefern sich verschiedene Methoden dazu eignen, Kompetenzen der Lernenden zur effektiven und verantwortungsbewussten digital gestützten Kommunikation und Zusammenarbeit sowie zur Partizipation in einer digitalisierten Welt zu fördern, entwickle Unterrichtskonzepte entsprechend weiter und multipliziere mein Wissen im Kollegenkreis (z. B. Nutzung erweiterter Funktionen von Kollaborations-Tools, Diskussion mit den Lernenden über die Bedürfnisse der Kommunikation und Kooperation, Referententätigkeit auf SCHILF-Ebene)."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.3-VI", "text": "Ich entwickle innovative Lernszenarien zur Förderung von Kompetenzen zur Kommunikation und Zusammenarbeit der Lernenden sowie zur Partizipation in einer digitalisierten Welt – auch unter Einbezug neuer kommunikationstechnischer Entwicklungen (z. B. Entwicklung neuer digitaler Kollaborationsformen im unterrichtlichen Kontext)."}], "pd": {"primary": "Medienkompetenz & Medienkritik", "secondary": "Schülerinnenwelten & Gesellschaft"}}, {"id": "6.4", "title": "Produzieren und Präsentieren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.4-I", "text": "Ich kenne Lernaktivitäten, die Lernende dazu ermutigen, sich mit digitalen Mitteln auszudrücken (z. B. in Form von Texten, Fotos, Bildern, Präsentationen), setze diese jedoch kaum ein."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.4-II", "text": "Ich habe Lernaktivitäten ausprobiert, die die Lernenden dazu ermutigen, digitale Inhalte zu erstellen und zu bearbeiten (z. B. Texte, Präsentationen, Audio- und Video-Inhalte)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.4-III", "text": "Ich setze verschiedene Lernaktivitäten sach- und situationsgerecht um, die von meinen Lernenden verlangen, ihre Ideen kreativ zum Ausdruck zu bringen und zu vermitteln, indem sie geeignete digitale Tools verwenden (z. B. Visualisierungen, Simulationen, digitale Stories, Werkzeuge zum Videoschnitt)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.4-IV", "text": "Ich identifiziere aus einer Vielzahl verschiedener Lernaktivitäten gezielt geeignete aus und verwende sie, um Lernende zu unterstützen, ihre Meinung und Arbeitsergebnisse zu präsentieren und zu dokumentieren (z.B. in Wikis, Blogs oder E-Portfolios) und dabei Urheberrechtsvorschriften einzuhalten und Lizenzen zu wahren."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.4-V", "text": "Ich reflektiere und bewerte kritisch Lernaktivitäten zur Förderung der digitalen Fertigkeiten bei der (Neu-)Erstellung von Inhalten durch die Lernenden und zur Förderung der kollaborativen Nutzung (z. B. digitale Stories, e-Portfolios). Ausserdem berate ich mein Kollegium diesbezüglich."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.4-VI", "text": "Ich entwickle innovative Lernszenarien zur Förderung digital gestützter kreativer Produkte, Präsentationen und Publikationen der Lernenden (z. B. Veröffentlichung komplexer Medienprodukte, gemeinsame Erstellung von mobilen Apps, Unterhaltung von Makerspaces, Förderung von Audio- und Videoübertragungen) und multipliziere diese Kompetenzen in regionalen oder überregionalen Fortbildungen."}], "pd": {"primary": "Digitale Tools & Anwendungen", "secondary": "Medienkompetenz & Medienkritik"}}, {"id": "6.5", "title": "Analysieren und Reflektieren", "ki": false, "levels": [{"level": 1, "roman": "I", "label": "Einsteigen", "itemId": "6.5-I", "text": "Ich kenne in geringem Umfang Lernaktivitäten, die die Lernenden befähigen, die rechtlichen und ethischen Auswirkungen der Nutzung digitaler Technologien zu verstehen (z. B. Weitergabe von personenbezogenen Daten und sensiblen Informationen anderer, Umgang mit privaten Einstellungen in Online-Apps), aber berücksichtige sie in meinem Unterricht kaum."}, {"level": 2, "roman": "II", "label": "Entdecken", "itemId": "6.5-II", "text": "Ich versuche zielgerichtet Lernende dahingehend zu sensibilisieren, welche rechtlichen und ethischen Auswirkungen die Nutzung digitaler Technologien haben kann (z. B. Freigabe von urheberrechtlich geschützten digitalen Inhalten, Akzeptieren von Genehmigungen bei der Installation von Apps) und für eine interessengeleitete Setzung medialer Inhalte zu sensibilisieren (z.B. Erkennen von Fake News)."}, {"level": 3, "roman": "III", "label": "Anwenden", "itemId": "6.5-III", "text": "Ich verwende sach- und situationsgerecht verschiedene digitale Lernaktivitäten, die von den Lernenden sowohl bei der Nutzung als auch bei der Erstellung von digitalen Inhalten eine verantwortungsvolle, ethisch reflektierte und sozialverantwortliche Vorgehensweise verlangen (z. B. kritische Bewertung von Online-Informationen, Reaktion auf Falschinformationen, positives Online-Verhalten, Einhaltung von Datenschutz- und Urheberrechtsbestimmungen)."}, {"level": 4, "roman": "IV", "label": "Integrieren", "itemId": "6.5-IV", "text": "Ich gestalte durch systematische Auswahl verschiedener Aktivitäten Lernumgebungen, um Lernende bei der vertiefenden Analyse und Beurteilung von Inhalten und Einflüssen digitaler Technologien zu fördern und sie zu einem verantwortungsbewussten Umgang mit digitalen Medien zu befähigen (z. B. Verfolgung ihres digitalen Fussabdrucks, Verwaltung ihrer digitalen Identität, Kenntnis der Nutzungsbedingungen verschiedener Medien und Anwendungen, Verwaltung von Anwendungseinstellungen)."}, {"level": 5, "roman": "V", "label": "Entwickeln", "itemId": "6.5-V", "text": "Ich reflektiere kritisch, inwiefern sich verschiedene Methoden dazu eignen, Medienangebote und digitale Werkzeuge im Unterricht umfassend zu analysieren und gestalte sie ggf. entsprechend um. Mein Wissen gebe ich im Kollegenkreis weiter."}, {"level": 6, "roman": "VI", "label": "Weitergeben", "itemId": "6.5-VI", "text": "Ich entwickle und multipliziere innovative Konzepte und Lernszenarien zur kritischen Auseinandersetzung mit Inhalten, Gestaltungsmitteln, Wirkungsweisen und Einflüssen digitaler Technologien sowie Chancen und Risiken in den Medien."}], "pd": {"primary": "Medienkompetenz & Medienkritik", "secondary": "Schülerinnenwelten & Gesellschaft"}}]}], "pd": {"provider": "fobizz", "lead": "Schulentwicklung & Leadership", "themes": ["Didaktik & Unterrichtsdesign", "Team- und Beziehungsarbeit", "Leistung, Feedback & Lernstand", "Gesundheit & Professionalisierung", "Digitale Tools & Anwendungen", "Medienkompetenz & Medienkritik", "Schulentwicklung & Leadership", "Inklusion, Differenzierung & Sprachbildung", "Künstliche Intelligenz", "Schülerinnenwelten & Gesellschaft", "Programmieren & Informatik"]}};
+</script>
+<script>
+window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
+  esc: (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+  fmt: (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 })) };
+</script>
+<script>
+// Diagramme der Schulauswertung (SVG, ohne Bibliothek). Alle Funktionen liefern SVG-Text.
+// Skala der Kompetenzstufen: I = 1 bis VI = 6. «Keine Gelegenheit» wird separat ausgewiesen.
+(function () {
+  'use strict';
+  const { ITEMS, LV, esc, fmt } = UI;
+  const W = 760, LABEL_W = 300, X0 = 312, X1 = 700;
+  const FONT = 'font-family="Helvetica, Arial, sans-serif"';
+  const COL = { cur: '#E2001A', cmp: '#6E6E6E', grid: '#D2D2D2', band: '#F4F4F4', head: '#EBEBEB', ink: '#000', ink2: '#464646' };
+  const LVCOL = ['#B4B4B4', '#FAD7C8', '#F5AF96', '#EB694B', '#E2001A', '#AF1400', '#780A00'];
+  const NEEDCOL = ['#F5AF96', '#E2001A', '#780A00'];
+  const pct = (x) => Math.round(x * 100) + ' %';
+
+  function wrap(text, max = 34) {
+    const lines = [];
+    String(text).split(' ').forEach((w) => {
+      if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= max) lines[lines.length - 1] += ' ' + w;
+      else lines.push(w);
+    });
+    if (lines.length > 2) lines.splice(1, lines.length, lines.slice(1).join(' ').slice(0, max - 1) + '…');
+    return lines;
+  }
+
+  /* Zeilen: Bereiche oder Teilbereiche (mit Zwischentitel pro Bereich) */
+  function rowsFor(level) {
+    const rows = [];
+    if (level === 'areas') ITEMS.areas.forEach((a, i) => rows.push({ type: 'item', kind: 'area', idx: i, id: a.id, label: a.title }));
+    else ITEMS.areas.forEach((a) => {
+      rows.push({ type: 'head', id: a.id, label: a.id + ' ' + a.title });
+      a.subareas.forEach((s) => rows.push({ type: 'item', kind: 'sub', id: s.id, label: s.title }));
+    });
+    return rows;
+  }
+
+  function layout(rows, top) {
+    let y = top;
+    rows.forEach((r) => {
+      r.lines = r.type === 'head' ? [r.label] : wrap(r.label);
+      r.h = r.type === 'head' ? 26 : r.lines.length > 1 ? 40 : 30;
+      r.y = y; r.cy = y + r.h / 2;
+      y += r.h;
+    });
+    return y;
+  }
+
+  function rowBackground(rows) {
+    let g = '', k = 0;
+    rows.forEach((r) => {
+      if (r.type === 'head') { g += `<rect x="0" y="${r.y}" width="${W}" height="${r.h}" fill="${COL.head}"/><text x="8" y="${r.cy + 4.5}" font-size="13" font-weight="700">${esc(r.label)}</text>`; k = 0; return; }
+      if (k++ % 2 === 0) g += `<rect x="0" y="${r.y}" width="${W}" height="${r.h}" fill="${COL.band}"/>`;
+      const idTxt = `<tspan font-weight="700">${esc(r.id)}</tspan> `;
+      g += `<text x="8" y="${r.cy + 4.5 - (r.lines.length - 1) * 7.5}" font-size="13" fill="${COL.ink}">` +
+        r.lines.map((l, i) => `<tspan x="${i ? 8 + (r.id.length + 1) * 7.4 : 8}" dy="${i ? 15 : 0}">${i ? '' : idTxt}${esc(l)}</tspan>`).join('') + '</text>';
+    });
+    return g;
+  }
+
+  function levelAxis(xf, top, bottom, from = 1) {
+    let g = '';
+    for (let v = from; v <= 6; v++) {
+      const x = xf(v).toFixed(1);
+      g += `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="${COL.grid}" stroke-width="1"/>`;
+      if (v >= 1) g += `<text x="${x}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}"><tspan font-weight="700">${LV[v - 1].roman}</tspan></text>`;
+    }
+    return g;
+  }
+  const svg = (h, body, label) => `<svg viewBox="0 0 ${W} ${Math.ceil(h)}" role="img" aria-label="${esc(label)}" ${FONT} font-size="13">${body}</svg>`;
+
+  /* Werte einer Zeile aus der Aggregation holen */
+  const rowMean = (agg, r) => (r.kind === 'area' ? agg.areas[r.idx].mean : agg.bySub[r.id].mean);
+  const rowBox = (agg, r) => (r.kind === 'area' ? agg.areas[r.idx].box : agg.bySub[r.id].box);
+
+  /* A1: Balken – Mittelwerte, optional mit Vergleich */
+  function bars(agg, level, cagg, names = {}) {
+    const rows = rowsFor(level);
+    const top = 34, bottom = layout(rows, top);
+    const xf = (v) => X0 + (v / 6) * (X1 - X0);
+    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
+    g += `<line x1="${X0}" y1="${top}" x2="${X0}" y2="${bottom}" stroke="${COL.ink2}" stroke-width="1"/>`;
+    rows.filter((r) => r.type === 'item').forEach((r) => {
+      const v = rowMean(agg, r), c = cagg ? rowMean(cagg, r) : null;
+      const bh = cagg ? 9 : 14, y1 = cagg ? r.cy - bh - 1 : r.cy - bh / 2;
+      if (v !== null) g += `<rect x="${X0}" y="${y1.toFixed(1)}" width="${(xf(v) - X0).toFixed(1)}" height="${bh}" fill="${COL.cur}"><title>${esc(names.cur || 'Aktuell')}: ${fmt(v)}</title></rect>
+        <text x="${(xf(v) + 6).toFixed(1)}" y="${(y1 + bh / 2 + 4.5).toFixed(1)}" font-size="12" font-weight="700">${fmt(v)}</text>`;
+      if (cagg && c !== null) g += `<rect x="${X0}" y="${(r.cy + 1).toFixed(1)}" width="${(xf(c) - X0).toFixed(1)}" height="${bh}" fill="${COL.cmp}"><title>${esc(names.cmp || 'Vergleich')}: ${fmt(c)}</title></rect>
+        <text x="${(xf(c) + 6).toFixed(1)}" y="${(r.cy + 1 + bh / 2 + 4.5).toFixed(1)}" font-size="12" fill="${COL.ink2}">${fmt(c)}</text>`;
+      if (v === null && c === null) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
+    });
+    return svg(bottom + 4, g, 'Balkendiagramm: Mittelwerte pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich'));
+  }
+
+  /* A2: Verteilung – 100-%-Balken der Stufen I–VI (ohne «keine Gelegenheit») */
+  function dist(agg, level) {
+    const rows = rowsFor(level);
+    const top = 34, bottom = layout(rows, top);
+    const x1 = X1 - 8, xf = (s) => X0 + s * (x1 - X0);
+    let g = rowBackground(rows);
+    [0, 0.25, 0.5, 0.75, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text><line x1="${xf(s).toFixed(1)}" y1="${top - 3}" x2="${xf(s).toFixed(1)}" y2="${top}" stroke="${COL.ink2}"/>`; });
+    rows.filter((r) => r.type === 'item').forEach((r) => {
+      const subs = r.kind === 'area' ? ITEMS.areas[r.idx].subareas.map((s) => agg.bySub[s.id]) : [agg.bySub[r.id]];
+      const counts = [0, 1, 2, 3, 4, 5, 6].map((k) => subs.reduce((a, d) => a + d.counts[k], 0));
+      const rated = counts.slice(1).reduce((a, b) => a + b, 0);
+      let x = X0;
+      for (let k = 1; k <= 6; k++) {
+        if (!counts[k]) continue;
+        const w = (counts[k] / rated) * (x1 - X0);
+        g += `<rect x="${x.toFixed(1)}" y="${r.cy - 8}" width="${w.toFixed(1)}" height="16" fill="${LVCOL[k]}" stroke="#fff" stroke-width="1"><title>Stufe ${LV[k - 1].roman}: ${counts[k]} (${pct(counts[k] / rated)})</title></rect>`;
+        if (w > 26) g += `<text x="${(x + w / 2).toFixed(1)}" y="${r.cy + 4}" font-size="11" text-anchor="middle" fill="${k >= 4 ? '#fff' : '#000'}">${pct(counts[k] / rated).replace(' ', '')}</text>`;
+        x += w;
+      }
+      if (!rated) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
+      if (counts[0]) g += `<text x="${W - 4}" y="${r.cy + 4.5}" font-size="11" text-anchor="end" fill="${COL.ink2}">+${counts[0]}&#160;k.&#160;G.</text>`;
+    });
+    const note = level === 'areas' ? 'Alle Einschätzungen der Teilbereiche zusammengezählt.' : '';
+    return svg(bottom + 4, g, 'Verteilung der Stufen pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich') + '. ' + note);
+  }
+
+  /* A4: Boxplot wie im Beurteilungstool – Box = mittlere 50 %, Antennen = 10.–90. Perzentil */
+  function boxplot(agg, level) {
+    const rows = rowsFor(level);
+    const top = 34, bottom = layout(rows, top);
+    const xf = (v) => X0 + ((v - 1) / 5) * (X1 - X0);
+    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
+    rows.filter((r) => r.type === 'item').forEach((r) => {
+      const b = rowBox(agg, r);
+      if (!b) { g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`; return; }
+      const [p10, q1, md, q3, p90, m] = [b.p10, b.q1, b.median, b.q3, b.p90, b.mean].map(xf);
+      const y = r.cy, h = 16;
+      const tip = `Median ${fmt(b.median)} · Mittelwert ${fmt(b.mean)} · mittlere 50 %: ${fmt(b.q1)}–${fmt(b.q3)} · 10–90 %: ${fmt(b.p10)}–${fmt(b.p90)} · ${b.n} Einschätzungen`;
+      g += `<g><title>${esc(tip)}</title>
+        <line x1="${p10.toFixed(1)}" y1="${y}" x2="${q1.toFixed(1)}" y2="${y}" stroke="#000" stroke-width="1.2"/>
+        <line x1="${q3.toFixed(1)}" y1="${y}" x2="${p90.toFixed(1)}" y2="${y}" stroke="#000" stroke-width="1.2"/>
+        <line x1="${p10.toFixed(1)}" y1="${y - 6}" x2="${p10.toFixed(1)}" y2="${y + 6}" stroke="#000" stroke-width="1.2"/>
+        <line x1="${p90.toFixed(1)}" y1="${y - 6}" x2="${p90.toFixed(1)}" y2="${y + 6}" stroke="#000" stroke-width="1.2"/>
+        <rect x="${q1.toFixed(1)}" y="${y - h / 2}" width="${Math.max(2, q3 - q1).toFixed(1)}" height="${h}" fill="#FAD7C8" stroke="#000" stroke-width="1.2"/>
+        <line x1="${md.toFixed(1)}" y1="${y - h / 2}" x2="${md.toFixed(1)}" y2="${y + h / 2}" stroke="#000" stroke-width="2.5"/>
+        <line x1="${m.toFixed(1)}" y1="${y - h / 2 - 3}" x2="${m.toFixed(1)}" y2="${y + h / 2 + 3}" stroke="${COL.cur}" stroke-width="2" stroke-dasharray="2 2"/></g>`;
+    });
+    return svg(bottom + 4, g, 'Boxplot pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich'));
+  }
+
+  /* A3: Vergleich zweier Erhebungen – Hantel pro Teilbereich, nach Veränderung sortiert */
+  function dumbbell(agg, cagg) {
+    const items = DKCore.allSubareas(ITEMS).map((s) => ({ id: s.id, label: s.title, a: agg.bySub[s.id].mean, b: cagg.bySub[s.id].mean }))
+      .filter((r) => r.a !== null && r.b !== null).map((r) => ({ ...r, d: r.a - r.b })).sort((x, y) => y.d - x.d);
+    const rows = items.map((r) => ({ type: 'item', ...r }));
+    const top = 34, bottom = layout(rows, top);
+    const xe = X1 - 40, xf = (v) => X0 + ((v - 1) / 5) * (xe - X0);
+    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
+    g += `<text x="${W - 6}" y="${top - 8}" font-size="12" text-anchor="end" fill="${COL.ink2}">Δ</text>`;
+    rows.forEach((r) => {
+      const xa = xf(r.a), xb = xf(r.b);
+      const col = r.d > 0.05 ? '#1f6b33' : r.d < -0.05 ? '#AF1400' : COL.ink2;
+      g += `<g><title>${esc(r.id + ' ' + r.label)}: vorher ${fmt(r.b)}, jetzt ${fmt(r.a)}</title>
+        <line x1="${xb.toFixed(1)}" y1="${r.cy}" x2="${xa.toFixed(1)}" y2="${r.cy}" stroke="#B4B4B4" stroke-width="3"/>
+        <circle cx="${xb.toFixed(1)}" cy="${r.cy}" r="5" fill="#fff" stroke="${COL.cmp}" stroke-width="2"/>
+        <circle cx="${xa.toFixed(1)}" cy="${r.cy}" r="5.5" fill="${COL.cur}"/></g>
+        <text x="${W - 6}" y="${r.cy + 4.5}" font-size="12" text-anchor="end" font-weight="700" fill="${col}">${r.d > 0 ? '+' : r.d < 0 ? '−' : '±'}${fmt(Math.abs(r.d))}</text>`;
+    });
+    return svg(bottom + 4, g, 'Veränderung pro Teilbereich zwischen zwei Erhebungen');
+  }
+
+  /* B1/B2: Wer braucht was? – Einstieg / Vertiefung / Weitergeben, mit Streuung */
+  function needs(agg, order) {
+    let subs = DKCore.allSubareas(ITEMS).map((s) => ({ s, g: DKCore.needGroups(agg.bySub[s.id]) }));
+    if (order === 'entry') subs.sort((a, b) => b.g.share[0] - a.g.share[0]);
+    if (order === 'spread') { const rk = { gespalten: 0, gemischt: 1, einig: 2 }; subs.sort((a, b) => (rk[a.g.spread] ?? 3) - (rk[b.g.spread] ?? 3) || (agg.bySub[b.s.id].sd || 0) - (agg.bySub[a.s.id].sd || 0)); }
+    const rows = subs.map(({ s, g }) => ({ type: 'item', id: s.id, label: s.title, g }));
+    const top = 34, bottom = layout(rows, top);
+    const xe = X1 - 36, xf = (s) => X0 + s * (xe - X0);
+    let g = rowBackground(rows);
+    [0, 0.5, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text>`; });
+    rows.forEach((r) => {
+      let x = X0;
+      const names = ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'];
+      r.g.counts.forEach((c, k) => {
+        if (!c) return;
+        const w = r.g.share[k] * (xe - X0);
+        g += `<rect x="${x.toFixed(1)}" y="${r.cy - 8}" width="${w.toFixed(1)}" height="16" fill="${NEEDCOL[k]}" stroke="#fff"><title>${names[k]}: ${c} (${pct(r.g.share[k])})</title></rect>`;
+        if (w > 22) g += `<text x="${(x + w / 2).toFixed(1)}" y="${r.cy + 4}" font-size="11" text-anchor="middle" fill="${k ? '#fff' : '#000'}">${c}</text>`;
+        x += w;
+      });
+      if (!r.g.rated) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
+      if (r.g.spread) {
+        const sym = r.g.spread === 'gespalten' ? '◆' : r.g.spread === 'einig' ? '●' : '';
+        g += `<text x="${W - 4}" y="${r.cy + 4.5}" font-size="11" text-anchor="end" fill="${r.g.spread === 'gespalten' ? '#AF1400' : COL.ink2}" ${r.g.spread === 'gespalten' ? 'font-weight="700"' : ''}>${sym ? sym + ' ' : ''}${r.g.spread}</text>`;
+      }
+    });
+    return svg(bottom + 4, g, 'Wer braucht was: Anteile Einstieg, Vertiefung und Weitergeben pro Teilbereich');
+  }
+
+  /* B3: Voraussetzungen – Anteil «keine Gelegenheit» */
+  function noOpp(agg) {
+    const items = DKCore.allSubareas(ITEMS).map((s) => ({ id: s.id, label: s.title, d: agg.bySub[s.id] }))
+      .filter((r) => r.d.counts[0] > 0).map((r) => ({ type: 'item', ...r, share: r.d.counts[0] / r.d.answered })).sort((a, b) => b.share - a.share);
+    if (!items.length) return '';
+    const top = 34, bottom = layout(items, top);
+    const xe = X1 - 30, xf = (s) => X0 + s * (xe - X0);
+    let g = rowBackground(items);
+    [0, 0.25, 0.5, 0.75, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text><line x1="${xf(s).toFixed(1)}" y1="${top}" x2="${xf(s).toFixed(1)}" y2="${bottom}" stroke="${COL.grid}"/>`; });
+    items.forEach((r) => {
+      g += `<rect x="${X0}" y="${r.cy - 7}" width="${Math.max(2, xf(r.share) - X0).toFixed(1)}" height="14" fill="${r.share >= 0.25 ? '#6E6E6E' : '#B4B4B4'}"><title>${r.d.counts[0]} von ${r.d.answered}</title></rect>
+        <text x="${(xf(r.share) + 6).toFixed(1)}" y="${r.cy + 4.5}" font-size="12">${pct(r.share)} <tspan fill="${COL.ink2}">(${r.d.counts[0]})</tspan></text>`;
+    });
+    g += `<line x1="${xf(0.25).toFixed(1)}" y1="${top}" x2="${xf(0.25).toFixed(1)}" y2="${bottom}" stroke="#000" stroke-dasharray="4 3"/>`;
+    return svg(bottom + 4, g, 'Anteil «keine Gelegenheit» pro Teilbereich');
+  }
+
+  /* B4: Stufen nebeneinander – Mittelwert pro Bereich und Schulstufe */
+  const STUFE_COL = ['#E2001A', '#000000', '#8C8C8C', '#EB694B', '#780A00'];
+  const shape = (k, x, y, col, s = 5.5) => {
+    x = +(+x).toFixed(1); y = +(+y).toFixed(1);
+    if (k % 3 === 0) return `<circle cx="${x}" cy="${y}" r="${s}" fill="${col}"/>`;
+    if (k % 3 === 1) return `<rect x="${x - s}" y="${y - s}" width="${2 * s}" height="${2 * s}" fill="${col}"/>`;
+    return `<path d="M${x} ${y - s - 1}L${x + s + 1} ${y + s}H${x - s - 1}Z" fill="${col}"/>`;
+  };
+  function stufen(byStufe) {
+    const rows = rowsFor('areas');
+    const top = 34, bottom = layout(rows, top);
+    const xf = (v) => X0 + ((v - 1) / 5) * (X1 - X0);
+    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
+    rows.forEach((r) => {
+      byStufe.forEach((st, k) => {
+        const v = st.areas[r.idx];
+        if (v === null) return;
+        g += `<g><title>${esc(st.stufe)}: ${fmt(v)}</title>${shape(k, xf(v).toFixed(1), r.cy, STUFE_COL[k % STUFE_COL.length])}</g>`;
+      });
+    });
+    return svg(bottom + 4, g, 'Mittelwerte pro Bereich nach Schulstufe');
+  }
+  function stufenLegend(byStufe) {
+    return byStufe.map((st, k) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${shape(k, 7, 7, STUFE_COL[k % STUFE_COL.length], 5)}</svg> ${esc(st.stufe)} (${st.n})</span>`).join('');
+  }
+
+  /* Diagramm als PNG speichern */
+  function png(svgEl, fname) {
+    const vb = svgEl.viewBox.baseVal, scale = 2;
+    const clone = svgEl.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('width', vb.width); clone.setAttribute('height', vb.height);
+    if (!clone.getAttribute('font-family')) clone.setAttribute('font-family', 'Helvetica, Arial, sans-serif');
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas');
+      cv.width = vb.width * scale; cv.height = vb.height * scale;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      cv.toBlob((blob) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname + '.png'; document.body.appendChild(a); a.click(); a.remove(); });
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+  }
+
+  window.Charts = { bars, dist, boxplot, dumbbell, needs, noOpp, stufen, stufenLegend, png, LVCOL, NEEDCOL };
+})();
+
+</script>
+<script>
 // Schulversion: eigene Fragen der Schule. In der allgemeinen Datei null; beim Herunterladen einer Schulversion ersetzt.
 const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
 (function () {
@@ -1251,8 +1571,8 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     let seed = 20260928;
     const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     const base = { '1': 3.4, '2': 3.1, '3': 2.8, '4': 2.1, '5': 2.4, '6': 2.6 };
-    const stufen = ['Kindergarten', 'Primarstufe 1.–2. Klasse', 'Primarstufe 3.–6. Klasse', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
-    return Array.from({ length: 14 }, (_, k) => {
+    const stufen = ['Kindergarten', 'Primarstufe 3.–6. Klasse', 'Sekundarstufe I'];
+    return Array.from({ length: 18 }, (_, k) => {
       const skill = (rnd() - 0.5) * 2.2;
       const answers = {};
       SUBS.forEach((s) => {
@@ -1268,7 +1588,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
         else if (rnd() < 0.4) ca[q.id] = DEMO_TEXTS[k % DEMO_TEXTS.length];
         if (Array.isArray(ca[q.id]) && !ca[q.id].length) delete ca[q.id];
       });
-      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[Math.floor(rnd() * stufen.length)] }, answers,
+      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { stufe: stufen[k % 3] }, answers,
         school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : { id: 'beispiel', name: 'Beispielschule', version: 'beispiel', created: '2026-09-01' },
         custom_block: blk, custom_answers: ca };
     });
@@ -1305,6 +1625,31 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const fg = share > 0.62 ? '#fff' : '#000';
     return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
   }
+  // Darstellung der Schulauswertung (wie Serverversion)
+  const sview = { chart: 'radar', level: 'areas', order: 'order' };
+  const CHARTS = [['radar', 'Netz'], ['bars', 'Balken'], ['dist', 'Verteilung'], ['box', 'Boxplot']];
+  const seg = (name, label, opts, cur, disabled) => `<div class="seg" role="group" aria-label="${esc(label)}">${opts.map(([v, t]) =>
+    `<button type="button" data-${name}="${v}" aria-pressed="${v === cur}" ${disabled ? 'disabled' : ''}>${esc(t)}</button>`).join('')}</div>`;
+  const saveBtn = (key) => `<button class="btn quiet small no-print" type="button" data-png="${key}">Als Bild speichern</button>`;
+  const schoolLabel = () => (SCHOOL ? SCHOOL.name : school.sample ? 'Beispielschule' : '');
+  const fileBase = () => (schoolLabel() || 'Schule').replace(/[^\wäöüÄÖÜ-]+/g, '_');
+  function chartExplain(chart, level) {
+    if (chart === 'radar') return 'Mittelwert der Teilbereiche pro Bereich. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.';
+    if (chart === 'bars') return `Mittelwert pro ${level === 'areas' ? 'Bereich' : 'Teilbereich'}. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.`;
+    if (chart === 'dist') return `Anteil der Einschätzungen pro Stufe${level === 'areas' ? ' (alle Teilbereiche eines Bereichs zusammen)' : ''}. «k. G.» = Anzahl «keine Gelegenheit», nicht in den Prozenten enthalten.`;
+    return `<span class="box-legend"><span><i class="lg-box"></i>mittlere 50 %</span><span><i class="lg-med"></i>Median</span><span><i class="lg-mean"></i>Mittelwert</span><span><i class="lg-wh"></i>10–90 %</span></span>
+      Minimum und Maximum werden zum Schutz einzelner Personen nicht gezeigt.${level === 'areas' ? ' Grundlage pro Bereich: die persönlichen Mittelwerte der Lehrpersonen.' : ''}`;
+  }
+  // Stufen nebeneinander nur, wenn jede Gruppe (auch ohne Angabe) die Mindestgrösse erreicht
+  function stufenGroups(records) {
+    const groups = {};
+    records.forEach((r) => { const k = (r.context && r.context.stufe) || ''; (groups[k] = groups[k] || []).push(r); });
+    const named = Object.keys(groups).filter((k) => k).sort((a, b) => a.localeCompare(b));
+    if (named.length < 2) return null;
+    if (!Object.values(groups).every((g) => g.length >= DKCore.MIN_GROUP)) return { hidden: true };
+    return named.map((k) => ({ stufe: k, n: groups[k].length, areas: DKCore.aggregate(ITEMS, groups[k]).areas.map((a) => a.mean) }));
+  }
+
   function renderSchool() {
     const out = $('#school-out');
     if (!school.records.length && !school.sample) { school = { records: sampleRecords(), sample: true, filter: '' }; }
@@ -1313,12 +1658,14 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const agg = DKCore.aggregate(ITEMS, recs);
     const tooFew = agg.n < DKCore.MIN_GROUP;
     const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
-    const noOppTop = SUBS.filter((s) => agg.bySub[s.id].counts[0] > 0).sort((a, b) => agg.bySub[b.id].counts[0] - agg.bySub[a.id].counts[0]).slice(0, 3);
     const pd = agg.n ? DKCore.schoolThemes(ITEMS, agg, 3) : { themes: [], multipliers: [], noOpp: [] };
     const custom = customForRecords(recs);
+    const item = (s) => `<li class="focus-item"><span class="badge lv${Math.min(6, Math.max(1, Math.round(agg.bySub[s.id].mean)))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`;
+    const noOppSVG = agg.n ? Charts.noOpp(agg) : '';
+    const bs = school.filter ? null : stufenGroups(school.records);
 
     out.innerHTML = `
-      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> 14 fiktive Lehrpersonen zur Veranschaulichung${SCHOOL ? '' : ', inklusive vier Beispielfragen einer Schule'}. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
+      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> ${school.records.length} fiktive Lehrpersonen zur Veranschaulichung${SCHOOL ? '' : ', inklusive vier Beispielfragen einer Schule'}. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
       ${tooFew && agg.n > 0 ? `<div class="box box--warning"><b>Weniger als ${DKCore.MIN_GROUP} Ergebnisse.</b> Bei so kleinen Gruppen lassen sich Rückschlüsse auf einzelne Personen ziehen. Die Auswertung ist nur zur Kontrolle gedacht.</div>` : ''}
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stat-row">
@@ -1330,42 +1677,128 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
             <select id="school-filter"><option value="">Alle Stufen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
         </div>
       </div>
-      <div class="result-top" style="padding-block:0">
-        <div class="stack"><h3>Profil der Schule</h3><div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>
-          <p class="small muted">Mittelwert der Teilbereiche pro Bereich, Stufen I = 1 bis VI = 6.</p></div>
-        <div class="stack" style="gap:28px">
-          <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3>
-            <ul class="list-plain">${sorted.slice(0, 4).map((s) => `<li class="focus-item"><span class="badge lv${Math.max(1, Math.round(agg.bySub[s.id].mean))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
-          <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3>
-            <ul class="list-plain">${sorted.slice(-3).reverse().map((s) => `<li class="focus-item"><span class="badge lv${Math.round(agg.bySub[s.id].mean)}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
-          ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
-            <ul class="pd-list">${pd.themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
-            <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
-            ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI.</p>` : ''}
-            ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> In ${pd.noOpp.map((s) => s.id).join(', ')} gibt mindestens ein Viertel an, bisher keine Gelegenheit gehabt zu haben. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
-          ${noOppTop.length ? `<div class="stack" style="gap:12px"><h3>Häufig keine Gelegenheit</h3><p class="small muted">Hinweis auf fehlende Voraussetzungen an der Schule.</p>
-            <ul class="list-plain small">${noOppTop.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}: ${agg.bySub[s.id].counts[0]} Nennung${agg.bySub[s.id].counts[0] === 1 ? '' : 'en'}</li>`).join('')}</ul></div>` : ''}
+      <nav class="an-jump small no-print" aria-label="Abschnitte der Auswertung"><a href="#sec-profil">Profil</a><a href="#sec-needs">Wer braucht was?</a>${noOppSVG ? '<a href="#sec-noopp">Voraussetzungen</a>' : ''}${Array.isArray(bs) ? '<a href="#sec-stufen">Schulstufen</a>' : ''}<a href="#sec-table">Tabelle</a></nav>
+
+      <section class="an-sec stack" id="sec-profil" aria-labelledby="h-profil">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <h3 id="h-profil">Profil der Schule</h3>
+          <div class="row no-print" id="chart-controls"></div>
         </div>
+        <figure tabindex="0" class="chart" id="chart-main"></figure>
+      </section>
+
+      <div class="an-grid">
+        <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3><ul class="list-plain">${sorted.slice(0, 4).map(item).join('')}</ul></div>
+        <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3><ul class="list-plain">${sorted.slice(-3).reverse().map(item).join('')}</ul></div>
+        ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
+          <ul class="pd-list">${pd.themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
+          <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
+          ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI.</p>` : ''}
+          ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
       </div>
-      <div class="stack" style="gap:12px">
-        <h3>Verteilung pro Teilbereich</h3>
-        <p class="small muted">Anzahl Lehrpersonen pro Stufe. Je dunkler, desto grösser der Anteil.</p>
+
+      <section class="an-sec stack" id="sec-needs" aria-labelledby="h-needs">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <div class="stack" style="gap:4px"><h3 id="h-needs">Wer braucht was?</h3>
+            <p class="small muted" style="max-width:80ch">Wie viele Lehrpersonen brauchen einen Einstieg, eine Vertiefung oder können ihr Wissen weitergeben? Die Spalte rechts zeigt, ob das Kollegium eher <b>einig</b> ist oder <b>gespalten</b> (mindestens je ein Viertel auf I–II und auf V–VI). Bei gespaltenen Teilbereichen eignen sich Angebote in verschiedenen Niveaus oder Tandems.</p></div>
+          <div class="row no-print"><label class="small" for="needs-order">Sortieren</label><select id="needs-order">
+            <option value="order" ${sview.order === 'order' ? 'selected' : ''}>nach Teilbereich</option>
+            <option value="entry" ${sview.order === 'entry' ? 'selected' : ''}>grösster Bedarf an Einstieg zuerst</option>
+            <option value="spread" ${sview.order === 'spread' ? 'selected' : ''}>gespaltene zuerst</option></select>${saveBtn('needs')}</div>
+        </div>
+        <div class="legend"><span><i style="background:${Charts.NEEDCOL[0]}"></i>Einstieg (I–II)</span><span><i style="background:${Charts.NEEDCOL[1]}"></i>Vertiefung (III–IV)</span><span><i style="background:${Charts.NEEDCOL[2]}"></i>Weitergeben (V–VI)</span><span>Zahlen im Balken: Anzahl Lehrpersonen</span></div>
+        <figure tabindex="0" class="chart" data-chart="needs" id="chart-needs">${Charts.needs(agg, sview.order)}</figure>
+      </section>
+
+      ${noOppSVG ? `<section class="an-sec stack" id="sec-noopp" aria-labelledby="h-noopp">
+        <div class="row" style="justify-content:space-between"><h3 id="h-noopp">Voraussetzungen: «keine Gelegenheit»</h3>${saveBtn('noopp')}</div>
+        <p class="small muted" style="max-width:80ch">Anteil der Lehrpersonen, die in einem Teilbereich bisher keine Gelegenheit hatten. Ab einem Viertel (gestrichelte Linie) lohnt es sich, Voraussetzungen zu klären, zum Beispiel Geräte, Plattformen oder Absprachen im Team.</p>
+        <figure tabindex="0" class="chart" data-chart="noopp">${noOppSVG}</figure>
+      </section>` : ''}
+
+      ${Array.isArray(bs) ? `<section class="an-sec stack" id="sec-stufen" aria-labelledby="h-stufen">
+        <div class="row" style="justify-content:space-between"><h3 id="h-stufen">Schulstufen im Vergleich</h3>${saveBtn('stufen')}</div>
+        <p class="small muted">Mittelwert pro Bereich und Schulstufe. Nur sichtbar, wenn jede Gruppe mindestens ${DKCore.MIN_GROUP} Ergebnisse umfasst.</p>
+        <div class="legend">${Charts.stufenLegend(bs)}</div>
+        <figure tabindex="0" class="chart" data-chart="stufen">${Charts.stufen(bs)}</figure>
+      </section>` : bs && bs.hidden ? `<p class="small muted">Der Vergleich der Schulstufen erscheint, sobald jede Stufe (und die Gruppe ohne Stufenangabe) mindestens ${DKCore.MIN_GROUP} Ergebnisse hat.</p>` : ''}
+
+      <details class="an-sec" id="sec-table">
+        <summary><b>Tabelle: Anzahl Lehrpersonen pro Stufe</b></summary>
+        <div class="stack" style="gap:12px;margin-top:12px"><p class="small muted">Je dunkler, desto grösser der Anteil.</p>
         <div class="table-scroll"><table class="heat">
           <thead><tr><th scope="col">Teilbereich</th>${LV.map((l) => `<th scope="col">${l.roman}<br><span style="font-weight:400">${esc(l.label)}</span></th>`).join('')}<th scope="col">Keine<br>Gelegenheit</th><th scope="col">Ø</th></tr></thead>
           <tbody>${ITEMS.areas.map((a) => `<tr class="area-row"><td colspan="9">${a.id} ${esc(a.title)}</td></tr>` + a.subareas.map((s) => {
             const d = agg.bySub[s.id];
             return `<tr><td>${s.id} ${esc(s.title)}</td>${[1, 2, 3, 4, 5, 6].map((k) => heatCell(d.counts[k], d.answered)).join('')}<td class="cell">${d.counts[0] || ''}</td><td><b>${fmt(d.mean)}</b></td></tr>`;
-          }).join('')).join('')}</tbody></table></div>
-      </div>
+          }).join('')).join('')}</tbody></table></div></div>
+      </details>
       ${custom ? customSection(custom) : ''}
       <div class="actions" style="border-top:0;padding-top:0">
+        <button class="btn" type="button" id="btn-report">Bericht für Konferenz drucken / als PDF</button>
         <button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button>
         ${!school.sample ? '<button class="btn quiet" type="button" id="btn-school-clear">Geladene Dateien entfernen</button>' : ''}
       </div>`;
+
+    function drawMain() {
+      const isRadar = sview.chart === 'radar';
+      $('#chart-controls').innerHTML = seg('chart', 'Darstellung', CHARTS, sview.chart) +
+        seg('level', 'Ebene', [['areas', 'Bereiche'], ['subs', 'Teilbereiche']], isRadar ? 'areas' : sview.level, isRadar) + saveBtn('main');
+      let svg;
+      if (isRadar) svg = `<div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>`;
+      else if (sview.chart === 'bars') svg = Charts.bars(agg, sview.level, null, {});
+      else if (sview.chart === 'dist') svg = Charts.dist(agg, sview.level);
+      else svg = Charts.boxplot(agg, sview.level);
+      const lvLegend = sview.chart === 'dist' ? LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('') : '';
+      $('#chart-main').className = 'chart' + (isRadar ? ' chart--radar' : '');
+      $('#chart-main').innerHTML = svg + `<figcaption class="legend">${lvLegend}<span>${chartExplain(sview.chart, sview.level)}</span></figcaption>`;
+      $$('#chart-controls [data-chart]').forEach((b) => b.addEventListener('click', () => { sview.chart = b.dataset.chart; drawMain(); $('#chart-controls [aria-pressed=true]').focus(); }));
+      $$('#chart-controls [data-level]').forEach((b) => b.addEventListener('click', () => { sview.level = b.dataset.level; drawMain(); $(`#chart-controls [data-level=${sview.level}]`).focus(); }));
+      $('#chart-controls [data-png]').addEventListener('click', () => Charts.png($('#chart-main svg'), `${fileBase()}_${CHARTS.find((x) => x[0] === sview.chart)[1]}_${today()}`));
+    }
+    drawMain();
+
+    $('#needs-order').addEventListener('change', (e) => { sview.order = e.target.value; $('#chart-needs').innerHTML = Charts.needs(agg, sview.order); });
+    const pngNames = { needs: 'Wer_braucht_was', noopp: 'Voraussetzungen', stufen: 'Schulstufen' };
+    $$('#school-out .an-sec [data-png]').filter((b) => b.dataset.png !== 'main').forEach((b) => b.addEventListener('click', () =>
+      Charts.png($(`[data-chart=${b.dataset.png}] svg`), `${fileBase()}_${pngNames[b.dataset.png]}_${today()}`)));
+    $$('.an-jump a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); const t = $(a.getAttribute('href')); if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     $('#school-filter').addEventListener('change', (e) => { school.filter = e.target.value; renderSchool(); });
     $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg) + customCSV(custom), 'text/csv;charset=utf-8'));
+    $('#btn-report').addEventListener('click', () => printReport(agg, sorted, pd));
     const clr = $('#btn-school-clear');
     if (clr) clr.addEventListener('click', () => { school = { records: [], sample: false, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
+  }
+
+  /* Bericht auf einer Seite (Schulkonferenz, Schulpflege) */
+  function printReport(agg, sorted, pd) {
+    const r = $('#report');
+    const li = (s) => `<li><b>${s.id}</b> ${esc(s.title)} <span class="muted">(Ø ${fmt(agg.bySub[s.id].mean)})</span></li>`;
+    const split = SUBS.filter((s) => DKCore.needGroups(agg.bySub[s.id]).spread === 'gespalten');
+    r.innerHTML = `
+      <div class="rp-head"><div><div class="eyebrow">${esc(schoolLabel())}</div><h2>Digitale Kompetenzen des Kollegiums</h2>
+        <p>${agg.n} Ergebnis${agg.n === 1 ? '' : 'se'}${school.filter ? ' · Stufe «' + esc(school.filter) + '»' : ''} · Stand ${new Date().toLocaleDateString('de-CH')}${school.sample ? ' · Beispieldaten' : ''}</p></div></div>
+      <div class="stat-row rp-stats">${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small">${a.id} ${esc(a.short)}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}</div>
+      <div class="rp-grid">
+        <div>${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm' })}
+          <p class="small">Mittelwert pro Bereich, Stufe I = 1 bis VI = 6.</p></div>
+        <div class="rp-lists">
+          <h3>Handlungsfelder</h3><ul>${sorted.slice(0, 4).map(li).join('')}</ul>
+          <h3>Stärken</h3><ul>${sorted.slice(-3).reverse().map(li).join('')}</ul>
+          ${pd.themes.length ? `<h3>Themen für die Weiterbildung</h3><ul>${pd.themes.map((t) => `<li>${esc(t.theme)} <span class="muted">(${t.subs.join(', ')})</span></li>`).join('')}</ul>` : ''}
+          ${pd.multipliers.length ? `<p class="small"><b>Interne Weitergabe möglich:</b> ${pd.multipliers.map((s) => s.id).join(', ')}</p>` : ''}
+          ${split.length ? `<p class="small"><b>Kollegium gespalten:</b> ${split.map((s) => s.id).join(', ')}</p>` : ''}
+          ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}</p>` : ''}
+        </div>
+      </div>
+      <h3>Verteilung der Stufen pro Bereich</h3>
+      ${Charts.dist(agg, 'areas')}
+      <div class="legend">${LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('')}</div>
+      <p class="small rp-foot">Zusammengefasste Selbsteinschätzungen der Lehrpersonen nach DigCompEdu. Einzelne Profile werden nicht angezeigt. Kanton Schwyz, Amt für Volksschulen und Sport.</p>`;
+    document.body.classList.add('print-report');
+    const done = () => { document.body.classList.remove('print-report'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    window.print();
   }
 
   /* ---------- Eigene Fragen: Auswertung ---------- */

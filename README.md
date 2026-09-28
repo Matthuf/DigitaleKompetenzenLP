@@ -13,7 +13,7 @@ Zwei Versionen aus derselben Quelle:
 
 Blatt «Weiterbildung» der Excel-Masterdatei: pro Teilbereich ein Haupt- und ein Nebenthema aus den fobizz-Themenbereichen (Auswahlliste im Blatt «Themen fobizz»). Regeln (in `src/core.js`): Stufe I–IV → Hauptthema (I–II mit Hinweis auf Einstiegsangebote), Stufe V → «Schulentwicklung & Leadership», Stufe VI und «keine Gelegenheit» → keine Empfehlung. Rangliste: Hauptthema 2 Punkte, Nebenthema 1 Punkt. Profil: über die Entwicklungsfelder und alle Teilbereiche auf Stufe I. Schulauswertung: über die vier Handlungsfelder, dazu Hinweise auf interne Weitergabe (mind. 25 % auf Stufe V–VI) und fehlende Voraussetzungen (mind. 25 % «keine Gelegenheit»). Änderungen: Excel anpassen, `npm run build:items`, committen.
 
-## Schulauswertung (Serverversion)
+## Schulauswertung (Server- und Offline-Version)
 
 - **Profil der Schule** mit Umschalter: Netz · Balken · Verteilung (100-%-Balken der Stufen) · Boxplot, jeweils für Bereiche oder Teilbereiche. Der Boxplot entspricht dem Beurteilungstool (Box = mittlere 50 %, Median, Mittelwert gepunktet); die Antennen zeigen bewusst das 10.–90. Perzentil statt Minimum/Maximum. Boxplot pro Bereich basiert auf den persönlichen Bereichsmittelwerten.
 - **Veränderung** (bei gewähltem Vergleich): Hantel pro Teilbereich, nach Veränderung sortiert.
@@ -21,6 +21,7 @@ Blatt «Weiterbildung» der Excel-Masterdatei: pro Teilbereich ein Haupt- und ei
 - **Voraussetzungen:** Anteil «keine Gelegenheit» pro Teilbereich, Schwelle 25 %.
 - **Schulstufen im Vergleich:** nur ohne Stufenfilter, ab zwei Stufen und nur wenn jede Gruppe (inkl. «ohne Angabe») `MIN_GROUP_SIZE` erreicht.
 - **Bericht** auf einer A4-Seite (Drucken / PDF) und jedes Diagramm als PNG.
+- Offline-Version: dieselben Diagramme (`public/assets/charts.js` wird beim Build eingebettet), ohne Vergleich zweier Erhebungen. Stufenvergleich ab 5 Ergebnissen pro Gruppe; Beispieldaten: 18 Personen in drei Stufen.
 - Bekannte Grenze: Der bestehende Stufenfilter plus Gesamtwert erlaubt bei genau einer ausgeblendeten kleinen Gruppe eine Differenzrechnung. Vor dem Echtbetrieb prüfen.
 
 ## Eigene Fragen in der Offline-Version
