@@ -22,6 +22,7 @@
 
   function show(id) {
     $$('main > .view').forEach((v) => { v.hidden = v.id !== id; });
+    if (!me) $('#code-panel').hidden = true;
     $('#userbar').hidden = !me;
     window.scrollTo({ top: 0 });
   }
@@ -76,36 +77,73 @@
     if (e.target.id === 'btn-err-logout') { await api('POST', 'me/logout'); location.reload(); }
   });
 
+  /* ---------- Persönlichen Code sichern ---------- */
+  function codeCardText(code) {
+    const school = me && me.school ? me.school.name : $('#school-name').textContent;
+    return [
+      'Digitale Kompetenzen von Lehrpersonen – persönlicher Code',
+      '',
+      'Code: ' + code,
+      'Schule: ' + school,
+      'Profil öffnen: ' + location.origin + '/mein-profil',
+      'Gespeichert am: ' + new Date().toLocaleDateString('de-CH'),
+      '',
+      'Den Code nicht weitergeben. Er ist nicht mit dem Namen verknüpft.',
+      'Ohne Code lässt sich das Profil nicht wieder öffnen.',
+    ].join('\r\n');
+  }
+  function codeActions(el, code) {
+    const mail = 'mailto:?subject=' + encodeURIComponent('Mein persönlicher Code: Digitale Kompetenzen') + '&body=' + encodeURIComponent(codeCardText(code));
+    el.innerHTML = `<button class="btn secondary" type="button" data-a="copy">Code kopieren</button>
+      <button class="btn secondary" type="button" data-a="file">Code als Datei speichern</button>
+      <a class="btn secondary" href="${esc(mail)}">Code per E-Mail an mich</a>`;
+    el.querySelector('[data-a=copy]').addEventListener('click', (e) => copyText(code, e.currentTarget));
+    el.querySelector('[data-a=file]').addEventListener('click', () => download('Persoenlicher_Code_DigKomp_SZ.txt', codeCardText(code), 'text/plain;charset=utf-8'));
+  }
+  $('#btn-show-code').addEventListener('click', async () => {
+    const panel = $('#code-panel');
+    if (!panel.hidden) { panel.hidden = true; return; }
+    try {
+      const r = await api('GET', 'me/code');
+      panel.innerHTML = `<div class="row" style="justify-content:space-between"><h3>Mein persönlicher Code</h3><button class="btn quiet" type="button" id="btn-hide-code">Schliessen</button></div>
+        <div><span class="code-display">${esc(r.code)}</span></div><div class="row" id="code-actions-2"></div>`;
+      codeActions($('#code-actions-2'), r.code);
+      $('#btn-hide-code').addEventListener('click', () => { panel.hidden = true; });
+    } catch (err) { panel.innerHTML = `<p class="error">${esc(err.message)}</p>`; }
+    panel.hidden = false;
+    panel.scrollIntoView({ block: 'nearest' });
+  });
+
   /* ---------- Einstieg ---------- */
   const readCtx = (p) => Object.fromEntries(Object.keys(CONTEXT_OPTIONS).map((k) => [k, $(`#${p}-${k}`).value || null]));
   $('#form-start').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#start-msg').textContent = '';
     try {
-      const r = await api('POST', 'c/' + encodeURIComponent(TOKEN) + '/start', { context: readCtx('ctx') });
+      const r = await api('POST', 'c/' + encodeURIComponent(TOKEN) + '/start', { context: readCtx('ctx'), remember: $('#remember-start').checked });
       await loadMe();
       cur = me.responses.find((x) => x.id === r.responseId);
       $('#code-out').textContent = r.code;
+      codeActions($('#code-actions'), r.code);
       $('#code-ack').checked = false;
       $('#btn-code-continue').disabled = true;
       show('v-code');
     } catch (err) { $('#start-msg').textContent = err.message; }
   });
-  $('#btn-copy-code').addEventListener('click', (e) => copyText($('#code-out').textContent, e.currentTarget));
   $('#code-ack').addEventListener('change', (e) => { $('#btn-code-continue').disabled = !e.target.checked; });
   $('#btn-code-continue').addEventListener('click', () => startSurvey());
 
-  async function codeLogin(input, msgEl, withToken) {
+  async function codeLogin(input, msgEl, withToken, remember) {
     msgEl.textContent = '';
     try {
-      await api('POST', 'code-login', { code: input.value, token: withToken ? TOKEN : undefined });
+      await api('POST', 'code-login', { code: input.value, token: withToken ? TOKEN : undefined, remember: !!remember });
       input.value = '';
       return true;
     } catch (err) { msgEl.textContent = err.message; return false; }
   }
   $('#form-code').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!(await codeLogin($('#code-in'), $('#code-msg'), true))) return;
+    if (!(await codeLogin($('#code-in'), $('#code-msg'), true, $('#remember-code').checked))) return;
     try { await openCampaignResponse(); }
     catch (err) {
       await loadMe();
@@ -114,7 +152,7 @@
   });
   $('#form-code-home').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!(await codeLogin($('#code-in-home'), $('#code-msg-home'), false))) return;
+    if (!(await codeLogin($('#code-in-home'), $('#code-msg-home'), false, $('#remember-home').checked))) return;
     await loadMe();
     renderHome();
   });

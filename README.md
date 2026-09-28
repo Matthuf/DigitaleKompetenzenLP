@@ -60,7 +60,9 @@ Die Serverfunktion läuft in Frankfurt (`regions: fra1` in `vercel.json`).
 
 ## Datenschutz
 
-- Keine Namen, keine E-Mail-Adressen von Lehrpersonen. Der persönliche Code wird nur als HMAC-Hash gespeichert.
+- Keine Namen, keine E-Mail-Adressen von Lehrpersonen. Der persönliche Code wird für die Anmeldung als HMAC-Hash gespeichert und zusätzlich verschlüsselt (AES-256-GCM, Schlüssel aus `CODE_PEPPER`), damit angemeldete Lehrpersonen ihn unter «Meinen Code anzeigen» wieder abrufen können.
+- Anmeldung mit Code gilt standardmässig bis zum Schliessen des Browsers (max. 12 Stunden); mit «Auf diesem Gerät angemeldet bleiben» 90 Tage.
+- Ein verlorener Code lässt sich nicht wiederherstellen (kein Personenbezug). Neubeginn über den Erhebungslink; eine bereits abgeschlossene Teilnahme zählt dann doppelt.
 - Schulleitungen erhalten nur zusammengefasste Werte ab 5 abgeschlossenen Teilnahmen; die Serverschnittstelle liefert keine Einzelantworten an Schulleitungen oder AVS.
 - Lehrpersonen können alle eigenen Daten löschen.
 - Passwörter mit scrypt gehasht, Sitzungen als signierte HttpOnly-Cookies.

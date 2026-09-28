@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { q, one, newId } from '../lib/db.js';
 import {
   hashPassword, verifyPassword, setSession, clearSession, getSession, COOKIE_STAFF, COOKIE_PART,
-  newCode, hashCode, newToken, newPassword,
+  newCode, hashCode, newToken, newPassword, encryptCode, decryptCode, formatCode,
 } from '../lib/auth.js';
 import { validateBlock, cleanCustomAnswers, aggregateCustom } from '../lib/customblock.js';
 
@@ -90,6 +90,12 @@ async function aggregateFor(campaignId, stufe) {
   return { n: recs.length, total: all.length, tooFew: false, min: MIN, testMode: MIN < DKCore.MIN_GROUP, stufen, agg, custom };
 }
 
+// Sitzung der Lehrperson: ohne «angemeldet bleiben» bis zum Schliessen des Browsers (max. 12 h), sonst 90 Tage
+function partSession(res, payload, remember) {
+  if (remember) setSession(res, COOKIE_PART, { ...payload, r: 1 }, 24 * 90, true);
+  else setSession(res, COOKIE_PART, payload, 12);
+}
+
 /* ---------- Routen ---------- */
 const routes = [];
 const on = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), fn });
@@ -106,22 +112,32 @@ on('POST', 'c/:token/start', async ({ params, body, res }) => {
   if (c.status !== 'open') fail(409, 'Diese Erhebung ist abgeschlossen.');
   const code = newCode();
   const pid = newId();
-  await q(`insert into participants (id, school_id, code_hash) values ($1,$2,$3)`, [pid, c.school_id, hashCode(code)]);
-  setSession(res, COOKIE_PART, { pid, sid: c.school_id }, 12);
+  await q(`insert into participants (id, school_id, code_hash, code_enc) values ($1,$2,$3,$4)`, [pid, c.school_id, hashCode(code), encryptCode(code)]);
+  partSession(res, { pid, sid: c.school_id }, body.remember);
   const rid = await ensureResponse({ pid }, c, body.context);
   return { code, responseId: rid };
 });
 
 // Lehrperson: mit Code anmelden (optional im Kontext einer Erhebung)
 on('POST', 'code-login', async ({ body, res }) => {
-  const p = await one(`select id, school_id from participants where code_hash = $1`, [hashCode(body.code)]);
+  const p = await one(`select id, school_id, code_enc from participants where code_hash = $1`, [hashCode(body.code)]);
   if (!p) fail(404, 'Dieser Code ist nicht bekannt. Bitte die Schreibweise prüfen.');
+  if (!p.code_enc) await q(`update participants set code_enc = $1 where id = $2`, [encryptCode(formatCode(body.code)), p.id]);
   if (body.token) {
     const c = await campaignByToken(body.token);
     if (c.school_id !== p.school_id) fail(403, 'Dieser Code gehört zu einer anderen Schule.');
   }
-  setSession(res, COOKIE_PART, { pid: p.id, sid: p.school_id }, 12);
+  partSession(res, { pid: p.id, sid: p.school_id }, body.remember);
   return { ok: true };
+});
+
+// Eigenen Code anzeigen (nur angemeldet)
+on('GET', 'me/code', async ({ req }) => {
+  const p = participant(req);
+  const r = await one(`select code_enc from participants where id = $1`, [p.pid]);
+  const code = r && r.code_enc ? decryptCode(r.code_enc) : null;
+  if (!code) fail(404, 'Der Code kann für diese Teilnahme nicht angezeigt werden.');
+  return { code };
 });
 
 on('GET', 'me', async ({ req }) => {

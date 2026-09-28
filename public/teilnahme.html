@@ -21,12 +21,14 @@
     </div>
     <div class="topbar-user" id="userbar" hidden style="padding-bottom:14px">
       <span>Angemeldet mit persönlichem Code</span>
+      <button class="btn quiet" type="button" id="btn-show-code">Meinen Code anzeigen</button>
       <button class="btn quiet" type="button" id="btn-logout">Abmelden</button>
     </div>
   </div>
 </header>
 
 <main class="wrap">
+  <div class="box stack no-print" id="code-panel" hidden style="gap:12px;margin-bottom:28px"></div>
   <section class="view" id="v-loading"><p class="muted">Wird geladen …</p></section>
 
   <section class="view" id="v-error" hidden>
@@ -51,6 +53,7 @@
           <div class="field"><label for="ctx-stufe">Schulstufe <span class="muted small">(freiwillig)</span></label><select id="ctx-stufe"></select></div>
           <div class="field"><label for="ctx-funktion">Funktion <span class="muted small">(freiwillig)</span></label><select id="ctx-funktion"></select></div>
           <div class="field"><label for="ctx-erfahrung">Berufserfahrung <span class="muted small">(freiwillig)</span></label><select id="ctx-erfahrung"></select></div>
+          <label class="check small"><input type="checkbox" id="remember-start"><span>Auf diesem Gerät angemeldet bleiben (90 Tage). Nur auf dem eigenen Gerät wählen.</span></label>
           <button class="btn" type="submit">Selbsteinschätzung starten</button>
           <p class="error small" id="start-msg" role="alert"></p>
         </form>
@@ -59,8 +62,11 @@
             <h3>Ich habe bereits einen persönlichen Code</h3>
             <div class="field"><label for="code-in">Persönlicher Code</label>
               <input type="text" id="code-in" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+            <label class="check small"><input type="checkbox" id="remember-code"><span>Auf diesem Gerät angemeldet bleiben (90 Tage)</span></label>
             <button class="btn secondary" type="submit">Weiter mit Code</button>
             <p class="error small" id="code-msg" role="alert"></p>
+            <details class="small"><summary style="cursor:pointer">Code verloren?</summary>
+              <p style="margin-top:8px">Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Solange ein Browser noch angemeldet ist, kann der Code dort unter «Meinen Code anzeigen» abgerufen werden. Sonst über den Link der Schulleitung mit «Zum ersten Mal hier» neu beginnen. Frühere Profile und der Vergleich mit früheren Erhebungen sind dann nicht mehr erreichbar.</p></details>
           </form>
           <div class="box">
             <h3>Datenschutz</h3>
@@ -76,8 +82,9 @@
     <div class="stack" style="gap:20px;max-width:680px">
       <div class="eyebrow">Wichtig</div>
       <h2 id="h-code">Persönlichen Code notieren</h2>
-      <p>Mit diesem Code lässt sich die Selbsteinschätzung fortsetzen und das Profil später wieder öffnen. Er wird nur jetzt angezeigt. Niemand sonst kennt ihn, auch die Schulleitung nicht.</p>
-      <div class="row"><span class="code-display" id="code-out"></span><button class="btn secondary" type="button" id="btn-copy-code">Code kopieren</button></div>
+      <p>Mit diesem Code lässt sich die Selbsteinschätzung fortsetzen und das Profil später wieder öffnen. Die Schulleitung kennt ihn nicht. Ohne Code lässt sich das Profil nicht wiederherstellen. Darum jetzt sicher aufbewahren.</p>
+      <div><span class="code-display" id="code-out"></span></div>
+      <div class="row" id="code-actions"></div>
       <label class="check"><input type="checkbox" id="code-ack"><span>Ich habe den Code notiert oder sicher gespeichert.</span></label>
       <div><button class="btn" type="button" id="btn-code-continue" disabled>Weiter zu den Fragen</button></div>
     </div>
@@ -161,8 +168,11 @@
         <p>Mit dem persönlichen Code lassen sich frühere Selbsteinschätzungen ansehen.</p>
         <div class="field"><label for="code-in-home">Persönlicher Code</label>
           <input type="text" id="code-in-home" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+        <label class="check small"><input type="checkbox" id="remember-home"><span>Auf diesem Gerät angemeldet bleiben (90 Tage)</span></label>
         <button class="btn" type="submit">Anmelden</button>
         <p class="error small" id="code-msg-home" role="alert"></p>
+        <details class="small"><summary style="cursor:pointer">Code verloren?</summary>
+              <p style="margin-top:8px">Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Solange ein Browser noch angemeldet ist, kann der Code dort unter «Meinen Code anzeigen» abgerufen werden. Sonst über den Link der Schulleitung mit «Zum ersten Mal hier» neu beginnen. Frühere Profile und der Vergleich mit früheren Erhebungen sind dann nicht mehr erreichbar.</p></details>
       </form>
       <div id="home-list" hidden class="stack"></div>
     </div>
