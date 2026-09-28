@@ -17,10 +17,10 @@ window.Block = (function () {
       <div class="dist-legend">${labels.map((l, i) => `<span><i style="background:${cols[i]}"></i>${esc(l)}: <b>${counts[i]}</b></span>`).join('')}</div>`;
   }
 
-  function section(custom, n) {
+  function section(custom, n, opts = {}) {
     const res = Object.fromEntries(custom.questions.map((r) => [r.id, r]));
     return `<div class="stack" style="gap:18px">
-      <div class="stack" style="gap:6px"><h3>${esc(custom.block.title)}</h3><p class="small muted">Eigene Fragen der Schule. Nicht Teil des Kompetenzprofils.</p></div>
+      ${opts.bare ? '<p class="small muted">Eigene Fragen der Schule. Nicht Teil des Kompetenzprofils.</p>' : `<div class="stack" style="gap:6px"><h3>${esc(custom.block.title)}</h3><p class="small muted">Eigene Fragen der Schule. Nicht Teil des Kompetenzprofils.</p></div>`}
       ${custom.block.questions.map((q, i) => {
         const r = res[q.id] || { answered: 0, counts: [], texts: [] };
         let body = '';

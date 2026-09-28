@@ -410,3 +410,49 @@ details.sub[open] summary::after { transform: rotate(180deg); }
   .chart { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .chart > svg { min-width: 640px; }
 }
+
+/* Schulauswertung: Abschnitte, Navigation, Kennzahlen */
+#an-out { gap: 44px !important; }
+.an-sec { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 72px; }
+.sec-head { background: var(--box); box-shadow: 0 0 0 100vmax var(--box); clip-path: inset(0 -100vmax); padding: 12px 0; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
+.sec-head h3 { font-size: 1.2rem; display: flex; align-items: baseline; gap: 12px; }
+.sec-no { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border-radius: 50%; background: var(--red); color: #fff; font-size: 0.9rem; font-variant-numeric: tabular-nums; transform: translateY(-2px); }
+.sec-tools { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.sec-tools select { width: auto; padding: 7px 10px; }
+.sec-tools .row { gap: 10px; }
+.lead-note { max-width: 80ch; }
+.an-nav { position: sticky; top: 0; z-index: 20; background: var(--bg); box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax -1px); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 6px; margin-bottom: -20px; }
+.an-nav-links { display: flex; gap: 2px 20px; overflow-x: auto; scrollbar-width: none; }
+.an-nav-links a { white-space: nowrap; font-size: 0.9rem; font-weight: 700; color: var(--ink-2); text-decoration: none; padding: 8px 0; border-bottom: 3px solid transparent; }
+.an-nav-links a:hover { color: var(--ink); }
+.an-nav-links a.active { color: var(--ink); border-bottom-color: var(--red); }
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 960px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { border: 1px solid var(--line); border-top: 5px solid var(--kpi); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.kpi-name { font-size: 0.8rem; color: var(--ink-2); line-height: 1.3; min-height: 2.6em; }
+.kpi-name b { color: var(--ink); }
+.kpi-val { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 8px; line-height: 1.1; }
+.kpi-val .delta { font-size: 0.85rem; }
+.kpi-stage { font-size: 0.8rem; color: var(--ink-2); }
+.summary-panel { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 32px; padding: 20px 22px; border: 1px solid var(--line); background: #FAFAFA; }
+.summary-panel h4 { margin: 0; font-size: 1rem; }
+.summary-notes { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; }
+@media (max-width: 960px) { .summary-panel, .summary-notes { grid-template-columns: 1fr; } }
+details.howto { max-width: 80ch; }
+details.howto > summary { cursor: pointer; font-size: 0.875rem; font-weight: 700; }
+details.howto > p { margin-top: 8px; }
+.export-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 22px; border: 2px solid var(--ink); }
+@media print {
+  .sec-head { box-shadow: none; clip-path: none; padding-inline: 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sec-no { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.chart--radar { max-width: none; }
+.radar-side { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 32px; align-items: center; }
+@media (max-width: 960px) { .radar-side { grid-template-columns: 1fr; } }
+table.kv-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+table.kv-table th, table.kv-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+table.kv-table th[scope="row"], table.kv-table thead th:first-child { text-align: left; font-weight: 400; }
+table.kv-table thead th { font-size: 0.8rem; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+table.kv-table td.muted { text-align: left; }
+table.kv-table thead th:last-child { text-align: left; }

@@ -122,7 +122,7 @@
     return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
   }
   function heatTable(agg) {
-    return `<div class="table-scroll"><table class="heat">
+    return `<div class="table-scroll" tabindex="0" role="region" aria-label="Tabelle Anzahl Lehrpersonen pro Stufe"><table class="heat">
       <thead><tr><th scope="col">Teilbereich</th>${LV.map((l) => `<th scope="col">${l.roman}<br><span style="font-weight:400">${esc(l.label)}</span></th>`).join('')}<th scope="col">Keine<br>Gelegenheit</th><th scope="col">Ø</th></tr></thead>
       <tbody>${ITEMS.areas.map((a) => `<tr class="area-row"><td colspan="9">${a.id} ${esc(a.title)}</td></tr>` + a.subareas.map((s) => {
         const d = agg.bySub[s.id];
