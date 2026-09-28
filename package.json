@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "python3 build.py",
+    "build:items": "python3 data/excel_to_json.py && python3 build.py",
     "dev": "node dev-server.js"
   },
   "dependencies": {

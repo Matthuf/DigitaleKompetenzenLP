@@ -28,7 +28,7 @@ lib/db.js, lib/auth.js     Datenbank (Schema wird automatisch angelegt), Passwö
 public/                    Seiten: index, teilnahme, leitung, admin
 ```
 
-Items ändern: Excel bearbeiten → `python3 data/excel_to_json.py && python3 build.py` → committen. Die erzeugten Dateien sind eingecheckt, Vercel braucht keinen Build-Schritt.
+Items ändern: Excel bearbeiten → `npm run build:items` → committen. Die erzeugten Dateien sind eingecheckt, Vercel braucht keinen Build-Schritt.
 
 ## Lokal starten
 
