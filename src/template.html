@@ -227,6 +227,53 @@ input[type="text"]:focus, textarea:focus, select:focus { outline: 3px solid var(
 fieldset.q { scroll-margin-top: 16px; }
 @media (min-width: 861px) { .survey-grid > aside { max-height: calc(100vh - 32px); overflow-y: auto; } }
 
+/* Angleichung an die Serverversion */
+.aside-status { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.save-state { font-size: 0.85rem; color: var(--ink-2); min-height: 1.3em; }
+.nav-toggle { display: none; }
+.show-narrow { display: none; }
+@media (max-width: 860px) {
+  .survey-grid > aside { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); margin-inline: -16px; padding: 10px 16px 8px; border-bottom: 1px solid var(--line); box-shadow: 0 2px 6px rgba(0,0,0,.06); max-height: none; overflow: visible; }
+  .survey-grid > aside .progressbar { margin-bottom: 6px; }
+  .aside-status { flex-direction: row; justify-content: space-between; gap: 12px; margin-bottom: 6px; align-items: baseline; }
+  .aside-status .small, .aside-status .save-state { font-size: 0.8rem; }
+  .hide-narrow { display: none; }
+  .show-narrow { display: inline; }
+  .nav-toggle { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 12px; appearance: none; border: 1px solid var(--ink-3); background: var(--bg); color: var(--ink); font: inherit; font-size: 0.9rem; font-weight: 700; padding: 7px 10px; border-radius: 2px; cursor: pointer; text-align: left; }
+  .nav-toggle .chev { transition: transform .2s; }
+  .nav-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .areanav { display: none !important; }
+  #survey-aside.open .areanav { display: flex !important; flex-direction: column; margin-top: 8px; max-height: 60vh; overflow-y: auto; }
+}
+.open-links { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; }
+.open-links button { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: var(--red-dark); font-weight: 700; text-decoration: underline; cursor: pointer; }
+details.sub summary { grid-template-columns: minmax(0, 1fr) minmax(140px, 240px) 150px 18px; padding: 10px 8px; margin-inline: -8px; border-radius: 2px; }
+details.sub summary:hover { background: #F7F7F7; }
+details.sub summary:hover .t { text-decoration: underline; text-underline-offset: 2px; }
+details.sub summary .t::before { content: none; }
+details.sub summary::after { content: "▾"; color: var(--red); font-weight: 700; text-align: right; transition: transform .2s; }
+details.sub[open] summary::after { transform: rotate(180deg); }
+@media (max-width: 620px) { details.sub summary { grid-template-columns: 1fr 96px 18px; } details.sub summary .meter { grid-column: 1 / -1; grid-row: 2; } }
+.details-head { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: baseline; padding-top: 12px; }
+.levels-strip.compact div { padding: 5px 4px; font-size: 0.72rem; }
+.levels-strip.compact b { font-size: 0.8rem; }
+.howto { background: var(--box); padding: 20px 24px; display: grid; gap: 10px; margin-block: 8px 20px; }
+.howto ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; }
+.pd-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pd-chip { display: inline-block; font-weight: 700; font-size: 0.9rem; padding: 3px 10px; border: 1px solid var(--ink-3); border-radius: 14px; background: var(--bg); }
+.focus-item .next.pd { color: var(--ink); }
+details.faq { border-bottom: 1px solid var(--line); }
+details.faq summary { cursor: pointer; padding: 12px 0; font-weight: 700; list-style: none; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after { content: "+"; color: var(--red); font-weight: 700; }
+details.faq[open] summary::after { content: "−"; }
+details.faq > p, details.faq > div { padding-bottom: 14px; }
+address.contact { font-style: normal; line-height: 1.6; }
+.preview { border: 2px dashed var(--ink-3); padding: 20px 24px; background: #FCFCFC; }
+.skip { position: absolute; left: 16px; top: -60px; z-index: 50; background: var(--ink); color: #fff; padding: 10px 16px; font-weight: 700; text-decoration: none; }
+.skip:focus { top: 12px; color: #fff; }
+@media print { .nav-toggle, .sum-hint, .skip { display: none !important; } details.sub summary::after { content: "" !important; } }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 @media print {
@@ -243,6 +290,7 @@ fieldset.q { scroll-margin-top: 16px; }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <div class="wrap">
     <div class="brand">
@@ -259,12 +307,12 @@ fieldset.q { scroll-margin-top: 16px; }
       <button type="button" data-go="result">Ergebnis</button>
       <button type="button" data-go="school">Schulauswertung</button>
       <button type="button" data-go="custom">Eigene Fragen</button>
-      <button type="button" data-go="info">Hinweise</button>
+      <button type="button" data-go="info">Hilfe</button>
     </nav>
   </div>
 </header>
 
-<main class="wrap">
+<main class="wrap" id="main" tabindex="-1">
   <!-- START -->
   <section class="view" id="view-start" aria-labelledby="h-start">
     <div class="start-grid">
@@ -334,7 +382,7 @@ fieldset.q { scroll-margin-top: 16px; }
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
         </form>
         <div class="stack" style="gap:8px">
-          <p class="small"><b>Früheres Ergebnis öffnen</b></p>
+          <label class="small" for="file-own"><b>Früheres Ergebnis öffnen</b></label>
           <p class="small muted">Eine gespeicherte Ergebnisdatei (.json) laden, um das Profil anzusehen oder weiterzubearbeiten.</p>
           <input type="file" id="file-own" accept=".json,application/json" class="small">
           <p class="small" id="file-own-msg" role="status"></p>
@@ -346,9 +394,13 @@ fieldset.q { scroll-margin-top: 16px; }
   <!-- FRAGEBOGEN -->
   <section class="view" id="view-survey" hidden aria-labelledby="h-area">
     <div class="survey-grid">
-      <aside>
+      <aside id="survey-aside">
         <div class="progressbar" aria-hidden="true"><span id="progress-fill"></span></div>
-        <p class="small muted" id="progress-text" style="margin-bottom:12px"></p>
+        <div class="aside-status">
+          <p class="small muted" id="progress-text"></p>
+          <p class="save-state" id="save-state" role="status"></p>
+        </div>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="areanav"><span id="nav-toggle-text"></span><span class="chev" aria-hidden="true">▾</span></button>
         <nav class="areanav" id="areanav" aria-label="Kompetenzbereiche"></nav>
       </aside>
       <div>
@@ -358,11 +410,19 @@ fieldset.q { scroll-margin-top: 16px; }
           <p class="muted" id="area-desc"></p>
         </div>
         <div id="questions"></div>
+        <details class="box" id="ctx-details" style="margin-top:28px" hidden>
+          <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted">(freiwillig, für die Schulauswertung)</span> <span class="small muted" id="ctx-summary"></span></summary>
+          <div class="stack" style="margin-top:14px">
+            <div class="field"><label for="ctx2-stufe">Schulstufe</label><select id="ctx2-stufe"></select></div>
+            <div class="field"><label for="ctx2-funktion">Funktion</label><select id="ctx2-funktion"></select></div>
+            <div class="field"><label for="ctx2-erfahrung">Berufserfahrung</label><select id="ctx2-erfahrung"></select></div>
+          </div>
+        </details>
         <div class="survey-foot">
           <button class="btn secondary" type="button" id="btn-prev">Zurück</button>
           <button class="btn" type="button" id="btn-next">Weiter</button>
         </div>
-        <p class="small muted" id="open-hint" role="status" style="margin-top:12px"></p>
+        <p class="small" id="open-hint" role="alert" style="margin-top:12px"></p>
       </div>
     </div>
   </section>
@@ -388,6 +448,7 @@ fieldset.q { scroll-margin-top: 16px; }
           <h3>Profil über die sechs Bereiche</h3>
           <div class="radar-wrap" id="radar-own"></div>
           <div class="legend" id="legend-own"></div>
+          <div class="levels-strip compact" id="result-levels" aria-label="Stufenmodell"></div>
         </div>
         <div class="stack" style="gap:28px">
           <div class="stack" style="gap:12px">
@@ -405,6 +466,18 @@ fieldset.q { scroll-margin-top: 16px; }
           </div>
         </div>
       </div>
+      <div class="howto">
+        <h3>Wie weiter mit dem Profil?</h3>
+        <div id="pd-themes" class="stack" style="gap:8px"></div>
+        <ol>
+          <li>Ein bis zwei Entwicklungsfelder auswählen. Die Aussage der nächsten Stufe eignet sich als konkretes Ziel.</li>
+          <li>Das Profil im Mitarbeitendengespräch einbringen: «Drucken oder als PDF sichern» und mitnehmen.</li>
+          <li>Wo «keine Gelegenheit» steht, mit der Schulleitung klären, ob Geräte, Plattformen oder ein Auftrag fehlen.</li>
+          <li>Das Ergebnis als Datei speichern. Bei einer späteren Selbsteinschätzung lässt es sich wieder öffnen und vergleichen.</li>
+        </ol>
+      </div>
+      <div class="details-head"><h3>Alle Teilbereiche im Detail</h3><button class="btn quiet no-print" type="button" id="btn-toggle-all">Alle öffnen</button></div>
+      <p class="small muted sum-hint">Einen Teilbereich anklicken, um die gewählte Aussage und den nächsten Schritt zu sehen.</p>
       <div id="result-areas"></div>
       <div id="result-custom"></div>
       <div class="actions">
@@ -460,21 +533,45 @@ fieldset.q { scroll-margin-top: 16px; }
     </div>
   </section>
 
-  <!-- HINWEISE -->
+  <!-- HILFE -->
   <section class="view" id="view-info" hidden aria-labelledby="h-info">
-    <div class="prose">
-      <h2 id="h-info">Hinweise zum Instrument</h2>
-      <p>Das Instrument setzt Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz» um. Es unterstützt Lehrpersonen bei der Standortbestimmung und Schulen bei der Planung der Weiterbildung.</p>
-      <h3>Aufbau</h3>
-      <p>Sechs Kompetenzbereiche mit 22 Teilbereichen. Zu jedem Teilbereich gibt es sechs Aussagen, die den Stufen I bis VI entsprechen. Das Ergebnis ist ein Profil, kein Gesamtwert. Wer in einem Teilbereich bisher keine Gelegenheit hatte, wählt die entsprechende Option. Diese Antworten fliessen nicht in die Mittelwerte ein.</p>
-      <h3>Stufen</h3>
-      <div class="levels-strip" id="levels-strip-2"></div>
-      <h3>Künstliche Intelligenz</h3>
-      <p>Aussagen zu Künstlicher Intelligenz werden in einer nächsten Version in die bestehenden Bereiche integriert.</p>
-      <h3>Datenschutz</h3>
-      <p>Diese Version arbeitet vollständig auf dem eigenen Gerät. Antworten werden nur im Browser dieses Geräts zwischengespeichert, bis sie gelöscht werden. Es findet keine Übermittlung statt.</p>
+    <div class="prose" style="max-width:760px">
+      <h2 id="h-info">Hilfe und Hinweise</h2>
+      <p class="lead">Das Instrument setzt Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz» um. Es unterstützt Lehrpersonen bei der Standortbestimmung und Schulen bei der Planung der Weiterbildung.</p>
+
+      <h3>Für Lehrpersonen</h3>
+      <details class="faq"><summary>Wie funktioniert die Selbsteinschätzung?</summary>
+        <p>Sechs Kompetenzbereiche mit 22 Teilbereichen. Zu jedem Teilbereich gibt es sechs Aussagen, die den Stufen I bis VI entsprechen. Gewählt wird die Aussage, die das eigene Handeln am besten beschreibt. Das Ergebnis ist ein Profil, kein Gesamtwert. Dauer: etwa 20 Minuten.</p></details>
+      <details class="faq"><summary>Was bedeuten die sechs Stufen?</summary>
+        <div class="levels-strip" id="levels-strip-2" style="margin-bottom:10px"></div>
+        <p>Wer in einem Teilbereich bisher keine Gelegenheit hatte, wählt diese Option. Sie fliesst nicht in die Werte ein.</p></details>
+      <details class="faq"><summary>Wo sind meine Antworten gespeichert?</summary>
+        <p>Nur im Browser dieses Geräts, bis sie gelöscht werden. Es findet keine Übermittlung statt. Auf gemeinsam genutzten Geräten am Schluss «Alle Daten auf diesem Gerät löschen» wählen.</p></details>
+      <details class="faq"><summary>Wie gebe ich das Ergebnis weiter?</summary>
+        <p>Mit «Ergebnis als Datei speichern» entsteht eine .json-Datei ohne Namen. Diese Datei kann der Schulleitung für die Schulauswertung abgegeben oder später unter «Start» wieder geöffnet werden. Für das Mitarbeitendengespräch das Profil drucken oder als PDF sichern.</p></details>
+      <details class="faq"><summary>Was sind die Weiterbildungsempfehlungen?</summary>
+        <p>Zu den Entwicklungsfeldern nennt das Profil passende Themenbereiche der Weiterbildungsplattform fobizz. Es handelt sich um Themenbereiche, nicht um einzelne Kurse.</p></details>
+
+      <h3>Für Schulleitungen</h3>
+      <details class="faq"><summary>Wie werte ich die Ergebnisse der Schule aus?</summary>
+        <p>Die Ergebnisdateien des Kollegiums einsammeln und unter «Schulauswertung» laden. Einzelne Profile werden nicht angezeigt. Bei weniger als fünf Ergebnissen erscheint ein Hinweis, weil Rückschlüsse auf einzelne Personen möglich sind.</p></details>
+      <details class="faq"><summary>Wie stelle ich eigene Fragen?</summary>
+        <p>Unter «Eigene Fragen» bis zu 15 Fragen erfassen und eine Schulversion herunterladen. Diese HTML-Datei ans Kollegium weitergeben. Die Antworten stehen in den Ergebnisdateien und erscheinen in der Schulauswertung.</p></details>
+      <details class="faq"><summary>Gibt es eine Version mit Server?</summary>
+        <p>Ja. In der Serverversion verteilt die Schulleitung einen Link, die Ergebnisse werden automatisch zusammengeführt, und Lehrpersonen öffnen ihr Profil mit einem persönlichen Code.</p></details>
+
       <h3>Quelle</h3>
-      <p>Die Aussagen basieren auf dem Selbsteinschätzungswerkzeug «DigCompEdu Bavaria» der Akademie für Lehrerfortbildung und Personalführung Dillingen und auf dem Referenzrahmen DigCompEdu der Europäischen Kommission. Die Anpassung an den Kanton Schwyz ist in Arbeit.</p>
+      <p>Die Aussagen basieren auf dem Selbsteinschätzungswerkzeug «DigCompEdu Bavaria» der Akademie für Lehrerfortbildung und Personalführung Dillingen und auf dem Referenzrahmen DigCompEdu der Europäischen Kommission. Die Anpassung an den Kanton Schwyz ist in Arbeit. Aussagen zu Künstlicher Intelligenz werden in einer nächsten Version ergänzt.</p>
+
+      <h3>Kontakt</h3>
+      <address class="contact">
+        <b>Amt für Volksschulen und Sport</b><br>
+        Kollegiumstrasse 28<br>
+        Postfach 2191<br>
+        6431 Schwyz<br>
+        <a href="https://www.google.com/maps/place/Kollegiumstrasse+28,+6431+Schwyz,+Switzerland" target="_blank" rel="noopener">Standort in Google Maps</a>
+      </address>
+      <p>Telefon <a href="tel:+41418191911">+41 41 819 19 11</a><br>E-Mail <a href="mailto:avs@sz.ch">avs@sz.ch</a></p>
       <p class="small muted" id="info-version"></p>
     </div>
   </section>
@@ -484,8 +581,9 @@ fieldset.q { scroll-margin-top: 16px; }
   <div class="wrap cols">
     <div>
       <b>Kanton Schwyz</b><br>
-      Bildungsdepartement · Amt für Volksschulen und Sport<br>
-      <a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a>
+      Amt für Volksschulen und Sport<br>
+      Kollegiumstrasse 28, Postfach 2191, 6431 Schwyz<br>
+      Telefon <a href="tel:+41418191911">+41 41 819 19 11</a> · <a href="mailto:avs@sz.ch">avs@sz.ch</a> · <a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a>
     </div>
     <ul class="links">
       <li><a href="https://www.sz.ch/impressum" target="_blank" rel="noopener">Impressum</a></li>
@@ -529,7 +627,13 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   }
   function persist() {
     state.updated = new Date().toISOString();
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* Speicher nicht verfügbar: weiter ohne */ }
+    let ok = true;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { ok = false; /* Speicher nicht verfügbar: weiter ohne */ }
+    const el = document.getElementById('save-state');
+    if (el) {
+      el.textContent = ok ? 'Auf diesem Gerät gespeichert ' + new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : 'Zwischenspeichern nicht möglich. Am Schluss als Datei speichern.';
+      el.className = 'save-state ' + (ok ? 'ok' : 'error');
+    }
   }
   function wipe() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} state = newState(); }
   let state = load() || newState();
@@ -537,7 +641,22 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   let areaIdx = 0;
 
   /* ---------- Navigation ---------- */
+  const HASH = { start: 'start', survey: 'fragebogen', result: 'ergebnis', school: 'schulauswertung', custom: 'eigene-fragen', info: 'hilfe' };
+  let routing = false, replaceNext = true;
+  function setHash(h) {
+    if (routing) return;
+    if (location.hash !== '#' + h) history[replaceNext ? 'replaceState' : 'pushState'](null, '', '#' + h);
+    replaceNext = false;
+  }
+  function viewFromHash() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    const m = h.match(/^fragebogen-(\d+)$/);
+    if (m) { areaIdx = Math.max(0, +m[1] - 1); return 'survey'; }
+    return Object.keys(HASH).find((k) => HASH[k] === h) || 'start';
+  }
+  window.addEventListener('popstate', () => { routing = true; try { go(viewFromHash()); } finally { routing = false; } });
   function go(view) {
+    if (view !== 'survey') setHash(HASH[view]);
     ['start', 'survey', 'result', 'school', 'custom', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
     $$('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.go === view ? 'page' : 'false'));
     if (view === 'start') renderStart();
@@ -618,6 +737,14 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   });
 
   /* ---------- Fragebogen ---------- */
+  ['stufe', 'funktion', 'erfahrung'].forEach((k) => {
+    $('#ctx2-' + k).innerHTML = $('#ctx-' + k).innerHTML;
+    $('#ctx2-' + k).addEventListener('change', (e) => { state.context[k] = e.target.value || null; ctxSummary(); persist(); });
+  });
+  function ctxSummary() {
+    const vals = Object.values(state.context || {}).filter(Boolean);
+    $('#ctx-summary').textContent = vals.length ? '· ' + vals.join(', ') : '· keine Angaben';
+  }
   const SCALE = DKCore.SCALE;
   const TYPE_LABEL = { scale: 'Zustimmungsskala', levels: 'Eigene Stufenaussagen', choice: 'Auswahl', text: 'Freitext' };
   const blockOf = (r = state) => (r && r.custom_block && Array.isArray(r.custom_block.questions) && r.custom_block.questions.length ? r.custom_block : null);
@@ -628,14 +755,31 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   function subnav(items) {
     return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone">${it.done ? '<span aria-hidden="true">✓</span>' : ''}<span class="sr-only">${it.done ? 'beantwortet' : 'offen'}</span></span></button>`).join('')}</div>`;
   }
+  const isNarrow = () => window.matchMedia('(max-width: 860px)').matches;
+  const smoothOK = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function scrollToEl(el) {
+    const off = isNarrow() ? $('#survey-aside').offsetHeight + 12 : 16;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off, behavior: smoothOK() ? 'smooth' : 'auto' });
+  }
   function jumpTo(key) {
     const el = document.getElementById('fs-' + key);
     if (!el) return;
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    closeNav();
+    scrollToEl(el);
     const first = el.querySelector('input:checked, input, textarea');
-    if (first) setTimeout(() => first.focus({ preventScroll: true }), smooth ? 400 : 0);
+    if (first) setTimeout(() => first.focus({ preventScroll: true }), smoothOK() ? 400 : 0);
   }
+  function advanceFrom(fs) {
+    const all = $$('#questions fieldset.q');
+    const next = all.slice(all.indexOf(fs) + 1).find((f) => !f.querySelector('input:checked') && !(f.querySelector('textarea') && f.querySelector('textarea').value.trim()));
+    setTimeout(() => scrollToEl(next || $('.survey-foot')), 300);
+  }
+  function closeNav() { $('#survey-aside').classList.remove('open'); $('#nav-toggle').setAttribute('aria-expanded', 'false'); }
+  $('#nav-toggle').addEventListener('click', () => {
+    const open = !$('#survey-aside').classList.contains('open');
+    $('#survey-aside').classList.toggle('open', open);
+    $('#nav-toggle').setAttribute('aria-expanded', String(open));
+  });
 
   function renderAreaNav() {
     const blk = blockOf();
@@ -653,11 +797,19 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
         <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>` +
         (areaIdx === ITEMS.areas.length ? subnav(blk.questions.map((q, k) => ({ key: q.id, label: String(k + 1), title: q.text, done: ca[q.id] !== undefined }))) : '');
     })() : '');
-    $$('#areanav button[data-area]').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
+    $$('#areanav button[data-area]').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; closeNav(); renderSurvey(true); }));
     $$('#areanav [data-jump]').forEach((b) => b.addEventListener('click', () => jumpTo(b.dataset.jump)));
     const p = DKCore.progress(ITEMS, state.answers);
     $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
-    $('#progress-text').textContent = `${p.done} von ${p.total} Kompetenzfragen beantwortet`;
+    $('#progress-text').innerHTML = `${p.done}<span class="hide-narrow"> von ${p.total} Kompetenzfragen</span><span class="show-narrow">/${p.total}</span> beantwortet`;
+    if (areaIdx < ITEMS.areas.length) {
+      const a = ITEMS.areas[areaIdx];
+      const d = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
+      $('#nav-toggle-text').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}: ${a.title} · ${d}/${a.subareas.length}`;
+    } else if (blk) {
+      const d = blk.questions.filter((q) => ca[q.id] !== undefined).length;
+      $('#nav-toggle-text').textContent = `${blk.title} · ${d}/${blk.questions.length}`;
+    }
   }
 
   function customQuestionHTML(q, i) {
@@ -703,7 +855,11 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
         if (q.type === 'choice' && q.multiple) {
           const list = $$(`input[name="${name}"]:checked`).map((x) => +x.value);
           if (list.length) state.custom_answers[q.id] = list; else delete state.custom_answers[q.id];
-        } else state.custom_answers[q.id] = +inp.value;
+        } else {
+          const first = state.custom_answers[q.id] === undefined;
+          state.custom_answers[q.id] = +inp.value;
+          if (first) advanceFrom(inp.closest('fieldset'));
+        }
         persist(); renderAreaNav();
       }));
     });
@@ -729,22 +885,40 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
           </div></fieldset>`;
       }).join('');
       $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
+        const first = state.answers[r.name.slice(2)] === undefined;
         state.answers[r.name.slice(2)] = +r.value;
+        if (first) advanceFrom(r.closest('fieldset'));
         persist();
         renderAreaNav();
         $('#open-hint').textContent = '';
       }));
     }
+    const last = areaIdx === steps() - 1;
+    $('#ctx-details').hidden = !last;
+    if (last) { ['stufe', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx2-' + k).value = state.context[k] || ''; }); ctxSummary(); }
     $('#btn-prev').hidden = areaIdx === 0;
-    $('#btn-next').textContent = areaIdx === steps() - 1 ? 'Zum Ergebnis' : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
+    $('#btn-next').textContent = last ? 'Zum Ergebnis' : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
     renderAreaNav();
     $('#open-hint').textContent = '';
+    setHash('fragebogen-' + (areaIdx + 1));
     if (focus) { window.scrollTo({ top: 0 }); $('#h-area').focus({ preventScroll: true }); }
   }
   $('#btn-prev').addEventListener('click', () => { if (areaIdx > 0) { areaIdx--; renderSurvey(true); } });
   $('#btn-next').addEventListener('click', () => {
-    if (areaIdx < steps() - 1) { areaIdx++; renderSurvey(true); }
-    else go('result');
+    if (areaIdx < steps() - 1) { areaIdx++; return renderSurvey(true); }
+    const p = DKCore.progress(ITEMS, state.answers);
+    if (p.open.length && !$('#open-hint [data-anyway]')) {
+      $('#open-hint').innerHTML = `<span class="error">Noch offen:</span> <span class="open-links">${p.open.map((id) => `<button type="button" data-goto="${id}">${id} ${esc(subById[id].title)}</button>`).join('')}</span><br>Das Profil ist sonst unvollständig. Wo etwas nicht zutrifft, die Option «keine Gelegenheit» wählen. <button class="btn quiet" type="button" data-anyway>Trotzdem zum Ergebnis</button>`;
+      $$('#open-hint [data-goto]').forEach((b) => b.addEventListener('click', () => {
+        const id = b.dataset.goto;
+        areaIdx = ITEMS.areas.findIndex((a) => a.id === subById[id].areaId);
+        renderSurvey(false);
+        setTimeout(() => jumpTo(id), 50);
+      }));
+      $('#open-hint [data-anyway]').addEventListener('click', () => go('result'));
+      return;
+    }
+    go('result');
   });
 
   /* ---------- Netzdiagramm (SVG) ---------- */
@@ -773,12 +947,14 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
       const lines = [];
       words.forEach((w) => { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= 16) lines[lines.length - 1] += ' ' + w; else lines.push(w); });
       const val = opts.valueLabels ? series[0].values[i] : null;
-      const nl = lines.length + (opts.valueLabels ? 1 : 0);
+      const stage = opts.valueLabels && val !== null && val !== undefined ? LV[Math.min(5, Math.max(0, Math.round(val) - 1))].label : '';
+      const nl = lines.length + (opts.valueLabels ? 1 : 0) + (stage ? 1 : 0);
       const lx = x + c * 16;
       const ly = s < -0.3 ? y - 12 - 15 * (nl - 1) : s > 0.3 ? y + 22 : y + 4 - 7.5 * (nl - 1);
       g += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" font-size="13" fill="#000">` +
         lines.map((l, k) => `<tspan x="${lx.toFixed(1)}" dy="${k === 0 ? 0 : 15}">${k === 0 ? '<tspan font-weight="700">' + a.id + '</tspan> ' : ''}${esc(l)}</tspan>`).join('') +
-        (val !== null && val !== undefined ? `<tspan x="${lx.toFixed(1)}" dy="15" fill="#464646">Ø ${fmt(val)}</tspan>` : '') + `</text>`;
+        (val !== null && val !== undefined ? `<tspan x="${lx.toFixed(1)}" dy="15" fill="#464646">Ø ${fmt(val)}</tspan>` : '') +
+        (stage ? `<tspan x="${lx.toFixed(1)}" dy="14" fill="#464646" font-size="12">${esc(stage)}</tspan>` : '') + `</text>`;
     });
     series.forEach((se) => {
       const pts = se.values.map((v, i) => pt(i, v || 0).map((x) => x.toFixed(1)).join(',')).join(' ');
@@ -799,8 +975,13 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   }
   function badge(v) {
     if (v === undefined) return `<span class="badge" style="background:#fff;border:1px solid var(--line)">offen</span>`;
-    if (v === 0) return `<span class="badge lv0" title="Keine Gelegenheit">k. G.</span>`;
-    return `<span class="badge lv${v}">${LV[v - 1].roman}</span>`;
+    if (v === 0) return `<span class="badge lv0" title="Keine Gelegenheit"><span aria-hidden="true">–</span><span class="sr-only">Keine Gelegenheit</span></span>`;
+    return `<span class="badge lv${v}"><span class="sr-only">Stufe </span>${LV[v - 1].roman}</span>`;
+  }
+  function pdLine(sub, level) {
+    const x = DKCore.pdThemeFor(ITEMS, sub, level);
+    if (!x) return '';
+    return `<span class="next pd">Weiterbildung (fobizz-Themenbereich): <b>${esc(x.primary)}</b>${x.entry ? ' · Einstiegsangebote wählen' : ''}${x.secondary ? ' · auch passend: ' + esc(x.secondary) : ''}</span>`;
   }
   function renderResult() {
     const p = DKCore.progress(ITEMS, state.answers);
@@ -809,7 +990,9 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     $('#result-content').hidden = !any;
     if (!any) return;
     const d = new Date(state.updated || state.created);
-    $('#result-date').textContent = 'Stand ' + d.toLocaleDateString('de-CH');
+    $('#result-date').textContent = (SCHOOL ? SCHOOL.name + ' · ' : '') + 'Stand ' + d.toLocaleDateString('de-CH');
+    levelsStrip($('#result-levels'));
+    $('#btn-toggle-all').textContent = 'Alle öffnen';
     const ctx = state.context || {};
     $('#result-chips').innerHTML = [ctx.stufe, ctx.funktion, ctx.erfahrung].filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
     const openBox = $('#result-open');
@@ -818,12 +1001,16 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
 
     const scores = DKCore.areaScores(ITEMS, state.answers);
     $('#radar-own').innerHTML = radarSVG([{ values: scores.map((s) => s.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwert der Stufen pro Kompetenzbereich' });
-    $('#legend-own').innerHTML = 'Mittelwert der gewählten Stufen pro Bereich (I = 1 bis VI = 6). Antworten «keine Gelegenheit» zählen nicht.';
+    $('#legend-own').innerHTML = 'Pro Bereich der Mittelwert der gewählten Stufen, von I Einsteigen (1) bis VI Weitergeben (6). Darunter die gerundete Stufe. «Keine Gelegenheit» zählt nicht.';
 
     const sg = DKCore.strengthsAndGaps(ITEMS, state.answers, 3);
     $('#list-strengths').innerHTML = sg.strengths.map((r) => `<li class="focus-item">${badge(r.v)}<span><b>${r.s.id}</b> ${esc(r.s.title)}</span></li>`).join('') || '<li class="muted small">Noch keine Angaben.</li>';
     $('#list-gaps').innerHTML = sg.gaps.map((r) => `<li class="focus-item">${badge(r.v)}<span><b>${r.s.id}</b> ${esc(r.s.title)}</span>
-      <span class="next">Nächste Stufe ${LV[r.v].roman}: ${esc(r.s.levels[r.v].text)}</span></li>`).join('') || '<li class="muted small">Keine offenen Entwicklungsfelder.</li>';
+      <span class="next">Nächste Stufe ${LV[r.v].roman}: ${esc(r.s.levels[r.v].text)}</span>${pdLine(r.s, r.v)}</li>`).join('') || '<li class="muted small">Keine offenen Entwicklungsfelder.</li>';
+    const themes = DKCore.personalThemes(ITEMS, state.answers, 3);
+    $('#pd-themes').innerHTML = themes.length ? `<p><b>Empfohlene Themenbereiche für die Weiterbildung</b></p>
+      <ul class="pd-list">${themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
+      <p class="small muted">Die Themenbereiche entsprechen dem Filter «Themenbereiche» in der Kursübersicht von fobizz. Sie ergeben sich aus den Entwicklungsfeldern und den Teilbereichen auf Stufe I.</p>` : '';
     $('#noopp-wrap').hidden = sg.noOpp.length === 0;
     $('#list-noopp').innerHTML = sg.noOpp.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}</li>`).join('');
 
@@ -839,7 +1026,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
             body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${esc(s.levels[v - 1].text)}</p></div>`;
             if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${esc(s.levels[v].text)}</p></div>`;
           }
-          return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
+          return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : v === 0 ? ' <span class="small muted">Keine Gelegenheit</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
         }).join('')}</div>`;
     }).join('');
     const blk = blockOf();
@@ -866,10 +1053,14 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   }
   const today = () => new Date().toISOString().slice(0, 10);
   $('#btn-save').addEventListener('click', () => download(`Kompetenzprofil_SZ_${today()}.json`, JSON.stringify(state, null, 1), 'application/json'));
-  $('#btn-print').addEventListener('click', () => {
-    $$('details.sub').forEach((d) => { d.dataset.wasOpen = d.open; d.open = true; });
-    window.print();
-    $$('details.sub').forEach((d) => { d.open = d.dataset.wasOpen === 'true'; });
+  window.addEventListener('beforeprint', () => { $$('details.sub').forEach((d) => { d.dataset.wasOpen = d.open; d.open = true; }); });
+  window.addEventListener('afterprint', () => { $$('details.sub').forEach((d) => { if (d.dataset.wasOpen !== undefined) d.open = d.dataset.wasOpen === 'true'; }); });
+  $('#btn-print').addEventListener('click', () => window.print());
+  $('#btn-toggle-all').addEventListener('click', (e) => {
+    const all = $$('#result-areas details.sub');
+    const open = all.some((d) => !d.open);
+    all.forEach((d) => { d.open = open; });
+    e.currentTarget.textContent = open ? 'Alle schliessen' : 'Alle öffnen';
   });
 
   /* ---------- Schulauswertung ---------- */
@@ -948,6 +1139,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const tooFew = agg.n < DKCore.MIN_GROUP;
     const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
     const noOppTop = SUBS.filter((s) => agg.bySub[s.id].counts[0] > 0).sort((a, b) => agg.bySub[b.id].counts[0] - agg.bySub[a.id].counts[0]).slice(0, 3);
+    const pd = agg.n ? DKCore.schoolThemes(ITEMS, agg, 3) : { themes: [], multipliers: [], noOpp: [] };
     const custom = customForRecords(recs);
 
     out.innerHTML = `
@@ -971,6 +1163,11 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
             <ul class="list-plain">${sorted.slice(0, 4).map((s) => `<li class="focus-item"><span class="badge lv${Math.max(1, Math.round(agg.bySub[s.id].mean))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
           <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3>
             <ul class="list-plain">${sorted.slice(-3).reverse().map((s) => `<li class="focus-item"><span class="badge lv${Math.round(agg.bySub[s.id].mean)}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`).join('')}</ul></div>
+          ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
+            <ul class="pd-list">${pd.themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
+            <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
+            ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI.</p>` : ''}
+            ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> In ${pd.noOpp.map((s) => s.id).join(', ')} gibt mindestens ein Viertel an, bisher keine Gelegenheit gehabt zu haben. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
           ${noOppTop.length ? `<div class="stack" style="gap:12px"><h3>Häufig keine Gelegenheit</h3><p class="small muted">Hinweis auf fehlende Voraussetzungen an der Schule.</p>
             <ul class="list-plain small">${noOppTop.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}: ${agg.bySub[s.id].counts[0]} Nennung${agg.bySub[s.id].counts[0] === 1 ? '' : 'en'}</li>`).join('')}</ul></div>` : ''}
         </div>
@@ -1125,12 +1322,41 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
         <button class="btn" type="button" id="cf-download">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
           Schulversion herunterladen</button>
+        <button class="btn secondary" type="button" id="cf-preview-btn" aria-expanded="${edPreview}" ${b.questions.length ? '' : 'disabled'}>${edPreview ? 'Vorschau schliessen' : 'Vorschau für Lehrpersonen'}</button>
         <span class="small" id="cf-msg" role="status"></span>
       </div>
+      <div id="cf-preview" class="preview" ${edPreview && b.questions.length ? '' : 'hidden'}>${edPreview ? previewHTML(b) : ''}</div>
       <p class="small muted">Der Entwurf bleibt in diesem Browser gespeichert. Die heruntergeladene Schulversion lässt sich später wieder öffnen und hier weiterbearbeiten.</p>`;
     bindEditor();
   }
 
+  let edPreview = false;
+  function previewHTML(b) {
+    const qs = b.questions.map((q, i) => {
+      const opts = (q.options || []).map((o) => o.trim()).filter(Boolean);
+      const name = 'pv-' + i;
+      let hint = '', body = '';
+      if (q.type === 'scale') {
+        hint = 'Wie weit trifft die Aussage zu?';
+        body = `<div class="opts inline">${SCALE.map((l) => `<label class="opt"><input type="radio" name="${name}"><span>${l}</span></label>`).join('')}</div>
+          <div class="opts" style="margin-top:8px"><label class="opt none"><input type="radio" name="${name}"><span>Kann ich nicht beurteilen</span></label></div>`;
+      } else if (q.type === 'levels') {
+        hint = 'Welche Aussage beschreibt das eigene Handeln am besten?';
+        body = `<div class="opts">${opts.map((o) => `<label class="opt"><input type="radio" name="${name}"><span>${esc(o)}</span></label>`).join('')}
+          <label class="opt none"><input type="radio" name="${name}"><span>Dazu hatte ich bisher keine Gelegenheit.</span></label></div>`;
+      } else if (q.type === 'choice') {
+        hint = q.multiple ? 'Mehrere Antworten möglich.' : 'Eine Antwort wählen.';
+        body = `<div class="opts">${opts.map((o) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}"><span>${esc(o)}</span></label>`).join('')}</div>`;
+      } else {
+        hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen.';
+        body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" rows="3"></textarea>`;
+      }
+      return `<fieldset class="q"><legend><span class="qid">${i + 1}</span><span>${esc(q.text || '(ohne Fragetext)')}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
+    }).join('');
+    return `<div class="eyebrow">Vorschau · so sehen Lehrpersonen den letzten Schritt · Eingaben werden nicht gespeichert</div>
+      <h2 style="margin-top:6px">${esc(b.title || 'Fragen unserer Schule')}</h2>
+      <p class="muted">${esc(b.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten stehen in der Ergebnisdatei und fliessen in die Schulauswertung ein.')}</p>${qs}`;
+  }
   function qEditHTML(q, i) {
     const n = ed.block.questions.length;
     let extra = '';
@@ -1170,6 +1396,10 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     $$('#cf-questions [data-remove]').forEach((btn) => btn.addEventListener('click', () => { b.questions.splice(+btn.dataset.remove, 1); saveDraft(); renderEditor(); }));
     $('#cf-add').addEventListener('click', () => { b.questions.push(emptyQ($('#cf-newtype').value)); saveDraft(); renderEditor(); $(`#qe-${b.questions.length - 1}-text`).focus(); });
     $('#cf-download').addEventListener('click', downloadSchoolVersion);
+    $('#cf-preview-btn').addEventListener('click', () => { edPreview = !edPreview; renderEditor(); if (edPreview) $('#cf-preview').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    const refresh = () => { if (edPreview) $('#cf-preview').innerHTML = previewHTML(b); };
+    ['#cf-title', '#cf-intro'].forEach((s) => $(s).addEventListener('input', refresh));
+    $$('#cf-questions [data-f]').forEach((el) => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', refresh));
   }
 
   if (SCHOOL) {
@@ -1177,7 +1407,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     $('#brand-sub').textContent = 'Selbsteinschätzung · Schulversion';
   }
 
-  go(location.hash === '#school' ? 'school' : location.hash === '#result' ? 'result' : 'start');
+  go(location.hash === '#school' ? 'school' : location.hash === '#result' ? 'result' : viewFromHash());
 })();
 </script>
 </body>
