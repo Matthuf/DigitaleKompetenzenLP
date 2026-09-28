@@ -170,6 +170,19 @@
   const steps = () => ITEMS.areas.length + (blockOf(cur) ? 1 : 0);
   const stepTitle = (i) => (i < ITEMS.areas.length ? ITEMS.areas[i].title : blockOf(cur).title);
 
+  // Unterkapitel des aktuellen Bereichs in der Übersicht; Klick scrollt zur Frage
+  function subnav(items) {
+    return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone" aria-label="${it.done ? 'beantwortet' : 'offen'}">${it.done ? '✓' : ''}</span></button>`).join('')}</div>`;
+  }
+  function jumpTo(key) {
+    const el = document.getElementById('fs-' + key);
+    if (!el) return;
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    const first = el.querySelector('input:checked, input, textarea');
+    if (first) setTimeout(() => first.focus({ preventScroll: true }), smooth ? 400 : 0);
+  }
+
   function renderAreaNav() {
     const blk = blockOf(cur);
     const ca = cur.custom_answers || {};
@@ -177,14 +190,17 @@
       const done = a.subareas.filter((s) => cur.answers[s.id] !== undefined).length;
       const full = done === a.subareas.length;
       return `<button type="button" data-area="${i}" aria-current="${i === areaIdx ? 'step' : 'false'}">
-        <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>`;
+        <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>` +
+        (i === areaIdx ? subnav(a.subareas.map((s) => ({ key: s.id, label: s.id, title: s.title, done: cur.answers[s.id] !== undefined }))) : '');
     }).join('') + (blk ? (() => {
       const done = blk.questions.filter((q) => ca[q.id] !== undefined).length;
       const full = done === blk.questions.length;
       return `<button type="button" data-area="${ITEMS.areas.length}" aria-current="${areaIdx === ITEMS.areas.length ? 'step' : 'false'}" style="margin-top:8px;border-top:1px solid var(--line)">
-        <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>`;
+        <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>` +
+        (areaIdx === ITEMS.areas.length ? subnav(blk.questions.map((q, k) => ({ key: q.id, label: String(k + 1), title: q.text, done: ca[q.id] !== undefined }))) : '');
     })() : '');
-    $$('#areanav button').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
+    $$('#areanav button[data-area]').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
+    $$('#areanav [data-jump]').forEach((b) => b.addEventListener('click', () => jumpTo(b.dataset.jump)));
     const p = DKCore.progress(ITEMS, cur.answers);
     $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
     $('#progress-text').textContent = `${p.done} von ${p.total} Kompetenzfragen beantwortet`;
@@ -210,7 +226,7 @@
       hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen. Die Schulleitung sieht Freitexte erst ab fünf abgeschlossenen Teilnahmen und in zufälliger Reihenfolge.';
       body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" name="${name}" rows="4" maxlength="1000">${esc(v || '')}</textarea>`;
     }
-    return `<fieldset class="q" data-qtype="${q.type}"><legend><span class="qid">${i + 1}</span><span>${esc(q.text)}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
+    return `<fieldset class="q" id="fs-${q.id}" data-qtype="${q.type}"><legend><span class="qid">${i + 1}</span><span>${esc(q.text)}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
   }
 
   function renderCustom() {
@@ -250,7 +266,7 @@
       $('#area-desc').textContent = a.description;
       $('#questions').innerHTML = a.subareas.map((s) => {
         const v = cur.answers[s.id];
-        return `<fieldset class="q">
+        return `<fieldset class="q" id="fs-${s.id}">
           <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
           <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
           <div class="opts">${s.levels.map((l) => `
