@@ -11,7 +11,8 @@ const require = createRequire(import.meta.url);
 const DKCore = require('../lib/core.cjs');
 const ITEMS = require('../lib/items.json');
 const SUB_IDS = new Set(DKCore.allSubareas(ITEMS).map((s) => s.id));
-const MIN = DKCore.MIN_GROUP;
+// Mindestgruppe für Auswertungen. Testphase: ab 1 Teilnahme. Für den Echtbetrieb in Vercel MIN_GROUP_SIZE=5 setzen.
+const MIN = Math.max(1, parseInt(process.env.MIN_GROUP_SIZE || '1', 10) || 1);
 
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 const fail = (status, msg) => { throw new HttpError(status, msg); };
@@ -83,10 +84,10 @@ async function aggregateFor(campaignId, stufe) {
   all.forEach((r) => { if (r.stufe) counts[r.stufe] = (counts[r.stufe] || 0) + 1; });
   const stufen = Object.entries(counts).filter(([, n]) => n >= MIN).map(([s, n]) => ({ stufe: s, n })).sort((a, b) => a.stufe.localeCompare(b.stufe));
   const recs = stufe ? all.filter((r) => r.stufe === stufe) : all;
-  if (recs.length < MIN) return { n: recs.length, total: all.length, tooFew: true, min: MIN, stufen };
+  if (recs.length < MIN) return { n: recs.length, total: all.length, tooFew: true, min: MIN, testMode: MIN < DKCore.MIN_GROUP, stufen };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
   const custom = camp && camp.custom_block ? { block: camp.custom_block, ...aggregateCustom(camp.custom_block, recs.map((r) => r.custom_answers)) } : null;
-  return { n: recs.length, total: all.length, tooFew: false, min: MIN, stufen, agg, custom };
+  return { n: recs.length, total: all.length, tooFew: false, min: MIN, testMode: MIN < DKCore.MIN_GROUP, stufen, agg, custom };
 }
 
 /* ---------- Routen ---------- */

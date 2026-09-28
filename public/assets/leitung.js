@@ -80,9 +80,10 @@
 
   function renderAnalysis(c, data, cmp) {
     const out = $('#an-out');
+    const testNote = data.testMode ? `<div class="box box--warning"><b>Testmodus:</b> Die Auswertung erscheint schon ab ${data.min} abgeschlossenen Teilnahme${data.min === 1 ? '' : 'n'}. Einzelne Antworten können dadurch erkennbar sein. Vor dem Echtbetrieb in Vercel die Variable <code>MIN_GROUP_SIZE</code> auf 5 setzen.</div>` : '';
     const stufeNote = `<p class="small muted">Eine Filterung nach Schulstufe ist nur für Stufen mit mindestens ${data.min} abgeschlossenen Teilnahmen möglich.</p>`;
     if (data.tooFew) {
-      out.innerHTML = `<div class="box box--info stack" style="gap:8px">
+      out.innerHTML = testNote + `<div class="box box--info stack" style="gap:8px">
         <h3>Noch zu wenige abgeschlossene Teilnahmen</h3>
         <p>${data.n} von mindestens ${data.min} abgeschlossenen Teilnahmen${sel.stufe ? ' in dieser Stufe' : ''}. Die Auswertung erscheint ab ${data.min}, damit keine Rückschlüsse auf einzelne Lehrpersonen möglich sind.</p>
       </div>${stufeNote}`;
@@ -102,7 +103,7 @@
     };
     const item = (s) => `<li class="focus-item"><span class="badge lv${Math.min(6, Math.max(1, Math.round(agg.bySub[s.id].mean)))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`;
 
-    out.innerHTML = `
+    out.innerHTML = testNote + `
       ${cmp && cmp.tooFew ? `<div class="box box--info">Für «${esc(cTitle)}» liegen zu wenige abgeschlossene Teilnahmen vor. Ein Vergleich ist darum nicht möglich.</div>` : ''}
       <div class="stat-row">
         <div class="stat"><span class="small muted">Abgeschlossene Teilnahmen</span><b>${data.n}</b></div>

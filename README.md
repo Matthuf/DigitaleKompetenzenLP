@@ -48,6 +48,7 @@ Ohne `DATABASE_URL` läuft eine Datenbank im Arbeitsspeicher (PGlite); nach eine
 3. Unter **Settings → Environment Variables** eintragen:
    - `SESSION_SECRET`: zufällige Zeichenfolge, mindestens 32 Zeichen
    - `CODE_PEPPER`: zufällige Zeichenfolge, mindestens 32 Zeichen. **Nie mehr ändern**, sonst werden alle persönlichen Codes ungültig.
+   - `MIN_GROUP_SIZE`: Mindestanzahl abgeschlossener Teilnahmen für Auswertungen. Ohne Angabe gilt **1 (Testphase)**; für den Echtbetrieb **5** setzen.
    - `ADMIN_USERNAME` und `ADMIN_PASSWORD`: erstes AVS-Konto (wird beim ersten Aufruf angelegt, falls noch kein Admin existiert)
 4. **Deployments → Redeploy**. Danach `/admin` öffnen, anmelden, Schule und Schulleitungszugang erfassen.
 
