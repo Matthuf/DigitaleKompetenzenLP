@@ -19,13 +19,17 @@
       </div>
       <a class="logo-link" href="/" aria-label="Kanton Schwyz – zur Startseite"><img src="/assets/logo-kanton-schwyz.png" alt="Kanton Schwyz"></a>
     </div>
-    <div class="topbar-user" id="userbar" hidden style="padding-bottom:14px">
-      <span>Angemeldet mit persönlichem Code</span>
-      <button class="btn quiet" type="button" id="btn-show-code">Meinen Code anzeigen</button>
-      <button class="btn quiet" type="button" id="btn-logout">Abmelden</button>
-    </div>
+    <nav class="nav" id="mainnav" aria-label="Hauptnavigation"></nav>
   </div>
 </header>
+<div class="userstrip no-print" id="userbar" hidden>
+  <div class="wrap topbar-user">
+      <span class="who">Angemeldet mit persönlichem Code</span>
+      <button class="btn quiet" type="button" id="btn-my">Meine Teilnahmen</button>
+      <button class="btn quiet" type="button" id="btn-show-code">Meinen Code anzeigen</button>
+      <button class="btn quiet" type="button" id="btn-logout">Abmelden</button>
+  </div>
+</div>
 
 <main class="wrap">
   <div class="box stack no-print" id="code-panel" hidden style="gap:12px;margin-bottom:28px"></div>
@@ -183,6 +187,7 @@
   <div class="wrap cols">
     <div><b>Kanton Schwyz</b><br>Bildungsdepartement · Amt für Volksschulen und Sport<br><a href="https://www.sz.ch" target="_blank" rel="noopener">www.sz.ch</a></div>
     <ul class="links">
+      <li><a href="/hilfe">Hilfe</a></li>
       <li><a href="/">Startseite</a></li>
       <li><a href="https://www.sz.ch/impressum" target="_blank" rel="noopener">Impressum</a></li>
       <li><a href="https://www.sz.ch/services/rechtliches/datenschutzerklaerung.html/8756-8761-10330-10328" target="_blank" rel="noopener">Datenschutz</a></li>
@@ -193,5 +198,6 @@
 <script src="/assets/core.js"></script>
 <script src="/assets/ui.js"></script>
 <script src="/assets/teilnahme.js"></script>
+<script src="/assets/nav.js"></script>
 </body>
 </html>

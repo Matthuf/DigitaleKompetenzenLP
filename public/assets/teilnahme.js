@@ -19,6 +19,32 @@
   let cur = null;         // aktuelle Teilnahme (Antwortobjekt vom Server)
   let viewing = null;     // im Profil angezeigte Teilnahme
   let areaIdx = 0;
+  let lastCode = null;     // gerade erzeugter Code (für «Zurück» zur Code-Seite)
+
+  /* ---------- Adressen pro Ansicht: «Zurück» im Browser funktioniert ---------- */
+  let routing = false, replaceNext = true;
+  function setHash(h) {
+    if (routing) return;
+    const target = '#' + h;
+    if (location.hash !== target) history[replaceNext ? 'replaceState' : 'pushState'](null, '', target);
+    replaceNext = false;
+  }
+  async function applyHash() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    routing = true;
+    try {
+      let mm;
+      if ((mm = h.match(/^fragebogen-(\d+)$/)) && me && cur && cur.campaign_status === 'open') { startSurvey(+mm[1] - 1); return; }
+      if ((mm = h.match(/^profil-(.+)$/)) && me) {
+        const x = me.responses.find((y) => y.id === mm[1]);
+        if (x) { viewing = x; renderResult(); return; }
+      }
+      if (h === 'code' && lastCode && me) { show('v-code'); return; }
+      if (h === 'start' && TOKEN && !me) { show('v-welcome'); return; }
+      renderHome();
+    } finally { routing = false; }
+  }
+  window.addEventListener('popstate', () => { applyHash(); });
 
   function show(id) {
     $$('main > .view').forEach((v) => { v.hidden = v.id !== id; });
@@ -47,6 +73,11 @@
   }
 
   async function init() {
+    const initialHash = location.hash;
+    await initViews();
+    if (me && /^#(fragebogen|profil)-/.test(initialHash)) { history.replaceState(null, '', initialHash); await applyHash(); }
+  }
+  async function initViews() {
     if (TOKEN) {
       let camp;
       try { camp = await api('GET', 'c/' + encodeURIComponent(TOKEN)); }
@@ -67,6 +98,7 @@
         return showError('Diese Erhebung ist abgeschlossen', 'Neue Teilnahmen sind nicht mehr möglich. Frühere Profile lassen sich unter «Mein Profil» mit dem persönlichen Code ansehen.', '<a class="btn" href="/mein-profil">Mein Profil</a>');
       }
       show('v-welcome');
+      setHash('start');
     } else {
       $('#campaign-name').textContent = 'Mein Profil';
       await loadMe();
@@ -111,7 +143,7 @@
       $('#btn-hide-code').addEventListener('click', () => { panel.hidden = true; });
     } catch (err) { panel.innerHTML = `<p class="error">${esc(err.message)}</p>`; }
     panel.hidden = false;
-    panel.scrollIntoView({ block: 'nearest' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   /* ---------- Einstieg ---------- */
@@ -123,11 +155,13 @@
       const r = await api('POST', 'c/' + encodeURIComponent(TOKEN) + '/start', { context: readCtx('ctx'), remember: $('#remember-start').checked });
       await loadMe();
       cur = me.responses.find((x) => x.id === r.responseId);
+      lastCode = r.code;
       $('#code-out').textContent = r.code;
       codeActions($('#code-actions'), r.code);
       $('#code-ack').checked = false;
       $('#btn-code-continue').disabled = true;
       show('v-code');
+      setHash('code');
     } catch (err) { $('#start-msg').textContent = err.message; }
   });
   $('#code-ack').addEventListener('change', (e) => { $('#btn-code-continue').disabled = !e.target.checked; });
@@ -156,9 +190,23 @@
     await loadMe();
     renderHome();
   });
-  $('#btn-logout').addEventListener('click', async () => {
+  async function doLogout() {
     await api('POST', 'me/logout');
     location.href = TOKEN ? location.pathname : '/';
+  }
+  $('#btn-logout').addEventListener('click', async () => {
+    const panel = $('#code-panel');
+    let code = null;
+    try { code = (await api('GET', 'me/code')).code; } catch { code = null; }
+    panel.innerHTML = `<h3>Vor dem Abmelden: Ist der persönliche Code gesichert?</h3>
+      <p>Ohne Code lässt sich das Profil nicht mehr öffnen, auch nicht durch die Schulleitung oder das Amt.</p>
+      ${code ? `<div><span class="code-display">${esc(code)}</span></div><div class="row" id="code-actions-3"></div>` : ''}
+      <div class="row"><button class="btn" type="button" id="btn-logout-now">Jetzt abmelden</button><button class="btn quiet" type="button" id="btn-logout-cancel">Abbrechen</button></div>`;
+    if (code) codeActions($('#code-actions-3'), code);
+    $('#btn-logout-now').addEventListener('click', doLogout);
+    $('#btn-logout-cancel').addEventListener('click', () => { panel.hidden = true; });
+    panel.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   /* ---------- Fragebogen ---------- */
@@ -184,10 +232,13 @@
   }
   async function flush() { clearTimeout(saveTimer); await save(); }
 
-  function startSurvey() {
-    const p = DKCore.progress(ITEMS, cur.answers);
-    const firstOpen = p.open[0];
-    areaIdx = firstOpen ? ITEMS.areas.findIndex((a) => a.id === SUBS.find((s) => s.id === firstOpen).areaId) : 0;
+  function startSurvey(area) {
+    if (Number.isInteger(area)) areaIdx = area;
+    else {
+      const p = DKCore.progress(ITEMS, cur.answers);
+      const firstOpen = p.open[0];
+      areaIdx = firstOpen ? ITEMS.areas.findIndex((a) => a.id === SUBS.find((s) => s.id === firstOpen).areaId) : 0;
+    }
     Object.keys(CONTEXT_OPTIONS).forEach((k) => { $(`#ctx2-${k}`).value = (cur.context && cur.context[k]) || ''; });
     ctxSummary();
     setSaveState(cur.updated_at ? 'Zuletzt gespeichert am ' + date(cur.updated_at) : '');
@@ -324,6 +375,7 @@
     $('#btn-next').textContent = last ? (cur.status === 'submitted' ? 'Änderungen übernehmen' : 'Abschliessen und Profil anzeigen') : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
     $('#open-hint').textContent = '';
     renderAreaNav();
+    setHash('fragebogen-' + (areaIdx + 1));
     if (focus) { window.scrollTo({ top: 0 }); $('#h-area').focus({ preventScroll: true }); }
   }
   $('#btn-prev').addEventListener('click', () => { if (areaIdx > 0) { areaIdx--; renderSurvey(true); } });
@@ -356,9 +408,8 @@
     $('#result-date').textContent = `${r.campaign_title} · ${r.status === 'submitted' ? 'abgeschlossen am ' + date(r.submitted_at) : 'in Bearbeitung'}`;
     const ctx = r.context || {};
     $('#result-chips').innerHTML = Object.values(ctx).filter(Boolean).map((c) => `<span class="chip">${esc(c)}</span>`).join('') || '<span class="small muted">Keine Angaben zum Arbeitsumfeld</span>';
-    $('#history').innerHTML = me.responses.length > 1 ? me.responses.map((x) =>
-      `<button class="btn ${x.id === r.id ? '' : 'secondary'}" type="button" data-resp="${x.id}">${esc(x.campaign_title)}</button>`).join('') : '';
-    $$('#history [data-resp]').forEach((b) => b.addEventListener('click', () => { viewing = me.responses.find((x) => x.id === b.dataset.resp); renderResult(); }));
+    $('#history').innerHTML = `<button class="btn secondary" type="button" id="btn-all">Alle meine Teilnahmen${me.responses.length > 1 ? ' (' + me.responses.length + ')' : ''}</button>`;
+    $('#btn-all').addEventListener('click', () => renderHome());
 
     const p = DKCore.progress(ITEMS, answers);
     const note = $('#result-note');
@@ -423,6 +474,7 @@
       await api('DELETE', 'me'); me = null; location.href = '/';
     });
     show('v-result');
+    setHash('profil-' + r.id);
   }
   $('#btn-edit').addEventListener('click', () => { cur = viewing; startSurvey(); });
   $('#btn-print').addEventListener('click', () => {
@@ -436,26 +488,35 @@
     download(`Kompetenzprofil_SZ_${today()}.json`, JSON.stringify(rec, null, 1), 'application/json');
   });
 
-  /* ---------- Mein Profil ---------- */
+  /* ---------- Meine Teilnahmen ---------- */
   function renderHome() {
     $('#form-code-home').hidden = !!me;
     const list = $('#home-list');
     list.hidden = !me;
+    $('#h-home').textContent = me ? 'Meine Teilnahmen' : 'Mein Profil';
     if (me) {
       $('#school-name').textContent = me.school.name;
-      const latest = [...me.responses].reverse().find((x) => x.status === 'submitted') || me.responses[me.responses.length - 1];
-      if (latest && latest.status === 'submitted') { viewing = latest; return renderResult(); }
-      list.innerHTML = `<table class="list"><thead><tr><th>Erhebung</th><th>Status</th><th>Zuletzt bearbeitet</th><th></th></tr></thead><tbody>` +
-        me.responses.map((x) => `<tr><td>${esc(x.campaign_title)}</td><td><span class="status ${x.status === 'submitted' ? 'open' : 'draft'}">${x.status === 'submitted' ? 'abgeschlossen' : 'in Bearbeitung'}</span></td><td>${date(x.updated_at)}</td>
-          <td><button class="btn quiet" type="button" data-open="${x.id}">Öffnen</button></td></tr>`).join('') + `</tbody></table>
-        <p class="small muted">Für eine neue Teilnahme den Link der Schulleitung verwenden.</p>`;
-      $$('#home-list [data-open]').forEach((b) => b.addEventListener('click', () => {
-        const x = me.responses.find((y) => y.id === b.dataset.open);
-        if (x.status !== 'submitted' && x.campaign_status === 'open') { cur = x; startSurvey(); } else { viewing = x; renderResult(); }
-      }));
+      const rows = [...me.responses].reverse();
+      list.innerHTML = (rows.length ? `<div class="part-list">${rows.map((x) => {
+        const p = DKCore.progress(ITEMS, x.answers);
+        const done = x.status === 'submitted';
+        const canEdit = x.campaign_status === 'open';
+        return `<div class="part-row">
+          <div><b>${esc(x.campaign_title)}</b> <span class="status ${done ? 'open' : 'draft'}">${done ? 'abgeschlossen' : 'in Bearbeitung'}</span>
+            <div class="meta">${done ? 'Abgeschlossen am ' + date(x.submitted_at) : p.done + ' von ' + p.total + ' Fragen beantwortet'} · zuletzt bearbeitet am ${date(x.updated_at)}${canEdit ? '' : ' · Erhebung geschlossen'}</div></div>
+          <div class="acts">
+            ${p.done ? `<button class="btn ${done ? '' : 'secondary'}" type="button" data-view="${x.id}">Profil ansehen</button>` : ''}
+            ${canEdit ? `<button class="btn ${done ? 'secondary' : ''}" type="button" data-edit="${x.id}">${done ? 'Antworten bearbeiten' : 'Fortsetzen'}</button>` : ''}
+          </div></div>`;
+      }).join('')}</div>` : '<p class="muted">Noch keine Teilnahme.</p>') +
+        `<p class="small muted">Für eine neue Teilnahme den Link der Schulleitung verwenden. Bei einer neuen Erhebung erscheint im Profil der Vergleich mit der letzten Teilnahme.</p>`;
+      $$('#home-list [data-view]').forEach((b) => b.addEventListener('click', () => { viewing = me.responses.find((y) => y.id === b.dataset.view); renderResult(); }));
+      $$('#home-list [data-edit]').forEach((b) => b.addEventListener('click', () => { cur = me.responses.find((y) => y.id === b.dataset.edit); startSurvey(); }));
     }
     show('v-home');
+    setHash(me ? 'teilnahmen' : 'anmelden');
   }
+  $('#btn-my').addEventListener('click', () => renderHome());
 
   window.addEventListener('beforeunload', (e) => { if (saveTimer && $('#save-state').textContent.startsWith('Wird')) { e.preventDefault(); } });
   init();

@@ -251,3 +251,28 @@ textarea:focus { outline: 3px solid var(--ink); outline-offset: 1px; }
 @media (max-width: 860px) { .areanav .subnav { grid-column: 1 / -1; } }
 fieldset.q { scroll-margin-top: 16px; }
 @media (min-width: 861px) { .survey-grid > aside { max-height: calc(100vh - 32px); overflow-y: auto; } }
+
+/* Hauptnavigation als Links */
+.nav a { display: inline-block; padding: 10px 0 12px; font-weight: 700; color: var(--ink-2); text-decoration: none; border-bottom: 4px solid transparent; }
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--red); }
+@media (max-width: 720px) { .nav { gap: 0 20px; } }
+/* Leiste für angemeldete Personen */
+.userstrip { background: var(--box); border-bottom: 1px solid var(--line); }
+.userstrip .topbar-user { padding-block: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 18px; font-size: 0.9rem; }
+.userstrip .who { color: var(--ink-2); margin-right: auto; }
+.userstrip .btn.quiet { padding: 6px 0; font-size: 0.9rem; }
+@media (max-width: 600px) { .userstrip .who { flex-basis: 100%; } }
+/* Meine Teilnahmen */
+.part-list { display: grid; gap: 0; border-top: 2px solid var(--ink); }
+.part-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 20px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.part-row .meta { font-size: 0.85rem; color: var(--ink-2); }
+.part-row .acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+@media (max-width: 600px) { .part-row { grid-template-columns: 1fr; } .part-row .acts { justify-content: flex-start; } }
+/* Hilfe: Akkordeon */
+details.faq { border-bottom: 1px solid var(--line); }
+details.faq summary { cursor: pointer; padding: 12px 0; font-weight: 700; list-style: none; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after { content: "+"; color: var(--red); font-weight: 700; }
+details.faq[open] summary::after { content: "−"; }
+details.faq p { padding-bottom: 14px; }
