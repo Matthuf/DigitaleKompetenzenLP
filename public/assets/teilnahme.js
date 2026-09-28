@@ -442,6 +442,11 @@
     const done = me.responses.filter((x) => x.status === 'submitted' && x.id !== r.id && new Date(x.created_at) < new Date(r.created_at));
     return done.length ? done[done.length - 1] : null;
   }
+  function pdLine(sub, level) {
+    const t = DKCore.pdThemeFor(ITEMS, sub, level);
+    if (!t) return '';
+    return `<span class="next pd">Weiterbildung (fobizz-Themenbereich): <b>${esc(t.primary)}</b>${t.entry ? ' · Einstiegsangebote wählen' : ''}${t.secondary ? ' · auch passend: ' + esc(t.secondary) : ''}</span>`;
+  }
   function renderResult() {
     const r = viewing;
     const answers = r.answers;
@@ -472,7 +477,11 @@
     const sg = DKCore.strengthsAndGaps(ITEMS, answers, 3);
     $('#list-strengths').innerHTML = sg.strengths.map((x) => `<li class="focus-item">${badge(x.v)}<span><b>${x.s.id}</b> ${esc(x.s.title)}</span></li>`).join('') || '<li class="muted small">Noch keine Angaben.</li>';
     $('#list-gaps').innerHTML = sg.gaps.map((x) => `<li class="focus-item">${badge(x.v)}<span><b>${x.s.id}</b> ${esc(x.s.title)}</span>
-      <span class="next">Nächste Stufe ${LV[x.v].roman}: ${esc(x.s.levels[x.v].text)}</span></li>`).join('') || '<li class="muted small">Keine offenen Entwicklungsfelder.</li>';
+      <span class="next">Nächste Stufe ${LV[x.v].roman}: ${esc(x.s.levels[x.v].text)}</span>${pdLine(x.s, x.v)}</li>`).join('') || '<li class="muted small">Keine offenen Entwicklungsfelder.</li>';
+    const themes = DKCore.personalThemes(ITEMS, answers, 3);
+    $('#pd-themes').innerHTML = themes.length ? `<p><b>Empfohlene Themenbereiche für die Weiterbildung</b></p>
+      <ul class="pd-list">${themes.map((t) => `<li><span class="pd-chip">${esc(t.theme)}</span> <span class="small muted">passt zu ${t.subs.join(', ')}</span></li>`).join('')}</ul>
+      <p class="small muted">Die Themenbereiche entsprechen dem Filter «Themenbereiche» in der Kursübersicht von fobizz. Sie ergeben sich aus den Entwicklungsfeldern und den Teilbereichen auf Stufe I.</p>` : '';
     $('#noopp-wrap').hidden = sg.noOpp.length === 0;
     $('#list-noopp').innerHTML = sg.noOpp.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}</li>`).join('');
 

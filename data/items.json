@@ -88,7 +88,11 @@
        "itemId": "1.1-VI",
        "text": "Ich trage zur Entwicklung innovativer Konzepte und Strategien für den verantwortungsvollen Einsatz digitaler Technologien für die Kommunikation bei und multipliziere diese auch über die eigene Schule hinaus."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Digitale Tools & Anwendungen",
+      "secondary": "Team- und Beziehungsarbeit"
+     }
     },
     {
      "id": "1.2",
@@ -137,7 +141,11 @@
        "itemId": "1.2-VI",
        "text": "Mit Hilfe von Online-Communities trage ich zur innovativen Weiterentwicklung pädagogischer Praktiken bei. Dabei fördere und unterstütze ich Lehrkräfte auch ausserhalb des eigenen Kollegiums bei der Weiterentwicklung ihrer digitalen und pädagogischen Kompetenzen."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Team- und Beziehungsarbeit",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     },
     {
      "id": "1.3",
@@ -186,7 +194,11 @@
        "itemId": "1.3-VI",
        "text": "Mit Hilfe digitaler Medien trage ich dazu bei, individuell oder gemeinsam mit Kolleginnen und Kollegen eine Strategie zur Verbesserung der Bildungspraxis zu entwickeln. Ich reflektiere und evaluiere mit Kolleginnen und Kollegen und/oder Wissenschaftlerinnen und Wissenschaftlern verschiedene digitale Praktiken, Methoden und Strategien mit dem Ziel, innovative Konzepte zu entwickeln. (z.B. Mitwirkung an Kongressen oder Barcamps)"
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Gesundheit & Professionalisierung",
+      "secondary": "Didaktik & Unterrichtsdesign"
+     }
     },
     {
      "id": "1.4",
@@ -235,7 +247,11 @@
        "itemId": "1.4-VI",
        "text": "Ich fördere Kolleginnen und Kollegen mit Hilfe digitaler Technologien (z. B. im Rahmen von Fortbildungen, durch persönliche Blogs oder indem ich für sie neues digitales Fortbildungsmaterial entwickle)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Gesundheit & Professionalisierung",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     }
    ]
   },
@@ -292,7 +308,11 @@
        "itemId": "2.1-VI",
        "text": "Ich entwickle und multipliziere innovative Strategien zur Auswahl, Identifizierung und Auswertung digitaler Ressourcen."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Digitale Tools & Anwendungen",
+      "secondary": "Medienkompetenz & Medienkritik"
+     }
     },
     {
      "id": "2.2",
@@ -341,7 +361,11 @@
        "itemId": "2.2-VI",
        "text": "Ich entwickle und multipliziere komplexe und innovative digitale Ressourcen für Lehr-/Lernkontexte (z. B.digitale Lernumgebungen mit 3D-Animationen) unter Berücksichtigung neuester technischer Entwicklungen."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Digitale Tools & Anwendungen",
+      "secondary": "Künstliche Intelligenz"
+     }
     },
     {
      "id": "2.3",
@@ -390,7 +414,11 @@
        "itemId": "2.3-VI",
        "text": "Ich erstelle innovative digitale Ressourcen selbst, lizenziere sie und veröffentliche sie für die Lernenden und andere Lehrkräfte (z. B. digital erweiterte Aufgaben in einem Online-Kurs, einer Online-Beurteilung, einem kollaborativen Online-Projekt oder einem virtuellen Lernraum)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Medienkompetenz & Medienkritik",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     }
    ]
   },
@@ -447,7 +475,11 @@
        "itemId": "3.1-VI",
        "text": "Ich trage zur Entwicklung innovativer Lernpraktiken mit digitalen Technologien bei wie z.B. Online-Workshops, Co-Teaching und Reflexionsgespräche über die Wirksamkeit des Einsatzes digitaler Technologien. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Didaktik & Unterrichtsdesign",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     },
     {
      "id": "3.2",
@@ -496,7 +528,11 @@
        "itemId": "3.2-VI",
        "text": "Ich entwickle innovative Ansätze zur Unterstützung und Begleitung des Lernprozesses. Im Zuge dessen werden digitale Technologien (z.B. Diskussionsforen, gemeinsame Dokumente und FAQ-Sheets) eingesetzt. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Didaktik & Unterrichtsdesign",
+      "secondary": "Leistung, Feedback & Lernstand"
+     }
     },
     {
      "id": "3.3",
@@ -545,7 +581,11 @@
        "itemId": "3.3-VI",
        "text": "Ich entwickle innovative Lernszenarien, indem ich Möglichkeiten der Zusammenarbeit zur Unterstützung des Lernens (z.B. Nutzung synchroner und asynchroner Online-Umgebungen sowie Mitgestaltung und gemeinsame Erstellung von Lernmaterial) anbiete. Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Didaktik & Unterrichtsdesign",
+      "secondary": "Team- und Beziehungsarbeit"
+     }
     },
     {
      "id": "3.4",
@@ -594,7 +634,11 @@
        "itemId": "3.4-VI",
        "text": "Ich entwickle innovative pädagogischer Strategien und Praktiken für das selbstgesteuerte Lernen (z.B. Makerspaces und Lernräume mit digitalen Technologien). Diese gebe ich in regionalen und überregionalen Fortbildungen weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Didaktik & Unterrichtsdesign",
+      "secondary": "Inklusion, Differenzierung & Sprachbildung"
+     }
     }
    ]
   },
@@ -651,7 +695,11 @@
        "itemId": "4.1-VI",
        "text": "Ich entwickle neue digitale Bewertungsformate, die es auch ermöglichen, innovative pädagogische Ansätze und überfachliche Fertigkeiten bewerten zu können (z. B. Selbst- und Peer-Bewertung, digitale Test- und Diagnosesysteme, formative Assessments, e-Portfolios). Diese gebe ich in meinem Kollegium und in Fortbildungen weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Leistung, Feedback & Lernstand",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     },
     {
      "id": "4.2",
@@ -700,7 +748,11 @@
        "itemId": "4.2-VI",
        "text": "Ich initiiere und fördere in meiner Schule und ihrem Umfeld Strategien und Praktiken, die helfen, mittels Datengenerierung Lernprozesse zu beobachten. Mein diesbezügliches Wissen gebe ich in Kollegium und auf Fortbildungen weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Leistung, Feedback & Lernstand",
+      "secondary": "Künstliche Intelligenz"
+     }
     },
     {
      "id": "4.3",
@@ -749,7 +801,11 @@
        "itemId": "4.3-VI",
        "text": "Ich initiiere und fördere eine Strategie, die das Geben, Empfangen und Analysieren von Feedback erleichtert, um die Planung weiterer Massnahmen zu unterstützen (z. B. e-Portfolios, kontextabhängiges Feedback, digitales Storytelling). Mein zugehöriges Wissen gebe ich in Kollegium und Fortbildung weiter."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Leistung, Feedback & Lernstand",
+      "secondary": "Didaktik & Unterrichtsdesign"
+     }
     }
    ]
   },
@@ -806,7 +862,11 @@
        "itemId": "5.1-VI",
        "text": "Ich entwickle und multipliziere Konzepte und fördere Strategien für den gleichberechtigten Zugang zu Bildung durch den Einsatz digitaler Technologien (z. B. Medienbildung für Lernende und deren Eltern, Konzepte für Barrierefreiheit)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Inklusion, Differenzierung & Sprachbildung",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     },
     {
      "id": "5.2",
@@ -855,7 +915,11 @@
        "itemId": "5.2-VI",
        "text": "Ich entwickle und multipliziere Konzepte für digital gestützte Differenzierung und Individualisierung (z. B. Austausch bewährter inklusiver Lernmethoden, Online-Plattform mit Ressourcen)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Inklusion, Differenzierung & Sprachbildung",
+      "secondary": "Didaktik & Unterrichtsdesign"
+     }
     },
     {
      "id": "5.3",
@@ -904,7 +968,11 @@
        "itemId": "5.3-VI",
        "text": "Ich initiiere, fördere und multipliziere innovative Konzepte zur Förderung des digital gestützten eigenaktiven Lernens (z. B. Makerspace, Robotik, Programmierung, KI-Anwendungen, eigene Erstellung von komplexen Lernspielen)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Didaktik & Unterrichtsdesign",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     }
    ]
   },
@@ -961,7 +1029,11 @@
        "itemId": "6.1-VI",
        "text": "Ich trage zur Entwicklung und Multiplikation innovativer und kreativer Lernszenarien für die Nutzung von Medienangeboten bei schulischen Lernaktivitäten und Aufgaben bei. Dabei analysiere und modelliere ich den Einsatz von digitalen Werkzeugen und bereite sie didaktisch auf (z.B. Entwicklung von Lernsoftware oder Schulbüchern mit digitalen Zusatzangeboten, Entwicklung von Unterrichtskonzepten mit digitalen Medien, Verfassen von Handreichungen für den Unterricht, umfassende regionale bzw. zentrale Referententätigkeit)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Medienkompetenz & Medienkritik",
+      "secondary": "Digitale Tools & Anwendungen"
+     }
     },
     {
      "id": "6.2",
@@ -1010,7 +1082,11 @@
        "itemId": "6.2-VI",
        "text": "Ich trage zur Entwicklung und Multiplikation von innovativen Lernszenarien bei. Diese fördern Kompetenzen zur Informationsgewinnung und -verarbeitung - auch unter Berücksichtigung neuer medialer Entwicklungen (z.B. Entwicklung bestimmter Kriterien zur kritischen Bewertung von Suchergebnissen kommerzieller Suchmaschinen; Nutzung von (neuen) Spezial-Suchmaschinen)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Medienkompetenz & Medienkritik",
+      "secondary": "Künstliche Intelligenz"
+     }
     },
     {
      "id": "6.3",
@@ -1059,7 +1135,11 @@
        "itemId": "6.3-VI",
        "text": "Ich entwickle innovative Lernszenarien zur Förderung von Kompetenzen zur Kommunikation und Zusammenarbeit der Lernenden sowie zur Partizipation in einer digitalisierten Welt – auch unter Einbezug neuer kommunikationstechnischer Entwicklungen (z. B. Entwicklung neuer digitaler Kollaborationsformen im unterrichtlichen Kontext)."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Medienkompetenz & Medienkritik",
+      "secondary": "Schülerinnenwelten & Gesellschaft"
+     }
     },
     {
      "id": "6.4",
@@ -1108,7 +1188,11 @@
        "itemId": "6.4-VI",
        "text": "Ich entwickle innovative Lernszenarien zur Förderung digital gestützter kreativer Produkte, Präsentationen und Publikationen der Lernenden (z. B. Veröffentlichung komplexer Medienprodukte, gemeinsame Erstellung von mobilen Apps, Unterhaltung von Makerspaces, Förderung von Audio- und Videoübertragungen) und multipliziere diese Kompetenzen in regionalen oder überregionalen Fortbildungen."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Digitale Tools & Anwendungen",
+      "secondary": "Medienkompetenz & Medienkritik"
+     }
     },
     {
      "id": "6.5",
@@ -1157,9 +1241,30 @@
        "itemId": "6.5-VI",
        "text": "Ich entwickle und multipliziere innovative Konzepte und Lernszenarien zur kritischen Auseinandersetzung mit Inhalten, Gestaltungsmitteln, Wirkungsweisen und Einflüssen digitaler Technologien sowie Chancen und Risiken in den Medien."
       }
-     ]
+     ],
+     "pd": {
+      "primary": "Medienkompetenz & Medienkritik",
+      "secondary": "Schülerinnenwelten & Gesellschaft"
+     }
     }
    ]
   }
- ]
+ ],
+ "pd": {
+  "provider": "fobizz",
+  "lead": "Schulentwicklung & Leadership",
+  "themes": [
+   "Didaktik & Unterrichtsdesign",
+   "Team- und Beziehungsarbeit",
+   "Leistung, Feedback & Lernstand",
+   "Gesundheit & Professionalisierung",
+   "Digitale Tools & Anwendungen",
+   "Medienkompetenz & Medienkritik",
+   "Schulentwicklung & Leadership",
+   "Inklusion, Differenzierung & Sprachbildung",
+   "Künstliche Intelligenz",
+   "Schülerinnenwelten & Gesellschaft",
+   "Programmieren & Informatik"
+  ]
+ }
 }

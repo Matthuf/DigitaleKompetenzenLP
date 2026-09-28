@@ -9,6 +9,10 @@ Zwei Versionen aus derselben Quelle:
 | **Offline** (`dist/DigKomp_SZ_Selbsteinschaetzung.html`) | Einzelne Lehrpersonen, ohne Internet | bleiben im Browser, Export als Datei |
 | **Server** (dieses Repository auf Vercel) | Schulen | Postgres-Datenbank, getrennt pro Schule |
 
+## Weiterbildungsempfehlungen
+
+Blatt «Weiterbildung» der Excel-Masterdatei: pro Teilbereich ein Haupt- und ein Nebenthema aus den fobizz-Themenbereichen (Auswahlliste im Blatt «Themen fobizz»). Regeln (in `src/core.js`): Stufe I–IV → Hauptthema (I–II mit Hinweis auf Einstiegsangebote), Stufe V → «Schulentwicklung & Leadership», Stufe VI und «keine Gelegenheit» → keine Empfehlung. Rangliste: Hauptthema 2 Punkte, Nebenthema 1 Punkt. Profil: über die Entwicklungsfelder und alle Teilbereiche auf Stufe I. Schulauswertung: über die vier Handlungsfelder, dazu Hinweise auf interne Weitergabe (mind. 25 % auf Stufe V–VI) und fehlende Voraussetzungen (mind. 25 % «keine Gelegenheit»). Änderungen: Excel anpassen, `npm run build:items`, committen.
+
 ## Eigene Fragen in der Offline-Version
 
 Im Reiter «Eigene Fragen» erstellt die Schulleitung ihre Fragen (gleiche vier Formen wie online) und lädt eine **Schulversion** herunter: eine neue HTML-Datei, in der Schulname und Fragen fest eingebaut sind (Konfiguration zwischen den Markierungen `SCHOOL_CONFIG_START/END`). Die Lehrpersonen beantworten die Fragen als letzten Schritt; die Antworten stehen in ihrer Ergebnisdatei. Die Schulauswertung liest die Dateien ein und wertet die eigenen Fragen über die Frage-Kennung aus, auch über mehrere Versionen derselben Schule.
@@ -72,5 +76,5 @@ Die Serverfunktion läuft in Frankfurt (`regions: fra1` in `vercel.json`).
 
 - Itemtexte an Schwyzer Begriffe anpassen, KI-Aussagen in die Bereiche integrieren (`ki`-Markierung pro Teilbereich vorhanden).
 - Lizenz bzw. Einverständnis der ALP Dillingen für die Verwendung der Itemtexte klären.
-- Weiterbildungsempfehlungen (z. B. fobizz-Themen) pro Teilbereich ergänzen.
+- Weiterbildungsempfehlungen: Zuordnung der Teilbereiche zu den fobizz-Themenbereichen (Blatt «Weiterbildung» in der Excel-Masterdatei) ist ein Vorschlag und im Team zu validieren. **Für die Endversion: Themenbereiche auf fobizz verlinken** (im Prototyp bewusst ohne Links).
 - Schutz gegen Durchprobieren von Anmeldungen (Rate-Limit) vor dem Echtbetrieb.

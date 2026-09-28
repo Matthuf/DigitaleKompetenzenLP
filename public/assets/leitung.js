@@ -39,7 +39,7 @@
     }
     list.innerHTML = campaigns.map((c) => {
       const n = Block.count(c);
-      const quote = c.expected ? Math.min(100, Math.round(100 * c.submitted / c.expected)) : null;
+    const quote = c.expected ? Math.min(100, Math.round(100 * c.submitted / c.expected)) : null;
       return `<article class="camp-card ${c.status}" data-id="${c.id}">
         <div class="camp-head"><h3>${esc(c.title)}</h3><span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
         <div class="camp-meta">Eröffnet am ${date(c.created_at)}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''} · Eigene Fragen: ${n ? n : 'keine'}</div>
@@ -240,6 +240,7 @@ ${schoolName ? schoolName : ''}`;
       return `<span class="delta ${d > 0.05 ? 'up' : d < -0.05 ? 'down' : ''}">${d > 0 ? '+' : ''}${fmt(d)}</span>`;
     };
     const item = (s) => `<li class="focus-item"><span class="badge lv${Math.min(6, Math.max(1, Math.round(agg.bySub[s.id].mean)))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`;
+    const pd = DKCore.schoolThemes(ITEMS, agg, 3);
     const quote = c.expected ? ` von ${c.expected} Lehrpersonen (${Math.min(100, Math.round(100 * data.total / c.expected))} %)` : '';
 
     out.innerHTML = testNote + `
@@ -255,6 +256,11 @@ ${schoolName ? schoolName : ''}`;
         <div class="stack" style="gap:28px">
           <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3><ul class="list-plain">${sorted.slice(0, 4).map(item).join('')}</ul></div>
           <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3><ul class="list-plain">${sorted.slice(-3).reverse().map(item).join('')}</ul></div>
+          ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
+            <ul class="pd-list">${pd.themes.map((t) => `<li><span class="pd-chip">${esc(t.theme)}</span> <span class="small muted">passt zu ${t.subs.join(', ')}</span></li>`).join('')}</ul>
+            <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
+            ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI. Kolleginnen und Kollegen könnten ihr Wissen intern weitergeben.</p>` : ''}
+            ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> In ${pd.noOpp.map((s) => s.id).join(', ')} gibt mindestens ein Viertel an, bisher keine Gelegenheit gehabt zu haben. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
           ${noOpp.length ? `<div class="stack" style="gap:12px"><h3>Häufig keine Gelegenheit</h3><p class="small muted">Hinweis auf fehlende Voraussetzungen an der Schule.</p>
             <ul class="list-plain small">${noOpp.map((s) => `<li><b>${s.id}</b> ${esc(s.title)}: ${agg.bySub[s.id].counts[0]} Nennung${agg.bySub[s.id].counts[0] === 1 ? '' : 'en'}</li>`).join('')}</ul></div>` : ''}
         </div>
