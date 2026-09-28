@@ -222,7 +222,7 @@
     saving = true;
     try {
       await api('PUT', 'me/responses/' + cur.id, { answers: cur.answers, context: cur.context, custom_answers: cur.custom_answers || {} });
-      setSaveState('Gespeichert um ' + new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' Uhr', 'ok');
+      setSaveState('Gespeichert ' + new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' Uhr', 'ok');
     } catch (err) {
       setSaveState('Nicht gespeichert: ' + err.message, 'error');
     } finally {
@@ -263,14 +263,33 @@
   function subnav(items) {
     return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone" aria-label="${it.done ? 'beantwortet' : 'offen'}">${it.done ? '✓' : ''}</span></button>`).join('')}</div>`;
   }
+  const isNarrow = () => window.matchMedia('(max-width: 860px)').matches;
+  const smoothOK = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Scrollen unter Berücksichtigung der auf dem Handy fixierten Übersichtsleiste
+  function scrollToEl(el) {
+    const off = isNarrow() ? $('#survey-aside').offsetHeight + 12 : 16;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off, behavior: smoothOK() ? 'smooth' : 'auto' });
+  }
   function jumpTo(key) {
     const el = document.getElementById('fs-' + key);
     if (!el) return;
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    closeNav();
+    scrollToEl(el);
     const first = el.querySelector('input:checked, input, textarea');
-    if (first) setTimeout(() => first.focus({ preventScroll: true }), smooth ? 400 : 0);
+    if (first) setTimeout(() => first.focus({ preventScroll: true }), smoothOK() ? 400 : 0);
   }
+  // Nach der ersten Antwort auf eine Frage sanft zur nächsten offenen Frage weiter
+  function advanceFrom(fs) {
+    const all = $$('#questions fieldset.q');
+    const next = all.slice(all.indexOf(fs) + 1).find((f) => !f.querySelector('input:checked') && !(f.querySelector('textarea') && f.querySelector('textarea').value.trim()));
+    setTimeout(() => scrollToEl(next || $('.survey-foot')), 300);
+  }
+  function closeNav() { $('#survey-aside').classList.remove('open'); $('#nav-toggle').setAttribute('aria-expanded', 'false'); }
+  $('#nav-toggle').addEventListener('click', () => {
+    const open = !$('#survey-aside').classList.contains('open');
+    $('#survey-aside').classList.toggle('open', open);
+    $('#nav-toggle').setAttribute('aria-expanded', String(open));
+  });
 
   function renderAreaNav() {
     const blk = blockOf(cur);
@@ -288,11 +307,20 @@
         <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>` +
         (areaIdx === ITEMS.areas.length ? subnav(blk.questions.map((q, k) => ({ key: q.id, label: String(k + 1), title: q.text, done: ca[q.id] !== undefined }))) : '');
     })() : '');
-    $$('#areanav button[data-area]').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; renderSurvey(true); }));
+    $$('#areanav button[data-area]').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; closeNav(); renderSurvey(true); }));
     $$('#areanav [data-jump]').forEach((b) => b.addEventListener('click', () => jumpTo(b.dataset.jump)));
     const p = DKCore.progress(ITEMS, cur.answers);
     $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
-    $('#progress-text').textContent = `${p.done} von ${p.total} Kompetenzfragen beantwortet`;
+    $('#progress-text').innerHTML = `${p.done}<span class="hide-narrow"> von ${p.total} Kompetenzfragen</span><span class="show-narrow">/${p.total}</span> beantwortet`;
+    // Kompakte Anzeige auf dem Handy
+    if (areaIdx < ITEMS.areas.length) {
+      const a = ITEMS.areas[areaIdx];
+      const d = a.subareas.filter((s) => cur.answers[s.id] !== undefined).length;
+      $('#nav-toggle-text').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}: ${a.title} · ${d}/${a.subareas.length}`;
+    } else {
+      const d = blk.questions.filter((q) => ca[q.id] !== undefined).length;
+      $('#nav-toggle-text').textContent = `${blk.title} · ${d}/${blk.questions.length}`;
+    }
   }
 
   function customQuestionHTML(q, i) {
@@ -339,7 +367,11 @@
         if (q.type === 'choice' && q.multiple) {
           const list = $$(`input[name="${name}"]:checked`).map((x) => +x.value);
           if (list.length) cur.custom_answers[q.id] = list; else delete cur.custom_answers[q.id];
-        } else cur.custom_answers[q.id] = +inp.value;
+        } else {
+          const first = cur.custom_answers[q.id] === undefined;
+          cur.custom_answers[q.id] = +inp.value;
+          if (first) advanceFrom(inp.closest('fieldset'));
+        }
         scheduleSave(); renderAreaNav();
       }));
     });
@@ -364,13 +396,16 @@
           </div></fieldset>`;
       }).join('');
       $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
+        const first = cur.answers[r.name.slice(2)] === undefined;
         cur.answers[r.name.slice(2)] = +r.value;
+        if (first) advanceFrom(r.closest('fieldset'));
         scheduleSave();
         renderAreaNav();
         $('#open-hint').textContent = '';
       }));
     }
     const last = areaIdx === steps() - 1;
+    $('#ctx-details').hidden = !last;
     $('#btn-prev').hidden = areaIdx === 0;
     $('#btn-next').textContent = last ? (cur.status === 'submitted' ? 'Änderungen übernehmen' : 'Abschliessen und Profil anzeigen') : 'Weiter zu «' + stepTitle(areaIdx + 1) + '»';
     $('#open-hint').textContent = '';
@@ -383,7 +418,13 @@
     if (areaIdx < steps() - 1) { areaIdx++; return renderSurvey(true); }
     const p = DKCore.progress(ITEMS, cur.answers);
     if (p.open.length) {
-      $('#open-hint').innerHTML = `<span class="error">Noch offen: ${p.open.join(', ')}.</span> Für den Abschluss braucht es eine Antwort pro Frage. Wo etwas nicht zutrifft, die Option «keine Gelegenheit» wählen.`;
+      $('#open-hint').innerHTML = `<span class="error">Noch offen:</span> <span class="open-links">${p.open.map((id) => `<button type="button" data-goto="${id}">${id} ${esc(SUBS.find((s) => s.id === id).title)}</button>`).join('')}</span><br>Für den Abschluss braucht es eine Antwort pro Frage. Wo etwas nicht zutrifft, die Option «keine Gelegenheit» wählen.`;
+      $$('#open-hint [data-goto]').forEach((b) => b.addEventListener('click', () => {
+        const id = b.dataset.goto;
+        areaIdx = ITEMS.areas.findIndex((a) => a.id === SUBS.find((s) => s.id === id).areaId);
+        renderSurvey(false);
+        setTimeout(() => jumpTo(id), 50);
+      }));
       return;
     }
     await flush();

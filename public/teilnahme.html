@@ -97,27 +97,30 @@
   <!-- Fragebogen -->
   <section class="view" id="v-survey" hidden aria-labelledby="h-area">
     <div class="survey-grid">
-      <aside>
+      <aside id="survey-aside">
         <div class="progressbar" aria-hidden="true"><span id="progress-fill"></span></div>
-        <p class="small muted" id="progress-text" style="margin-bottom:6px"></p>
-        <p class="save-state" id="save-state" role="status" style="margin-bottom:12px"></p>
+        <div class="aside-status">
+          <p class="small muted" id="progress-text"></p>
+          <p class="save-state" id="save-state" role="status"></p>
+        </div>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="areanav"><span id="nav-toggle-text"></span><span class="chev" aria-hidden="true">▾</span></button>
         <nav class="areanav" id="areanav" aria-label="Kompetenzbereiche"></nav>
       </aside>
       <div>
-        <details class="box" id="ctx-details" style="margin-bottom:20px">
-          <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted" id="ctx-summary"></span></summary>
-          <div class="stack" style="margin-top:14px">
-            <div class="field"><label for="ctx2-stufe">Schulstufe</label><select id="ctx2-stufe"></select></div>
-            <div class="field"><label for="ctx2-funktion">Funktion</label><select id="ctx2-funktion"></select></div>
-            <div class="field"><label for="ctx2-erfahrung">Berufserfahrung</label><select id="ctx2-erfahrung"></select></div>
-          </div>
-        </details>
         <div class="area-head">
           <div class="eyebrow" id="area-eyebrow"></div>
           <h2 id="h-area" tabindex="-1"></h2>
           <p class="muted" id="area-desc"></p>
         </div>
         <div id="questions"></div>
+        <details class="box" id="ctx-details" style="margin-top:28px" hidden>
+          <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted">(freiwillig, für die Schulauswertung)</span> <span class="small muted" id="ctx-summary"></span></summary>
+          <div class="stack" style="margin-top:14px">
+            <div class="field"><label for="ctx2-stufe">Schulstufe</label><select id="ctx2-stufe"></select></div>
+            <div class="field"><label for="ctx2-funktion">Funktion</label><select id="ctx2-funktion"></select></div>
+            <div class="field"><label for="ctx2-erfahrung">Berufserfahrung</label><select id="ctx2-erfahrung"></select></div>
+          </div>
+        </details>
         <div class="survey-foot">
           <button class="btn secondary" type="button" id="btn-prev">Zurück</button>
           <button class="btn" type="button" id="btn-next">Weiter</button>

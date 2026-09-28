@@ -276,3 +276,27 @@ details.faq summary::-webkit-details-marker { display: none; }
 details.faq summary::after { content: "+"; color: var(--red); font-weight: 700; }
 details.faq[open] summary::after { content: "−"; }
 details.faq p { padding-bottom: 14px; }
+/* Fragebogen: Status und Übersicht */
+.aside-status { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.nav-toggle { display: none; }
+@media (max-width: 860px) {
+  .survey-grid > aside { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); margin-inline: -16px; padding: 10px 16px 8px; border-bottom: 1px solid var(--line); box-shadow: 0 2px 6px rgba(0,0,0,.06); max-height: none; overflow: visible; }
+  .survey-grid > aside .progressbar { margin-bottom: 6px; }
+  .aside-status { flex-direction: row; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .aside-status .small, .aside-status .save-state { font-size: 0.8rem; }
+  .nav-toggle { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 12px; appearance: none; border: 1px solid var(--ink-3); background: var(--bg); color: var(--ink); font: inherit; font-weight: 700; padding: 9px 12px; border-radius: 2px; cursor: pointer; text-align: left; }
+  .nav-toggle .chev { transition: transform .2s; }
+  .nav-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .areanav { display: none !important; }
+  #survey-aside.open .areanav { display: flex !important; flex-direction: column; margin-top: 8px; max-height: 60vh; overflow-y: auto; }
+  #survey-aside.open .areanav .subnav { grid-column: auto; }
+}
+.open-links { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; }
+.open-links button { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: var(--red-dark); font-weight: 700; text-decoration: underline; cursor: pointer; }
+.show-narrow { display: none; }
+@media (max-width: 860px) {
+  .hide-narrow { display: none; }
+  .show-narrow { display: inline; }
+  .nav-toggle { font-size: 0.9rem; padding: 7px 10px; }
+  .aside-status { align-items: baseline; }
+}
