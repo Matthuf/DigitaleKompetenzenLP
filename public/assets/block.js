@@ -43,7 +43,7 @@ window.Block = (function () {
 
   function csv(custom) {
     if (!custom) return '';
-    const rows = [[], ['Schulblock', custom.block.title], ['Frage', 'Form', 'Antwort', 'Anzahl']];
+    const rows = [[], ['Eigene Fragen', custom.block.title], ['Frage', 'Form', 'Antwort', 'Anzahl']];
     const res = Object.fromEntries(custom.questions.map((r) => [r.id, r]));
     custom.block.questions.forEach((q) => {
       const r = res[q.id];
@@ -109,7 +109,7 @@ window.Block = (function () {
     const head = ctx.embedded
       ? `<p class="small muted" style="max-width:75ch">Sobald die erste Lehrperson die Erhebung abgeschlossen hat, lassen sich die Fragen nicht mehr ändern. Die Auswertung erscheint wie beim Kompetenzteil erst ab der Mindestanzahl abgeschlossener Teilnahmen.</p><span id="ed-close" hidden></span>`
       : `<div class="row" style="justify-content:space-between;align-items:flex-end">
-        <div class="stack" style="gap:6px"><div class="eyebrow">Schulblock</div><h2>Eigene Fragen · ${esc(ed.title)}</h2></div>
+        <div class="stack" style="gap:6px"><div class="eyebrow">Eigene Fragen</div><h2>Eigene Fragen · ${esc(ed.title)}</h2></div>
         <button class="btn quiet" type="button" id="ed-close">Schliessen</button></div>
       <p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen im Fragebogen als zusätzlicher Schritt nach den sechs Kompetenzbereichen. Sie fliessen nicht ins Kompetenzprofil ein. Die Auswertung erscheint wie beim Kern erst ab fünf abgeschlossenen Teilnahmen. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
     if (ed.locked) {
@@ -191,7 +191,7 @@ window.Block = (function () {
     $('#ed-save').addEventListener('click', () => save(b));
     $('#ed-preview-btn').addEventListener('click', () => { ed.preview = !ed.preview; render(); if (ed.preview) $('#ed-preview').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     if (b.questions.length || count(ctx.campaigns().find((c) => c.id === ed.id))) {
-      confirmButton($('#ed-remove'), 'Schulblock entfernen', 'Alle eigenen Fragen dieser Erhebung entfernen?', 'Ja, entfernen', () => save(null), 'btn quiet');
+      confirmButton($('#ed-remove'), 'Alle eigenen Fragen entfernen', 'Alle eigenen Fragen dieser Erhebung entfernen?', 'Ja, entfernen', () => save(null), 'btn quiet');
     }
   }
 

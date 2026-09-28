@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <header class="site-header">
   <div class="wrap">
     <div class="brand">
@@ -30,7 +31,7 @@
   </div>
 </div>
 
-<main class="wrap">
+<main class="wrap" id="main" tabindex="-1">
   <section class="view" id="v-loading"><p class="muted">Wird geladen …</p></section>
 
   <section class="view" id="v-login" hidden aria-labelledby="h-login">
@@ -71,6 +72,7 @@
           </form>
         </div>
         <p class="error small" id="school-msg" role="alert"></p>
+        <div class="field" style="max-width:320px"><label for="school-filter" class="small">Schule suchen</label><input type="text" id="school-filter" placeholder="Name eingeben"></div>
         <div class="table-scroll"><table class="list" id="school-table"></table></div>
       </div>
       <div class="stack" style="gap:16px" id="users-panel" hidden>

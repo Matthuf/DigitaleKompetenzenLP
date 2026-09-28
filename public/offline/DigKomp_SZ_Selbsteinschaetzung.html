@@ -220,7 +220,7 @@ input[type="text"]:focus, textarea:focus, select:focus { outline: 3px solid var(
 .areanav .subnav button { display: grid; grid-template-columns: 34px minmax(0, 1fr) 16px; gap: 6px; align-items: baseline; padding: 6px 12px 6px 16px; font-size: 0.88rem; border-left: 0; background: transparent; font-weight: 400; }
 .areanav .subnav button:hover { background: #F7F7F7; }
 .areanav .subnav button:hover .stitle { text-decoration: underline; text-underline-offset: 2px; }
-.areanav .subnav .sid { color: var(--red); font-weight: 700; font-variant-numeric: tabular-nums; }
+.areanav .subnav .sid { color: var(--red-dark); font-weight: 700; font-variant-numeric: tabular-nums; }
 .areanav .subnav .stitle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .areanav .subnav .sdone { color: #1f6b33; font-weight: 700; }
 @media (max-width: 860px) { .areanav .subnav { grid-column: 1 / -1; } }
@@ -729,7 +729,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
 
   // Unterkapitel des aktuellen Bereichs in der Übersicht; Klick scrollt zur Frage
   function subnav(items) {
-    return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone" aria-label="${it.done ? 'beantwortet' : 'offen'}">${it.done ? '✓' : ''}</span></button>`).join('')}</div>`;
+    return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone">${it.done ? '<span aria-hidden="true">✓</span>' : ''}<span class="sr-only">${it.done ? 'beantwortet' : 'offen'}</span></span></button>`).join('')}</div>`;
   }
   function jumpTo(key) {
     const el = document.getElementById('fs-' + key);

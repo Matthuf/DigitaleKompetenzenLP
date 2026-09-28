@@ -81,7 +81,8 @@
   }
   function badge(v) {
     if (v === undefined || v === null) return `<span class="badge" style="background:#fff;border:1px solid var(--line)">offen</span>`;
-    if (v === 0) return `<span class="badge lv0" title="Keine Gelegenheit">k. G.</span>`;
+    if (v >= 1) return `<span class="badge lv${v}"><span class="sr-only">Stufe </span>${LV[v - 1].roman}</span>`;
+    if (v === 0) return `<span class="badge lv0" title="Keine Gelegenheit"><span aria-hidden="true">–</span><span class="sr-only">Keine Gelegenheit</span></span>`;
     return `<span class="badge lv${v}">${LV[v - 1].roman}</span>`;
   }
 

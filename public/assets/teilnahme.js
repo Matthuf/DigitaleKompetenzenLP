@@ -261,7 +261,7 @@
 
   // Unterkapitel des aktuellen Bereichs in der Übersicht; Klick scrollt zur Frage
   function subnav(items) {
-    return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone" aria-label="${it.done ? 'beantwortet' : 'offen'}">${it.done ? '✓' : ''}</span></button>`).join('')}</div>`;
+    return `<div class="subnav" role="list">${items.map((it) => `<button type="button" role="listitem" data-jump="${esc(it.key)}"><span class="sid">${esc(it.label)}</span><span class="stitle">${esc(it.title)}</span><span class="sdone">${it.done ? '<span aria-hidden="true">✓</span>' : ''}<span class="sr-only">${it.done ? 'beantwortet' : 'offen'}</span></span></button>`).join('')}</div>`;
   }
   const isNarrow = () => window.matchMedia('(max-width: 860px)').matches;
   const smoothOK = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -349,7 +349,7 @@
   function renderCustom() {
     const blk = blockOf(cur);
     cur.custom_answers = cur.custom_answers || {};
-    $('#area-eyebrow').textContent = 'Zusatzteil der Schule · nicht Teil des Kompetenzprofils';
+    $('#area-eyebrow').textContent = 'Fragen der Schule · nicht Teil des Kompetenzprofils';
     $('#h-area').textContent = blk.title;
     $('#area-desc').textContent = blk.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten fliessen nur in die Schulauswertung ein, ebenfalls erst ab fünf abgeschlossenen Teilnahmen.';
     $('#questions').innerHTML = blk.questions.map(customQuestionHTML).join('');
@@ -495,7 +495,7 @@
             if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${esc(s.levels[v].text)}</p></div>`;
           }
           if (pv !== undefined) body += `<p class="small muted">Bei «${esc(prev.campaign_title)}»: ${pv === 0 ? 'keine Gelegenheit' : 'Stufe ' + LV[pv - 1].roman + ' ' + esc(LV[pv - 1].label)}</p>`;
-          return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
+          return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : v === 0 ? ' <span class="small muted">Keine Gelegenheit</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
         }).join('')}</div>`;
     }).join('');
 
@@ -508,7 +508,7 @@
       if (q.type === 'choice') return [].concat(v).map((k) => esc(q.options[k])).join(', ');
       return esc(v);
     };
-    $('#result-custom').innerHTML = blk ? `<div class="area-block"><h3><span>${esc(blk.title)}</span><span class="avg">Zusatzteil der Schule, nicht Teil des Kompetenzprofils</span></h3>
+    $('#result-custom').innerHTML = blk ? `<div class="area-block"><h3><span>${esc(blk.title)}</span><span class="avg">Fragen der Schule, nicht Teil des Kompetenzprofils</span></h3>
       <dl class="custom-list">${blk.questions.map((q) => `<div><dt>${esc(q.text)}</dt><dd>${ansTxt(q, ca[q.id])}</dd></div>`).join('')}</dl></div>` : '';
     const editable = r.campaign_status === 'open';
     $('#btn-edit').hidden = !editable;

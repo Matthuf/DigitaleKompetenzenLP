@@ -246,7 +246,7 @@ textarea:focus { outline: 3px solid var(--ink); outline-offset: 1px; }
 .areanav .subnav button { display: grid; grid-template-columns: 34px minmax(0, 1fr) 16px; gap: 6px; align-items: baseline; padding: 6px 12px 6px 16px; font-size: 0.88rem; border-left: 0; background: transparent; font-weight: 400; }
 .areanav .subnav button:hover { background: #F7F7F7; }
 .areanav .subnav button:hover .stitle { text-decoration: underline; text-underline-offset: 2px; }
-.areanav .subnav .sid { color: var(--red); font-weight: 700; font-variant-numeric: tabular-nums; }
+.areanav .subnav .sid { color: var(--red-dark); font-weight: 700; font-variant-numeric: tabular-nums; }
 .areanav .subnav .stitle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .areanav .subnav .sdone { color: #1f6b33; font-weight: 700; }
 @media (max-width: 860px) { .areanav .subnav { grid-column: 1 / -1; } }
@@ -345,3 +345,7 @@ details.sub[open] summary::after { transform: rotate(180deg); }
 .levels-strip.compact b { font-size: 0.8rem; }
 .howto { background: var(--box); padding: 20px 24px; display: grid; gap: 10px; margin-block: 8px 20px; }
 .howto ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; }
+
+/* Sprunglink für Tastatur und Screenreader */
+.skip { position: absolute; left: 16px; top: -60px; z-index: 50; background: var(--ink); color: #fff; padding: 10px 16px; font-weight: 700; text-decoration: none; }
+.skip:focus { top: 12px; color: #fff; }

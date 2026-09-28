@@ -22,7 +22,7 @@ http.createServer(async (req, res) => {
   if (p === '/') p = '/index';
   let file = path.join(PUB, p);
   if (!path.extname(file)) file += '.html';
-  if (!file.startsWith(PUB) || !fs.existsSync(file)) { res.statusCode = 404; return res.end('Nicht gefunden'); }
+  if (!file.startsWith(PUB) || !fs.existsSync(file)) { res.statusCode = 404; res.setHeader('Content-Type', TYPES['.html']); return fs.createReadStream(path.join(PUB, '404.html')).pipe(res); }
   res.setHeader('Content-Type', TYPES[path.extname(file)] || 'application/octet-stream');
   fs.createReadStream(file).pipe(res);
 }).listen(PORT, () => console.log(`Lokal: http://localhost:${PORT}`));

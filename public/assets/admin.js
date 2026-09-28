@@ -5,14 +5,23 @@
   let schools = [];
   let current = null;
 
+  let filter = '';
   async function loadSchools() {
     schools = await api('GET', 'admin/schools');
+    renderSchools();
+  }
+  function renderSchools() {
     const t = $('#school-table');
-    t.innerHTML = schools.length ? `<thead><tr><th scope="col">Schule</th><th scope="col">Erfasst</th><th scope="col" class="num">Zugänge</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"></th></tr></thead>
-      <tbody>${schools.map((s) => `<tr><td><b>${esc(s.name)}</b></td><td>${date(s.created_at)}</td><td class="num">${s.users}</td><td class="num">${s.campaigns}</td><td class="num">${s.participants}</td>
+    const shown = schools.filter((s) => !filter || s.name.toLowerCase().includes(filter));
+    t.innerHTML = !schools.length ? `<tbody><tr><td class="muted">Noch keine Schule erfasst.</td></tr></tbody>` : !shown.length ? `<tbody><tr><td class="muted">Keine Schule gefunden.</td></tr></tbody>` : `<thead><tr><th scope="col">Schule</th><th scope="col">Erfasst</th><th scope="col" class="num">Zugänge</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"></th></tr></thead>
+      <tbody>${shown.map((s) => `<tr><td><b>${esc(s.name)}</b></td><td>${date(s.created_at)}</td><td class="num">${s.users}</td><td class="num">${s.campaigns}</td><td class="num">${s.participants}</td>
         <td><button class="btn ${current === s.id ? '' : 'secondary'}" type="button" data-school="${s.id}">Zugänge verwalten</button></td></tr>`).join('')}</tbody>`
-      : `<tbody><tr><td class="muted">Noch keine Schule erfasst.</td></tr></tbody>`;
-    $$('[data-school]').forEach((b) => b.addEventListener('click', () => { current = b.dataset.school; $('#pw-once').hidden = true; loadSchools(); loadUsers(); }));
+      ;
+    $$('[data-school]').forEach((b) => b.addEventListener('click', () => {
+      if (current !== b.dataset.school) $('#pw-once').hidden = true;
+      current = b.dataset.school; renderSchools(); loadUsers();
+      $('#users-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
   }
 
   async function loadUsers() {
@@ -37,11 +46,15 @@
     box.hidden = false;
     box.innerHTML = `<p><b>Startpasswort für ${esc(r.username)}:</b> <code id="pw-value" style="font-size:1.1rem">${esc(r.password)}</code>
       <button class="btn quiet" type="button" id="btn-copy-pw">Kopieren</button></p>
-      <p class="small">Wird nur jetzt angezeigt. Beim ersten Anmelden muss die Schulleitung ein eigenes Passwort festlegen.</p>`;
+      <p class="small">Wird nur jetzt angezeigt. Beim ersten Anmelden muss die Schulleitung ein eigenes Passwort festlegen. Falls es verloren geht: «Passwort zurücksetzen».</p>
+      <div><button class="btn quiet" type="button" id="btn-pw-done">Notiert, ausblenden</button></div>`;
     $('#btn-copy-pw').addEventListener('click', (e) => copyText(r.password, e.currentTarget));
+    $('#btn-pw-done').addEventListener('click', () => { box.hidden = true; });
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     loadUsers();
   }
 
+  $('#school-filter').addEventListener('input', (e) => { filter = e.target.value.trim().toLowerCase(); renderSchools(); });
   $('#form-school').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#school-msg').textContent = '';
