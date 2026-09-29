@@ -8,6 +8,7 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
   const date = (d) => (d ? new Date(d).toLocaleDateString('de-CH') : '–');
+  const dateTime = (d) => (d ? new Date(d).toLocaleDateString('de-CH') + ', ' + new Date(d).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : '–');
 
   async function api(method, path, body) {
     const r = await fetch('/api/' + path, {
@@ -136,7 +137,7 @@
     const link = inviteLink(o.token);
     const subject = o.reset ? 'Neues Passwort: Selbsteinschätzung digitale Kompetenzen' : 'Einladung: Selbsteinschätzung digitale Kompetenzen';
     const body = o.reset
-      ? `Guten Tag${o.name ? ' ' + o.name : ''}\n\nÜber den folgenden Link legen Sie für den Zugang «${o.username}» ein neues Passwort fest:\n\n${link}\n\nDer Link gilt bis ${date(o.expires_at)} und nur einmal.\n\nFreundliche Grüsse\n${o.from || ''}`
+      ? `Guten Tag${o.name ? ' ' + o.name : ''}\n\nÜber den folgenden Link legen Sie für den Zugang «${o.username}» ein neues Passwort fest:\n\n${link}\n\nDer Link gilt 24 Stunden (bis ${dateTime(o.expires_at)}) und nur einmal.\n\nFreundliche Grüsse\n${o.from || ''}`
       : `Guten Tag${o.name ? ' ' + o.name : ''}\n\nSie erhalten einen Zugang zur Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» des Kantons Schwyz, als ${o.roleText}. Über den folgenden Link legen Sie Benutzername und Passwort selbst fest:\n\n${link}\n\nDer Link gilt bis ${date(o.expires_at)} und nur einmal. Danach melden Sie sich unter ${location.origin}/leitung an.\n\nFreundliche Grüsse\n${o.from || ''}`;
     return { link, subject, body };
   }
@@ -149,7 +150,7 @@
       <div class="row"><button class="btn secondary small" type="button" data-inv-copy>Link kopieren</button>
         <a class="btn secondary small" href="mailto:${encodeURIComponent(o.email || '')}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}">E-Mail öffnen</a>
         <button class="btn quiet small" type="button" data-inv-close>Ausblenden</button></div>
-      <p class="small muted">Gilt bis ${date(o.expires_at)} und nur einmal. Der Link wird nur jetzt angezeigt; bei Bedarf später «Neuer Link» wählen.</p></div>`;
+      <p class="small muted">Gilt bis ${o.reset ? dateTime(o.expires_at) : date(o.expires_at)} und nur einmal. Der Link wird nur jetzt angezeigt; bei Bedarf später «Neuer Link» wählen.</p></div>`;
     el.querySelector('[data-inv-copy]').addEventListener('click', (e) => copyText(m.link, e.currentTarget));
     el.querySelector('[data-inv-close]').addEventListener('click', () => { el.hidden = true; });
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

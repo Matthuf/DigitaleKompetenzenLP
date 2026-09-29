@@ -12,13 +12,15 @@
   const parseKind = (v) => (/beide|gesamt|alle|primar.*sek|sek.*primar|1\s*[-–]\s*3/i.test(v || '') ? 'gesamt' : /sek|bezirk|zyklus\s*3/i.test(v || '') ? 'sek' : 'primar');
 
   /* ---------- Reiter ---------- */
+  const TABS = ['traeger', 'import', 'runden', 'auswertung', 'protokoll'];
   function route() {
     const tab = decodeURIComponent(location.hash.slice(1)).split('/')[0];
-    const name = ['traeger', 'import', 'runden', 'auswertung'].includes(tab) ? tab : 'traeger';
+    const name = TABS.includes(tab) ? tab : 'traeger';
     $$('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.tab === name ? 'page' : 'false'));
-    ['traeger', 'import', 'runden', 'auswertung'].forEach((t) => { $('#tab-' + t).hidden = t !== name; });
+    TABS.forEach((t) => { $('#tab-' + t).hidden = t !== name; });
     if (name === 'runden') loadRounds();
     if (name === 'auswertung') openKanton();
+    if (name === 'protokoll') loadAudit();
   }
   window.addEventListener('hashchange', route);
 
@@ -179,7 +181,8 @@
     $$('[data-icopy]').forEach((b) => b.addEventListener('click', () => copyText(UI.inviteLink(res.rows[b.dataset.icopy].token), b)));
     $$('[data-imail]').forEach((a) => { const r = res.rows[a.dataset.imail]; const m = mailOf(r); a.href = `mailto:${encodeURIComponent(r.email)}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}`; });
     $('#imp-csv').addEventListener('click', () => {
-      const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+      // Formelzeichen am Anfang entschärfen (Schutz vor Formel-Ausführung in Excel)
+      const q = (v) => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return '"' + t.replace(/"/g, '""') + '"'; };
       const rows = [['Schulträger', 'Name', 'E-Mail', 'Einladungslink', 'Gültig bis']].concat(withLink.map((r) => [r.traeger, r.name, r.email, UI.inviteLink(r.token), date(r.expires_at)]));
       UI.download(`Einladungen_Schultraeger_${UI.today()}.csv`, '﻿' + rows.map((r) => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
     });
@@ -209,8 +212,9 @@
   const k = { round: null, zyklus: '' };
   async function openKanton() {
     rounds = await api('GET', 'admin/rounds');
-    if (k.round === null) k.round = rounds.length ? rounds[rounds.length - 1].id : '';
-    $('#k-round').innerHTML = rounds.map((r) => `<option value="${r.id}" ${r.id === k.round ? 'selected' : ''}>${esc(r.title)}</option>`).join('') + `<option value="" ${k.round === '' ? 'selected' : ''}>Alle Erhebungen (jüngste Teilnahme je Person)</option>`;
+    if (!rounds.length) { $('#k-round').innerHTML = ''; $('#k-out').innerHTML = '<div class="box box--info">Noch keine Runde erfasst. Die kantonale Auswertung erfolgt pro Runde (Reiter «Runden»).</div>'; return; }
+    if (!k.round || !rounds.some((r) => r.id === k.round)) k.round = rounds[rounds.length - 1].id;
+    $('#k-round').innerHTML = rounds.map((r) => `<option value="${r.id}" ${r.id === k.round ? 'selected' : ''}>${esc(r.title)}</option>`).join('');
     loadKanton();
   }
   async function loadKanton() {
@@ -223,7 +227,7 @@
       out.innerHTML = `<p class="error">${esc(err.message)}</p>`; return;
     }
     $('#k-zyklus').innerHTML = `<option value="">Alle Zyklen</option>` + data.zyklen.map((z) => `<option ${z.zyklus === k.zyklus ? 'selected' : ''}>${esc(z.zyklus)}</option>`).join('');
-    const roundTitle = k.round ? (rounds.find((r) => r.id === k.round) || {}).title : 'Alle Erhebungen';
+    const roundTitle = (rounds.find((r) => r.id === k.round) || {}).title || 'Runde';
     Analysis.render(out, data, null, {
       title: roundTitle,
       org: 'Kanton Schwyz · alle Schulen',
@@ -239,6 +243,27 @@
   }
   $('#k-round').addEventListener('change', (e) => { k.round = e.target.value; k.zyklus = ''; loadKanton(); });
   $('#k-zyklus').addEventListener('change', (e) => { k.zyklus = e.target.value; loadKanton(); });
+
+  /* ---------- Protokoll ---------- */
+  const ACTION = {
+    anmeldung: 'Anmeldung', anmeldung_fehlgeschlagen: 'Anmeldung fehlgeschlagen', passwort_geaendert: 'Passwort geändert',
+    passwort_link_erstellt: 'Passwort-Link erstellt', passwort_link_eingeloest: 'Passwort-Link eingelöst',
+    einladung_erstellt: 'Einladung erstellt', einladung_angenommen: 'Einladung angenommen', zugang_geloescht: 'Zugang gelöscht',
+    schule_erfasst: 'Schule erfasst', schule_geloescht: 'Schule gelöscht', schultraeger_geloescht: 'Schulträger gelöscht', import: 'Liste importiert',
+    erhebung_eroeffnet: 'Erhebung eröffnet', erhebung_abgeschlossen: 'Erhebung abgeschlossen', erhebung_geoeffnet: 'Erhebung wieder geöffnet',
+    auswertung_angesehen: 'Auswertung angesehen', kantonsauswertung_angesehen: 'Kantonale Auswertung angesehen',
+  };
+  const ROLE = { admin: 'AVS', traeger: 'Schulträger', leitung: 'Schulleitung' };
+  async function loadAudit() {
+    const t = $('#audit-table');
+    t.innerHTML = '<tbody><tr><td class="muted">Wird geladen …</td></tr></tbody>';
+    let rows;
+    try { rows = await api('GET', 'admin/audit?limit=300'); } catch (err) { t.innerHTML = `<tbody><tr><td class="error">${esc(err.message)}</td></tr></tbody>`; return; }
+    const who = (r) => r.username ? `${esc(r.display_name || r.username)}<br><span class="small muted">${esc(ROLE[r.actor_role] || r.actor_role || '')}${r.school_name ? ' · ' + esc(r.school_name) : r.traeger_name ? ' · ' + esc(r.traeger_name) : ''}</span>` : '<span class="muted">unbekannt</span>';
+    t.innerHTML = rows.length ? `<thead><tr><th scope="col">Zeit</th><th scope="col">Wer</th><th scope="col">Aktion</th><th scope="col">Betrifft</th></tr></thead>
+      <tbody>${rows.map((r) => `<tr><td class="small">${esc(new Date(r.at).toLocaleString('de-CH'))}</td><td>${who(r)}</td><td>${esc(ACTION[r.action] || r.action)}</td><td class="small">${esc(r.target || '')}</td></tr>`).join('')}</tbody>`
+      : '<tbody><tr><td class="muted">Noch keine Einträge.</td></tr></tbody>';
+  }
 
   Staff.start('admin', async () => { await loadTraeger(); route(); });
 })();

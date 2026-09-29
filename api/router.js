@@ -3,7 +3,8 @@ import { createRequire } from 'node:module';
 import { q, one, newId } from '../lib/db.js';
 import {
   hashPassword, verifyPassword, setSession, clearSession, getSession, COOKIE_STAFF, COOKIE_PART,
-  newCode, hashCode, newToken, newPassword, encryptCode, decryptCode, formatCode, newInviteToken, hashInviteToken,
+  newCode, hashCode, newToken, encryptCode, decryptCode, formatCode, newInviteToken, hashInviteToken,
+  dummyVerify, checkSecrets, MAX_PASSWORD,
 } from '../lib/auth.js';
 import { validateBlock, cleanCustomAnswers, aggregateCustom } from '../lib/customblock.js';
 
@@ -11,8 +12,14 @@ const require = createRequire(import.meta.url);
 const DKCore = require('../lib/core.cjs');
 const ITEMS = require('../lib/items.json');
 const SUB_IDS = new Set(DKCore.allSubareas(ITEMS).map((s) => s.id));
-// Mindestgruppe für Auswertungen. Testphase: ab 1 Teilnahme. Für den Echtbetrieb in Vercel MIN_GROUP_SIZE=5 setzen.
-const MIN = Math.max(1, parseInt(process.env.MIN_GROUP_SIZE || '1', 10) || 1);
+// Mindestgruppe für Auswertungen. Standard (auch wenn nichts gesetzt ist): 5. Kleinere Werte nur im ausdrücklich
+// eingeschalteten Testmodus (TESTMODUS=1), dort ab 1. Ohne Testmodus wird ein Wert unter 5 ignoriert.
+const TEST_MODE = process.env.TESTMODUS === '1';
+const MIN = (() => {
+  const v = parseInt(process.env.MIN_GROUP_SIZE || '', 10);
+  return TEST_MODE ? Math.max(1, Number.isInteger(v) ? v : 1) : Math.max(5, Number.isInteger(v) ? v : 5);
+})();
+checkSecrets(); // ohne SESSION_SECRET startet die Funktion nicht
 
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 const fail = (status, msg) => { throw new HttpError(status, msg); };
@@ -25,20 +32,51 @@ function send(res, status, data) {
 }
 
 /* ---------- Hilfen ---------- */
-function staff(req, role) {
+// Mitarbeitende: Konto, Rolle und Sitzungsversion bei jeder Anfrage aus der Datenbank prüfen.
+// Gelöschte Konten, geänderte Rollen und Passwortwechsel beenden bestehende Sitzungen sofort.
+// Solange ein Passwortwechsel verlangt ist, sind nur auth/me und auth/password erlaubt.
+async function staff(req, role, { allowPwChange = false } = {}) {
   const s = getSession(req, COOKIE_STAFF);
-  if (!s) fail(401, 'Bitte anmelden.');
+  if (!s || !s.uid) fail(401, 'Bitte anmelden.');
+  const u = await one(`select u.id, u.role, u.school_id, coalesce(u.traeger_id, sc.traeger_id) as traeger_id, u.must_change_password, u.session_version
+                         from users u left join schools sc on sc.id = u.school_id where u.id = $1`, [s.uid]);
+  if (!u || (u.session_version || 0) !== (s.sv || 0)) fail(401, 'Die Sitzung ist abgelaufen. Bitte neu anmelden.');
+  if (u.must_change_password && !allowPwChange) fail(403, 'Bitte zuerst ein eigenes Passwort festlegen.');
   const roles = [].concat(role || []);
-  if (roles.length && !roles.includes(s.role)) fail(403, 'Für diese Funktion fehlt die Berechtigung.');
-  return s;
+  if (roles.length && !roles.includes(u.role)) fail(403, 'Für diese Funktion fehlt die Berechtigung.');
+  return { uid: u.id, role: u.role, sid: u.school_id, tid: u.traeger_id, sv: u.session_version || 0 };
 }
 // Rektorat (traeger) oder Schulleitung (leitung): Rolle, Träger und Schule immer frisch aus der Datenbank
 async function lead(req) {
-  const s = staff(req, ['traeger', 'leitung']);
-  const u = await one(`select u.id, u.role, u.school_id, coalesce(u.traeger_id, sc.traeger_id) as traeger_id
-                         from users u left join schools sc on sc.id = u.school_id where u.id = $1`, [s.uid]);
-  if (!u || !u.traeger_id) fail(401, 'Bitte anmelden.');
-  return { uid: u.id, role: u.role, tid: u.traeger_id, sid: u.role === 'leitung' ? u.school_id : null };
+  const u = await staff(req, ['traeger', 'leitung']);
+  if (!u.tid) fail(401, 'Bitte anmelden.');
+  return { uid: u.uid, role: u.role, tid: u.tid, sid: u.role === 'leitung' ? u.sid : null };
+}
+const staffCookie = (res, u) => setSession(res, COOKIE_STAFF, { uid: u.id, role: u.role, sid: u.school_id || null, sv: u.session_version || 0 }, 8);
+
+/* Missbrauchsschutz: einfache Zähler pro Schlüssel und Zeitfenster in der Datenbank */
+function clientIp(req) {
+  const h = req.headers || {};
+  const v = h['x-vercel-forwarded-for'] || h['x-real-ip'] || String(h['x-forwarded-for'] || '').split(',')[0];
+  return String(v || (req.socket && req.socket.remoteAddress) || 'unbekannt').trim().slice(0, 64);
+}
+async function limit(key, max, seconds, msg) {
+  const r = await one(`insert into rate_limits (key, window_start, count) values ($1, now(), 1)
+                       on conflict (key) do update set
+                         count = case when rate_limits.window_start < now() - ($2 || ' seconds')::interval then 1 else rate_limits.count + 1 end,
+                         window_start = case when rate_limits.window_start < now() - ($2 || ' seconds')::interval then now() else rate_limits.window_start end
+                       returning count`, [String(key).slice(0, 200), String(seconds)]);
+  if (Math.random() < 0.02) await q(`delete from rate_limits where window_start < now() - interval '2 days'`);
+  if (r.count > max) fail(429, msg || 'Zu viele Anfragen in kurzer Zeit. Bitte etwas später nochmals versuchen.');
+}
+const TOO_MANY_LOGINS = 'Zu viele Anmeldeversuche. Bitte in 15 Minuten nochmals versuchen.';
+
+/* Protokoll: wer hat wann was geändert oder eingesehen (ohne Passwörter, Codes, Tokens oder Antworten) */
+async function audit(actor, action, target = null, detail = null) {
+  try {
+    await q(`insert into audit_log (actor_id, actor_role, action, target, detail) values ($1,$2,$3,$4,$5)`,
+      [actor ? actor.uid : null, actor ? actor.role : null, action, target ? String(target).slice(0, 200) : null, detail ? JSON.stringify(detail) : null]);
+  } catch (e) { console.error('Protokoll:', e.message); }
 }
 function participant(req) {
   const s = getSession(req, COOKIE_PART);
@@ -55,10 +93,15 @@ function schoolZyklen(zyklen, kind) {
 }
 // Auswahl für Lehrpersonen: ein Zyklus = fest; mehrere = Wahl inkl. «zyklusübergreifend»
 const zyklusChoices = (z) => (z.length > 1 ? [...z, 'Zyklusübergreifend'] : z);
+// Nur vorgegebene Werte speichern (keine freien Texte in den Kontextangaben)
+const CONTEXT_VALUES = {
+  funktion: ['Klassenlehrperson', 'Fachlehrperson', 'Schulische Heilpädagogin / Schulischer Heilpädagoge', 'Lehrperson Deutsch als Zweitsprache', 'Andere Funktion'],
+  erfahrung: ['Weniger als 5 Jahre', '5 bis 15 Jahre', 'Mehr als 15 Jahre'],
+};
 function cleanContext(c, zyklen) {
   const out = {};
-  ['funktion', 'erfahrung'].forEach((k) => {
-    if (c && typeof c[k] === 'string' && c[k].trim()) out[k] = c[k].trim().slice(0, 80);
+  Object.entries(CONTEXT_VALUES).forEach(([k, allowed]) => {
+    if (c && allowed.includes(c[k])) out[k] = c[k];
   });
   const z = Array.isArray(zyklen) && zyklen.length ? zyklen : DEFAULT_ZYKLEN.primar;
   if (z.length === 1) out.zyklus = z[0];
@@ -74,14 +117,18 @@ function cleanAnswers(a) {
   }
   return out;
 }
-async function campaignByToken(token) {
+async function campaignByToken(token, req = null) {
   const c = await one(
     `select c.id, c.title, c.status, c.custom_block, c.traeger_id, l.id as link_id, l.school_id,
             s.name as school_name, s.zyklen as school_zyklen, t.name as traeger_name, t.kind
        from campaign_links l join campaigns c on c.id = l.campaign_id
        join schools s on s.id = l.school_id join traeger t on t.id = c.traeger_id
       where l.token = $1`, [String(token || '')]);
-  if (!c) fail(404, 'Dieser Link ist ungültig. Bitte den Link der Schulleitung prüfen.');
+  if (!c) {
+    // Ungültige Links zählen: Durchprobieren von Links wird gebremst
+    if (req) await limit('badlink:' + clientIp(req), 30, 600);
+    fail(404, 'Dieser Link ist ungültig. Bitte den Link der Schulleitung prüfen.');
+  }
   c.zyklen = schoolZyklen(c.school_zyklen, c.kind);
   return c;
 }
@@ -150,15 +197,18 @@ const routes = [];
 const on = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), fn });
 
 // Öffentlich: Erhebung über Link
-on('GET', 'c/:token', async ({ params }) => {
-  const c = await campaignByToken(params.token);
+on('GET', 'c/:token', async ({ req, params }) => {
+  const c = await campaignByToken(params.token, req);
   return { campaign: { title: c.title, status: c.status }, school: { name: c.school_name, zyklen: zyklusChoices(c.zyklen) }, traeger: { name: c.traeger_name, kind: c.kind } };
 });
 
 // Lehrperson: erstmals teilnehmen → Code erzeugen
-on('POST', 'c/:token/start', async ({ params, body, res }) => {
-  const c = await campaignByToken(params.token);
+on('POST', 'c/:token/start', async ({ req, params, body, res }) => {
+  const c = await campaignByToken(params.token, req);
   if (c.status !== 'open') fail(409, 'Diese Erhebung ist abgeschlossen.');
+  // Grosszügig, weil ein ganzes Kollegium über dieselbe Schul-IP teilnehmen kann. Bremst nur automatisierte Massenanmeldungen.
+  await limit('start:' + c.link_id + ':' + clientIp(req), 80, 600, 'Über diesen Link wurden in kurzer Zeit sehr viele Teilnahmen gestartet. Bitte in einigen Minuten nochmals versuchen.');
+  await limit('start:' + c.link_id, 400, 86400, 'Über diesen Link wurden heute ungewöhnlich viele Teilnahmen gestartet. Bitte die Schulleitung informieren.');
   const code = newCode();
   const pid = newId();
   await q(`insert into participants (id, school_id, traeger_id, code_hash, code_enc) values ($1,$2,$3,$4,$5)`, [pid, c.school_id, c.traeger_id, hashCode(code), encryptCode(code)]);
@@ -168,13 +218,14 @@ on('POST', 'c/:token/start', async ({ params, body, res }) => {
 });
 
 // Lehrperson: mit Code anmelden (optional im Kontext einer Erhebung). Der Code gilt innerhalb des ganzen Schulträgers.
-on('POST', 'code-login', async ({ body, res }) => {
+on('POST', 'code-login', async ({ req, body, res }) => {
+  await limit('code:' + clientIp(req), 20, 900, 'Zu viele Versuche mit Codes. Bitte in 15 Minuten nochmals versuchen.');
   const p = await one(`select p.id, p.school_id, coalesce(p.traeger_id, s.traeger_id) as traeger_id, p.code_enc
                          from participants p left join schools s on s.id = p.school_id where p.code_hash = $1`, [hashCode(body.code)]);
   if (!p) fail(404, 'Dieser Code ist nicht bekannt. Bitte die Schreibweise prüfen.');
   if (!p.code_enc) await q(`update participants set code_enc = $1 where id = $2`, [encryptCode(formatCode(body.code)), p.id]);
   if (body.token) {
-    const c = await campaignByToken(body.token);
+    const c = await campaignByToken(body.token, req);
     if (c.traeger_id !== p.traeger_id) fail(403, 'Dieser Code gehört zu einem anderen Schulträger.');
   }
   partSession(res, { pid: p.id, sid: p.school_id, tid: p.traeger_id }, body.remember);
@@ -240,27 +291,47 @@ on('DELETE', 'me', async ({ req, res }) => {
 });
 
 // Mitarbeitende: Anmeldung
-on('POST', 'auth/login', async ({ body, res }) => {
-  const u = await one(`select u.*, s.name as school_name from users u left join schools s on s.id = u.school_id where u.username = $1`, [String(body.username || '').trim().toLowerCase()]);
-  if (!u || !(await verifyPassword(String(body.password || ''), u.password_hash))) fail(401, 'Benutzername oder Passwort ist falsch.');
+on('POST', 'auth/login', async ({ req, body, res }) => {
+  const username = String(body.username || '').trim().toLowerCase().slice(0, 80);
+  const password = String(body.password || '');
+  await limit('login-ip:' + clientIp(req), 30, 900, TOO_MANY_LOGINS);
+  await limit('login-user:' + username, 10, 900, TOO_MANY_LOGINS);
+  const u = await one(`select u.* from users u where u.username = $1`, [username]);
+  // Gleiche Rechenzeit, ob das Konto existiert oder nicht
+  const ok = u ? await verifyPassword(password, u.password_hash) : await dummyVerify(password);
+  if (!ok) {
+    await audit(u ? { uid: u.id, role: u.role } : null, 'anmeldung_fehlgeschlagen', username);
+    fail(401, 'Benutzername oder Passwort ist falsch.');
+  }
   await q(`update users set last_login = now() where id = $1`, [u.id]);
-  setSession(res, COOKIE_STAFF, { uid: u.id, role: u.role, sid: u.school_id }, 8);
+  staffCookie(res, u);
+  await audit({ uid: u.id, role: u.role }, 'anmeldung', u.username);
   return { role: u.role, mustChangePassword: u.must_change_password };
 });
 on('POST', 'auth/logout', async ({ res }) => { clearSession(res, COOKIE_STAFF); return { ok: true }; });
 on('GET', 'auth/me', async ({ req }) => {
-  const s = staff(req);
+  const s = await staff(req, null, { allowPwChange: true });
   const u = await one(`select u.username, u.display_name, u.role, u.must_change_password, s.name as school_name, t.name as traeger_name, t.kind as traeger_kind
                          from users u left join schools s on s.id = u.school_id left join traeger t on t.id = coalesce(u.traeger_id, s.traeger_id) where u.id = $1`, [s.uid]);
   if (!u) fail(401, 'Bitte anmelden.');
   return u;
 });
-on('POST', 'auth/password', async ({ req, body }) => {
-  const s = staff(req);
+const checkNewPassword = (pw) => {
+  if (pw.length < 10) fail(400, 'Das Passwort muss mindestens 10 Zeichen lang sein.');
+  if (pw.length > MAX_PASSWORD) fail(400, `Das Passwort darf höchstens ${MAX_PASSWORD} Zeichen lang sein.`);
+};
+on('POST', 'auth/password', async ({ req, body, res }) => {
+  const s = await staff(req, null, { allowPwChange: true });
+  await limit('pw:' + s.uid, 10, 900, TOO_MANY_LOGINS);
   const u = await one(`select password_hash from users where id = $1`, [s.uid]);
   if (!(await verifyPassword(String(body.old || ''), u.password_hash))) fail(400, 'Das bisherige Passwort ist falsch.');
-  if (String(body.new || '').length < 10) fail(400, 'Das neue Passwort muss mindestens 10 Zeichen lang sein.');
-  await q(`update users set password_hash = $1, must_change_password = false where id = $2`, [await hashPassword(body.new), s.uid]);
+  const pw = String(body.new || '');
+  checkNewPassword(pw);
+  // Neue Sitzungsversion: andere offene Sitzungen dieses Kontos werden beendet, diese bleibt angemeldet
+  const nu = await one(`update users set password_hash = $1, must_change_password = false, session_version = session_version + 1 where id = $2
+                        returning id, role, school_id, session_version`, [await hashPassword(pw), s.uid]);
+  staffCookie(res, nu);
+  await audit(s, 'passwort_geaendert');
   return { ok: true };
 });
 
@@ -344,6 +415,7 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
   await q(`insert into campaigns (id, traeger_id, owner_school_id, school_id, round_id, title, token, custom_block) values ($1,$2,$3,$4,$5,$6,$7,$8)`,
     [id, u.tid, u.role === 'leitung' ? u.sid : null, u.role === 'leitung' ? u.sid : null, round ? round.id : null, title, newToken(), block ? JSON.stringify(block) : null]);
   for (const sid of schoolIds) await q(`insert into campaign_links (id, campaign_id, school_id, token) values ($1,$2,$3,$4)`, [newId(), id, sid, newToken()]);
+  await audit(u, 'erhebung_eroeffnet', id, { title, schools: schoolIds.length });
   return { id };
 });
 
@@ -352,6 +424,7 @@ on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
   const c = await manageableCampaign(u, params.id);
   if (body.status === 'open' || body.status === 'closed') {
     await q(`update campaigns set status = $1, closed_at = case when $1 = 'closed' then now() else null end where id = $2`, [body.status, c.id]);
+    await audit(u, body.status === 'closed' ? 'erhebung_abgeschlossen' : 'erhebung_geoeffnet', c.id);
   }
   if (typeof body.title === 'string' && body.title.trim()) await q(`update campaigns set title = $1 where id = $2`, [body.title.trim().slice(0, 80), c.id]);
   return { ok: true };
@@ -417,11 +490,22 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
   const zyklen = filterOptions(rows, zyk).map((x) => ({ zyklus: x.key, n: x.n }));
   if (zyklus && !zyklen.some((x) => x.zyklus === zyklus)) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
   const recs = zyklus ? rows.filter((r) => zyk(r) === zyklus) : rows;
-  const base = { source: { kind, id, title }, total: rows.length, min: MIN, testMode: MIN < DKCore.MIN_GROUP, schools, zyklen, expected,
+  const base = { source: { kind, id, title }, total: rows.length, min: MIN, testMode: TEST_MODE && MIN < DKCore.MIN_GROUP, schools, zyklen, expected,
     open: camps.some((c) => c.status === 'open'), multiSchool: u.role === 'traeger' && links.length > 1 };
+  await audit(u, 'auswertung_angesehen', query.source, { school: school || null, zyklus: zyklus || null });
   if (recs.length < MIN) return { ...base, n: recs.length, tooFew: true };
+  // Runde über mehrere Erhebungen: Die Differenz zwischen Runde und einzelner Erhebung ergäbe die übrigen Schulen.
+  // Darum nur, wenn jede Schule mit Teilnahmen die Mindestanzahl erreicht.
+  if (kind === 'r' && camps.length > 1 && !school) {
+    const per = {};
+    allRows.forEach((r) => { per[r.school_id] = (per[r.school_id] || 0) + 1; });
+    if (Object.values(per).some((n) => n < MIN)) {
+      return { ...base, n: recs.length, tooFew: true,
+        reason: `Die Runde umfasst mehrere Erhebungen. Eine Gesamtauswertung ist erst möglich, wenn jede beteiligte Schule mindestens ${MIN} abgeschlossene Teilnahmen hat. Die einzelnen Erhebungen lassen sich weiterhin auswerten.` };
+    }
+  }
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
-  const custom = block ? { block, ...aggregateCustom(block, recs.map((r) => r.custom_answers)) } : null;
+  const custom = block ? { block, ...aggregateCustom(block, recs.map((r) => r.custom_answers), MIN) } : null;
   const groups = {
     zyklen: zyklus ? null : compareGroups(recs, zyk),
     schulen: u.role === 'traeger' && !school ? compareGroups(recs, (r) => r.school_id, (k) => names[k] || '–', (a, b) => (names[a] || '').localeCompare(names[b] || '')) : null,
@@ -432,20 +516,20 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
 /* ---------- Einladungen und Passwort-Links ----------
  * Das AVS lädt das Rektorat bzw. die Hauptschulleitung ein. Danach laden Träger und Schulleitungen selbst ein.
  * Niemand kennt fremde Passwörter: Wer eingeladen wird, legt Benutzername und Passwort selbst fest. */
-const INVITE_DAYS = 30, RESET_DAYS = 7;
+const INVITE_HOURS = 30 * 24, RESET_HOURS = 24; // Einladungen 30 Tage, Passwort-Links 24 Stunden
 const cleanEmail = (e) => { const v = String(e || '').trim().toLowerCase().slice(0, 160); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : ''; };
 async function createInvite({ kind, role = null, tid = null, sid = null, userId = null, name = '', email = '', by = null }) {
   const token = newInviteToken();
   const id = newId();
   const r = await one(`insert into invitations (id, token_hash, kind, role, traeger_id, school_id, user_id, name, email, created_by, expires_at)
-                       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now() + ($11 || ' days')::interval) returning expires_at`,
-    [id, hashInviteToken(token), kind, role, tid, sid, userId, String(name || '').trim().slice(0, 80) || null, cleanEmail(email) || null, by, String(kind === 'reset' ? RESET_DAYS : INVITE_DAYS)]);
+                       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now() + ($11 || ' hours')::interval) returning expires_at`,
+    [id, hashInviteToken(token), kind, role, tid, sid, userId, String(name || '').trim().slice(0, 80) || null, cleanEmail(email) || null, by, String(kind === 'reset' ? RESET_HOURS : INVITE_HOURS)]);
   return { id, token, expires_at: r.expires_at };
 }
 async function renewInvite(id) {
   const token = newInviteToken();
-  const r = await one(`update invitations set token_hash = $1, expires_at = now() + ($2 || ' days')::interval, created_at = now()
-                        where id = $3 and used_at is null returning id, expires_at, kind`, [hashInviteToken(token), String(INVITE_DAYS), id]);
+  const r = await one(`update invitations set token_hash = $1, expires_at = now() + ($2 || ' hours')::interval, created_at = now()
+                        where id = $3 and kind = 'invite' and used_at is null returning id, expires_at, kind`, [hashInviteToken(token), String(INVITE_HOURS), id]);
   if (!r) fail(404, 'Einladung nicht gefunden oder bereits angenommen.');
   return { id: r.id, token, expires_at: r.expires_at };
 }
@@ -470,33 +554,48 @@ async function suggestUsername(email, name) {
 }
 const roleText = (i) => (i.role === 'traeger' ? `Schulträger ${i.traeger_name}` : `Schulleitung ${i.school_name || ''}`);
 
-on('GET', 'invite/:token', async ({ params }) => {
+const TOO_MANY_LINKS = 'Zu viele Versuche mit Einladungslinks. Bitte in 15 Minuten nochmals versuchen.';
+on('GET', 'invite/:token', async ({ req, params }) => {
+  await limit('invite:' + clientIp(req), 30, 900, TOO_MANY_LINKS);
   const i = await inviteByToken(params.token);
   return { kind: i.kind, role: i.role, roleText: i.kind === 'invite' ? roleText(i) : null, traeger: i.traeger_name, school: i.school_name,
     name: i.name, email: i.email, username: i.username, suggestedUsername: i.kind === 'invite' ? await suggestUsername(i.email, i.name) : null, expires_at: i.expires_at };
 });
-on('POST', 'invite/:token', async ({ params, body, res }) => {
+on('POST', 'invite/:token', async ({ req, params, body, res }) => {
+  await limit('invite:' + clientIp(req), 30, 900, TOO_MANY_LINKS);
   const i = await inviteByToken(params.token);
   const password = String(body.password || '');
-  if (password.length < 10) fail(400, 'Das Passwort muss mindestens 10 Zeichen lang sein.');
-  let uid, role, sid = null;
-  if (i.kind === 'reset') {
-    await q(`update users set password_hash = $1, must_change_password = false where id = $2`, [await hashPassword(password), i.user_id]);
-    const u = await one(`select id, role, school_id from users where id = $1`, [i.user_id]);
-    if (!u) fail(404, 'Konto nicht gefunden.');
-    uid = u.id; role = u.role; sid = u.school_id;
-  } else {
-    const username = String(body.username || '').trim().toLowerCase();
+  checkNewPassword(password);
+  const username = String(body.username || '').trim().toLowerCase();
+  if (i.kind === 'invite') {
     if (!/^[a-z0-9._-]{3,40}$/.test(username)) fail(400, 'Benutzername: 3 bis 40 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt, Bindestrich.');
     if (await one(`select 1 from users where username = $1`, [username])) fail(409, 'Dieser Benutzername ist bereits vergeben. Bitte einen anderen wählen.');
-    uid = newId(); role = i.role; sid = i.role === 'leitung' ? i.school_id : null;
-    await q(`insert into users (id, school_id, traeger_id, role, username, display_name, email, password_hash, must_change_password) values ($1,$2,$3,$4,$5,$6,$7,$8,false)`,
-      [uid, sid, i.role === 'traeger' ? i.traeger_id : null, i.role, username, String(body.display_name || i.name || '').trim().slice(0, 80) || null, i.email, await hashPassword(password)]);
   }
-  await q(`update invitations set used_at = now() where id = $1`, [i.id]);
-  if (i.kind === 'reset') await q(`update invitations set used_at = now() where user_id = $1 and used_at is null`, [i.user_id]);
-  setSession(res, COOKIE_STAFF, { uid, role, sid }, 8);
-  return { ok: true, role };
+  const hash = await hashPassword(password);
+  // Link atomar einlösen: Bei zwei gleichzeitigen Anfragen gewinnt nur eine
+  const claimed = await one(`update invitations set used_at = now() where id = $1 and used_at is null and expires_at > now() returning id`, [i.id]);
+  if (!claimed) fail(410, 'Dieser Link wurde bereits verwendet oder ist abgelaufen.');
+  let u;
+  try {
+    if (i.kind === 'reset') {
+      // Passwort neu: alle bestehenden Sitzungen dieses Kontos enden
+      u = await one(`update users set password_hash = $1, must_change_password = false, session_version = session_version + 1 where id = $2
+                     returning id, role, school_id, session_version`, [hash, i.user_id]);
+      if (!u) fail(404, 'Konto nicht gefunden.');
+      await q(`update invitations set used_at = now() where user_id = $1 and used_at is null`, [i.user_id]);
+    } else {
+      u = await one(`insert into users (id, school_id, traeger_id, role, username, display_name, email, password_hash, must_change_password) values ($1,$2,$3,$4,$5,$6,$7,$8,false)
+                     returning id, role, school_id, session_version`,
+        [newId(), i.role === 'leitung' ? i.school_id : null, i.role === 'traeger' ? i.traeger_id : null, i.role, username, String(body.display_name || i.name || '').trim().slice(0, 80) || null, i.email, hash]);
+    }
+  } catch (e) {
+    await q(`update invitations set used_at = null where id = $1`, [i.id]); // Link bleibt gültig, wenn das Einlösen scheitert
+    if (e && e.code === '23505') fail(409, 'Dieser Benutzername ist bereits vergeben. Bitte einen anderen wählen.');
+    throw e;
+  }
+  staffCookie(res, u);
+  await audit({ uid: u.id, role: u.role }, i.kind === 'reset' ? 'passwort_link_eingeloest' : 'einladung_angenommen', username || null);
+  return { ok: true, role: u.role };
 });
 
 /* ---------- Selbstverwaltung: Schulen und Zugänge ----------
@@ -539,6 +638,7 @@ on('POST', 'leitung/schools', async ({ req, body }) => {
   if (!name) fail(400, 'Bitte den Namen der Schule bzw. des Schulhauses angeben.');
   const id = newId();
   await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [id, name, u.tid]);
+  await audit(u, 'schule_erfasst', name);
   return { id };
 });
 on('PATCH', 'leitung/schools/:id', async ({ req, params, body }) => {
@@ -563,10 +663,11 @@ async function updateSchool(id, body) {
 on('DELETE', 'leitung/schools/:id', async ({ req, params }) => {
   const u = await lead(req);
   if (u.role !== 'traeger') fail(403, 'Schulen verwaltet der Schulträger.');
-  const s = await one(`select id, (select count(*)::int from campaign_links l where l.school_id = schools.id) as links from schools where id = $1 and traeger_id = $2`, [params.id, u.tid]);
+  const s = await one(`select id, name, (select count(*)::int from campaign_links l where l.school_id = schools.id) as links from schools where id = $1 and traeger_id = $2`, [params.id, u.tid]);
   if (!s) fail(404, 'Schule nicht gefunden.');
   if (s.links > 0) fail(409, 'Diese Schule hat bereits an Erhebungen teilgenommen und lässt sich darum nur durch das AVS löschen.');
   await q(`delete from schools where id = $1`, [s.id]);
+  await audit(u, 'schule_geloescht', s.name);
   return { ok: true };
 });
 on('POST', 'leitung/invitations', async ({ req, body }) => {
@@ -578,6 +679,7 @@ on('POST', 'leitung/invitations', async ({ req, body }) => {
     if (!(await one(`select 1 from schools where id = $1 and traeger_id = $2`, [sid, u.tid]))) fail(400, 'Bitte die Schule wählen.');
   }
   const inv = await createInvite({ kind: 'invite', role, tid: role === 'traeger' ? u.tid : null, sid, name: body.name, email: body.email, by: u.uid });
+  await audit(u, 'einladung_erstellt', cleanEmail(body.email) || String(body.name || '').slice(0, 80), { role, school: sid });
   return inv;
 });
 on('POST', 'leitung/invitations/:id/renew', async ({ req, params }) => {
@@ -596,18 +698,20 @@ on('POST', 'leitung/users/:id/reset', async ({ req, params }) => {
   const t = await teamTarget(u, params.id);
   const inv = await createInvite({ kind: 'reset', userId: t.id, by: u.uid });
   const x = await one(`select username, email from users where id = $1`, [t.id]);
+  await audit(u, 'passwort_link_erstellt', x.username);
   return { ...inv, username: x.username, email: x.email };
 });
 on('DELETE', 'leitung/users/:id', async ({ req, params }) => {
   const u = await lead(req);
   const t = await teamTarget(u, params.id);
-  await q(`delete from users where id = $1`, [t.id]);
+  const x = await one(`delete from users where id = $1 returning username`, [t.id]);
+  await audit(u, 'zugang_geloescht', x && x.username);
   return { ok: true };
 });
 
 /* AVS: Trägerliste importieren und Rektorate einladen */
 on('POST', 'admin/import', async ({ req, body }) => {
-  const s = staff(req, 'admin');
+  const s = await staff(req, 'admin');
   const rows = Array.isArray(body.rows) ? body.rows.slice(0, 300) : [];
   if (!rows.length) fail(400, 'Keine Zeilen zum Importieren.');
   const out = [];
@@ -639,30 +743,33 @@ on('POST', 'admin/import', async ({ req, body }) => {
     if (added) status += `, ${added} Schule${added === 1 ? '' : 'n'} ergänzt`;
     out.push({ traeger: name, kind, name: r.name || '', email, status, token: invite ? invite.token : null, expires_at: invite ? invite.expires_at : null });
   }
+  await audit(s, 'import', null, { rows: out.length });
   return { rows: out };
 });
 on('GET', 'admin/traeger/:id/invitations', async ({ req, params }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   return q(`select i.id, i.role, i.name, i.email, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired
               from invitations i left join schools s on s.id = i.school_id
              where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 order by i.created_at desc`, [params.id]);
 });
 on('POST', 'admin/traeger/:id/invitations', async ({ req, params, body }) => {
-  const s = staff(req, 'admin');
+  const s = await staff(req, 'admin');
   if (!(await one(`select 1 from traeger where id = $1`, [params.id]))) fail(404, 'Schulträger nicht gefunden.');
   let sid = null;
   if (body.schoolId) {
     if (!(await one(`select 1 from schools where id = $1 and traeger_id = $2`, [body.schoolId, params.id]))) fail(404, 'Schule nicht gefunden.');
     sid = body.schoolId;
   }
-  return createInvite({ kind: 'invite', role: sid ? 'leitung' : 'traeger', tid: sid ? null : params.id, sid, name: body.name, email: body.email, by: s.uid });
+  const inv = await createInvite({ kind: 'invite', role: sid ? 'leitung' : 'traeger', tid: sid ? null : params.id, sid, name: body.name, email: body.email, by: s.uid });
+  await audit(s, 'einladung_erstellt', cleanEmail(body.email) || String(body.name || '').slice(0, 80), { traeger: params.id, school: sid });
+  return inv;
 });
-on('POST', 'admin/invitations/:id/renew', async ({ req, params }) => { staff(req, 'admin'); return renewInvite(params.id); });
-on('DELETE', 'admin/invitations/:id', async ({ req, params }) => { staff(req, 'admin'); await q(`delete from invitations where id = $1`, [params.id]); return { ok: true }; });
+on('POST', 'admin/invitations/:id/renew', async ({ req, params }) => { await staff(req, 'admin'); return renewInvite(params.id); });
+on('DELETE', 'admin/invitations/:id', async ({ req, params }) => { await staff(req, 'admin'); await q(`delete from invitations where id = $1`, [params.id]); return { ok: true }; });
 
 /* ---------- AVS: Träger, Schulen, Zugänge, Runden ---------- */
 on('GET', 'admin/traeger', async ({ req }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   const tr = await q(`select t.id, t.name, t.kind, t.created_at,
                              (select count(*)::int from users u where u.traeger_id = t.id) as rektorat,
                              (select count(*)::int from participants p where p.traeger_id = t.id) as participants,
@@ -672,7 +779,7 @@ on('GET', 'admin/traeger', async ({ req }) => {
   return tr.map((t) => ({ ...t, schools: sc.filter((s) => s.traeger_id === t.id).map((s) => ({ ...s, zyklen: schoolZyklen(s.zyklen, t.kind) })) }));
 });
 on('POST', 'admin/traeger', async ({ req, body }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   const name = String(body.name || '').trim().slice(0, 120);
   if (!name) fail(400, 'Bitte den Namen des Schulträgers angeben, z. B. «Gemeinde Musterdorf» oder «Bezirk March».');
   const kind = parseKind(body.kind);
@@ -683,18 +790,19 @@ on('POST', 'admin/traeger', async ({ req, body }) => {
   return { id };
 });
 on('PATCH', 'admin/traeger/:id', async ({ req, params, body }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   if (typeof body.name === 'string' && body.name.trim()) await q(`update traeger set name = $1 where id = $2`, [body.name.trim().slice(0, 120), params.id]);
   if (KINDS.includes(body.kind)) await q(`update traeger set kind = $1 where id = $2`, [body.kind, params.id]);
   return { ok: true };
 });
 on('DELETE', 'admin/traeger/:id', async ({ req, params }) => {
-  staff(req, 'admin');
-  await q(`delete from traeger where id = $1`, [params.id]);
+  const s = await staff(req, 'admin');
+  const x = await one(`delete from traeger where id = $1 returning name`, [params.id]);
+  if (x) await audit(s, 'schultraeger_geloescht', x.name);
   return { ok: true };
 });
 on('POST', 'admin/traeger/:id/schools', async ({ req, params, body }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   const name = String(body.name || '').trim().slice(0, 120);
   if (!name) fail(400, 'Bitte den Namen der Schule bzw. des Schulhauses angeben.');
   if (!(await one(`select 1 from traeger where id = $1`, [params.id]))) fail(404, 'Schulträger nicht gefunden.');
@@ -703,62 +811,47 @@ on('POST', 'admin/traeger/:id/schools', async ({ req, params, body }) => {
   return { id };
 });
 on('PATCH', 'admin/schools/:id', async ({ req, params, body }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   if (!(await one(`select 1 from schools where id = $1`, [params.id]))) fail(404, 'Schule nicht gefunden.');
   await updateSchool(params.id, body);
   return { ok: true };
 });
 on('DELETE', 'admin/schools/:id', async ({ req, params }) => {
-  staff(req, 'admin');
-  await q(`delete from schools where id = $1`, [params.id]);
+  const s = await staff(req, 'admin');
+  const x = await one(`delete from schools where id = $1 returning name`, [params.id]);
+  if (x) await audit(s, 'schule_geloescht', x.name);
   return { ok: true };
 });
 on('GET', 'admin/traeger/:id/users', async ({ req, params }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   return q(`select u.id, u.username, u.display_name, u.email, u.role, u.must_change_password, u.created_at, u.last_login, s.name as school_name
               from users u left join schools s on s.id = u.school_id
              where u.traeger_id = $1 or s.traeger_id = $1 order by u.role desc, s.name nulls first, u.username`, [params.id]);
 });
-// Zugang anlegen: ohne Schule = Rektorat/Hauptschulleitung des Trägers, mit Schule = Schulleitung
-on('POST', 'admin/traeger/:id/users', async ({ req, params, body }) => {
-  staff(req, 'admin');
-  const username = String(body.username || '').trim().toLowerCase();
-  if (!/^[a-z0-9._-]{3,40}$/.test(username)) fail(400, 'Benutzername: 3 bis 40 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt, Bindestrich.');
-  if (await one(`select 1 from users where username = $1`, [username])) fail(409, 'Dieser Benutzername ist bereits vergeben.');
-  if (!(await one(`select 1 from traeger where id = $1`, [params.id]))) fail(404, 'Schulträger nicht gefunden.');
-  let schoolId = null;
-  if (body.schoolId) {
-    const sc = await one(`select id from schools where id = $1 and traeger_id = $2`, [body.schoolId, params.id]);
-    if (!sc) fail(404, 'Schule nicht gefunden.');
-    schoolId = sc.id;
-  }
-  const password = newPassword();
-  await q(`insert into users (id, school_id, traeger_id, role, username, display_name, password_hash) values ($1,$2,$3,$4,$5,$6,$7)`,
-    [newId(), schoolId, schoolId ? null : params.id, schoolId ? 'leitung' : 'traeger', username, String(body.display_name || '').trim().slice(0, 80) || null, await hashPassword(password)]);
-  return { username, password };
-});
 on('POST', 'admin/users/:id/reset', async ({ req, params }) => {
-  const s = staff(req, 'admin');
+  const s = await staff(req, 'admin');
   const u = await one(`select id, username, email from users where id = $1 and role in ('leitung','traeger')`, [params.id]);
   if (!u) fail(404, 'Konto nicht gefunden.');
   const inv = await createInvite({ kind: 'reset', userId: u.id, by: s.uid });
+  await audit(s, 'passwort_link_erstellt', u.username);
   return { ...inv, username: u.username, email: u.email };
 });
 on('DELETE', 'admin/users/:id', async ({ req, params }) => {
-  staff(req, 'admin');
-  await q(`delete from users where id = $1 and role in ('leitung','traeger')`, [params.id]);
+  const s = await staff(req, 'admin');
+  const x = await one(`delete from users where id = $1 and role in ('leitung','traeger') returning username`, [params.id]);
+  if (x) await audit(s, 'zugang_geloescht', x.username);
   return { ok: true };
 });
 
 on('GET', 'admin/rounds', async ({ req }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   return q(`select r.id, r.title, r.active, r.created_at,
                    (select count(distinct l.school_id)::int from campaigns c join campaign_links l on l.campaign_id = c.id where c.round_id = r.id) as schools,
                    (select count(*)::int from responses x join campaigns c on c.id = x.campaign_id where c.round_id = r.id and x.status = 'submitted') as submitted
               from rounds r order by r.created_at desc`);
 });
 on('POST', 'admin/rounds', async ({ req, body }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   const title = String(body.title || '').trim().slice(0, 80);
   if (!title) fail(400, 'Bitte einen Titel angeben, z. B. «Erste Runde 2026/27».');
   const id = newId();
@@ -766,7 +859,7 @@ on('POST', 'admin/rounds', async ({ req, body }) => {
   return { id };
 });
 on('PATCH', 'admin/rounds/:id', async ({ req, params, body }) => {
-  staff(req, 'admin');
+  await staff(req, 'admin');
   if (typeof body.active === 'boolean') await q(`update rounds set active = $1 where id = $2`, [body.active, params.id]);
   if (typeof body.title === 'string' && body.title.trim()) await q(`update rounds set title = $1 where id = $2`, [body.title.trim().slice(0, 80), params.id]);
   return { ok: true };
@@ -777,17 +870,20 @@ on('PATCH', 'admin/rounds/:id', async ({ req, params, body }) => {
  * Jede Person zählt einmal (jüngste abgeschlossene Teilnahme im gewählten Zeitraum). */
 const ERFAHRUNG_ORDER = ['Weniger als 5 Jahre', '5 bis 15 Jahre', 'Mehr als 15 Jahre'];
 on('GET', 'admin/aggregate', async ({ req, query }) => {
-  staff(req, 'admin');
+  const s = await staff(req, 'admin');
   const round = String(query.round || '');
+  // Nur pro Runde: Vergleiche zwischen überlappenden Auswahlen könnten sonst kleine Gruppen offenlegen
+  if (!round) fail(400, 'Bitte eine Runde wählen.');
   const zyklus = String(query.zyklus || '');
   const rows = await q(`select distinct on (r.participant_id) r.context, r.answers, r.school_id, c.traeger_id
                           from responses r join campaigns c on c.id = r.campaign_id
-                         where r.status = 'submitted' ${round ? 'and c.round_id = $1' : ''}
-                         order by r.participant_id, r.submitted_at desc`, round ? [round] : []);
+                         where r.status = 'submitted' and c.round_id = $1
+                         order by r.participant_id, r.submitted_at desc`, [round]);
+  await audit(s, 'kantonsauswertung_angesehen', round, { zyklus: zyklus || null });
   const zyklen = filterOptions(rows, zyk).map((x) => ({ zyklus: x.key, n: x.n }));
   if (zyklus && !zyklen.some((x) => x.zyklus === zyklus)) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
   const recs = zyklus ? rows.filter((r) => zyk(r) === zyklus) : rows;
-  const base = { total: rows.length, min: MIN, testMode: MIN < DKCore.MIN_GROUP, zyklen,
+  const base = { total: rows.length, min: MIN, testMode: TEST_MODE && MIN < DKCore.MIN_GROUP, zyklen,
     traegerCount: new Set(recs.map((r) => r.traeger_id)).size, schoolCount: new Set(recs.map((r) => r.school_id)).size };
   if (recs.length < MIN) return { ...base, n: recs.length, tooFew: true };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
@@ -798,6 +894,29 @@ on('GET', 'admin/aggregate', async ({ req, query }) => {
     funktion: compareGroups(recs, ctx('funktion')),
   };
   return { ...base, n: recs.length, tooFew: false, agg, groups };
+});
+
+/* AVS: Protokoll der letzten Aktionen */
+on('GET', 'admin/audit', async ({ req, query }) => {
+  await staff(req, 'admin');
+  const lim = Math.min(500, Math.max(10, parseInt(query.limit || '200', 10) || 200));
+  const rows = await q(`select a.id, a.at, a.actor_role, a.action, a.target, a.detail, u.username, u.display_name,
+                   coalesce(t.name, st.name) as traeger_name, sc.name as school_name
+              from audit_log a left join users u on u.id = a.actor_id
+              left join schools sc on sc.id = u.school_id
+              left join traeger t on t.id = u.traeger_id left join traeger st on st.id = sc.traeger_id
+             order by a.at desc, a.id desc limit $1`, [lim]);
+  // Kennungen lesbar machen (Erhebung, Runde, Schule, Träger); gelöschte Objekte bleiben als Kennung stehen
+  const ids = [...new Set(rows.map((r) => String(r.target || '').replace(/^[cr]:/, '')).filter(Boolean))];
+  const names = {};
+  if (ids.length) {
+    (await q(`select c.id, c.title || ' (' || t.name || ')' as name from campaigns c join traeger t on t.id = c.traeger_id where c.id = any($1)
+              union all select id, 'Runde ' || title from rounds where id = any($1)
+              union all select s.id, s.name || ' (' || t.name || ')' from schools s join traeger t on t.id = s.traeger_id where s.id = any($1)
+              union all select id, name from traeger where id = any($1)
+              union all select id, username from users where id = any($1)`, [ids])).forEach((x) => { names[x.id] = x.name; });
+  }
+  return rows.map((r) => ({ ...r, target: r.target ? names[String(r.target).replace(/^[cr]:/, '')] || r.target : null }));
 });
 
 /* ---------- Einstieg ---------- */

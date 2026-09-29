@@ -33,7 +33,7 @@
         <div class="field"><label for="inv-pw2">Passwort wiederholen</label><input type="password" id="inv-pw2" autocomplete="new-password"></div>
         <button class="btn" type="submit">${reset ? 'Passwort speichern und anmelden' : 'Zugang einrichten und anmelden'}</button>
         <p class="error small" id="inv-msg" role="alert"></p>
-        <p class="small muted">Der Link gilt bis ${date(inv.expires_at)} und nur einmal.</p>
+        <p class="small muted">Der Link gilt bis ${inv.kind === 'reset' ? new Date(inv.expires_at).toLocaleString('de-CH', { dateStyle: 'short', timeStyle: 'short' }) + ' Uhr' : date(inv.expires_at)} und nur einmal.</p>
       </form>`;
     $('#inv-form').addEventListener('submit', async (e) => {
       e.preventDefault();

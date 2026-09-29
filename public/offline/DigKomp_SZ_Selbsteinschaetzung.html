@@ -158,19 +158,6 @@ details.sub[open] summary .t::before { content: "−"; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 28px; border-top: 1px solid var(--line); }
 .confirm { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
-/* Schulauswertung */
-.dropzone { border: 2px dashed var(--ink-3); padding: 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
-.dropzone.drag { border-color: var(--red); background: var(--red-tint); }
-.table-scroll { overflow-x: auto; }
-table.heat { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
-table.heat th, table.heat td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; }
-table.heat th:first-child, table.heat td:first-child { text-align: left; }
-table.heat thead th { font-size: 0.8rem; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
-table.heat tr.area-row td { background: var(--box); font-weight: 700; text-align: left; }
-table.heat td.cell { min-width: 44px; }
-.stat-row { display: flex; flex-wrap: wrap; gap: 32px; }
-.stat b { display: block; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
-
 /* Info */
 .prose { max-width: 70ch; display: flex; flex-direction: column; gap: 14px; }
 .prose h2 { margin-top: 16px; }
@@ -287,61 +274,6 @@ address.contact { font-style: normal; line-height: 1.6; }
   body { font-size: 11pt; }
   .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
-/* Schulauswertung: Darstellungen */
-.seg { display: inline-flex; border: 1px solid var(--ink-3); border-radius: 2px; overflow: hidden; }
-.seg button { font: inherit; font-size: 0.875rem; padding: 7px 12px; background: var(--bg); color: var(--ink); border: 0; border-left: 1px solid var(--line); cursor: pointer; }
-.seg button:first-child { border-left: 0; }
-.seg button:hover:not(:disabled) { background: var(--box); }
-.seg button[aria-pressed="true"], .seg button[aria-pressed="true"]:hover { background: var(--ink); color: #fff; }
-.seg button:disabled { color: var(--ink-3); cursor: default; }
-.seg button:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
-.chart { margin: 0; max-width: 860px; display: flex; flex-direction: column; gap: 10px; }
-.chart > svg { width: 100%; height: auto; display: block; }
-.chart--radar { max-width: 560px; }
-.an-sec { scroll-margin-top: 16px; }
-.an-sec > summary { cursor: pointer; }
-.an-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start; }
-@media (max-width: 960px) { .an-grid { grid-template-columns: 1fr; gap: 24px; } }
-#needs-order { width: auto; }
-.an-jump { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.box-legend { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; margin-right: 10px; }
-.box-legend i { display: inline-block; width: 18px; height: 12px; vertical-align: -1px; margin-right: 5px; }
-.box-legend .lg-box { background: #FAD7C8; border: 1.5px solid #000; }
-.box-legend .lg-med { width: 3px; background: #000; }
-.box-legend .lg-mean { width: 0; border-left: 2px dashed var(--red); }
-.box-legend .lg-wh { height: 0; border-top: 1.5px solid #000; vertical-align: 3px; }
-.lg-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--red); vertical-align: -1px; }
-.lg-dot--cmp { background: #fff; border: 2px solid var(--ink-3); }
-.report { display: none; }
-@media print {
-  body.print-report .site-header .nav, body.print-report main > .view, body.print-report #view-result, body.print-report footer { display: none !important; }
-  body.print-report .report { display: block !important; }
-  body.print-report .site-header .brand { padding-block: 0 8px; }
-  body.print-report .site-header .brand-text { display: none; }
-  body.print-report .site-header .logo-link img { height: 44px; }
-  .report { font-size: 9.5pt; line-height: 1.35; }
-  .report h2 { font-size: 15pt; margin: 2px 0 4px; }
-  .report h3 { font-size: 10.5pt; margin: 10px 0 4px; }
-  .report ul { margin: 0; padding-left: 16px; }
-  .report .muted { color: #464646; }
-  .rp-stats { gap: 14px; margin: 8px 0; }
-  .rp-stats .stat b { font-size: 14pt; }
-  .rp-stats .stat span { display: block; font-size: 8pt; }
-  .report .small { font-size: 8.5pt; }
-  .rp-grid { display: grid; grid-template-columns: 55% 45%; gap: 14px; align-items: start; }
-  .rp-grid svg { width: 100%; height: auto; }
-  .rp-lists h3:first-child { margin-top: 0; }
-  .report > svg { width: 100%; height: auto; }
-  .report svg, .report .legend i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .rp-foot { margin-top: 10px; border-top: 1px solid #D2D2D2; padding-top: 6px; color: #464646; }
-  .an-sec, .chart { break-inside: avoid; }
-  #sec-table[open], #sec-table { display: block; }
-  @page { size: A4; margin: 14mm; }
-}
-@media (max-width: 700px) {
-  .chart { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .chart > svg { min-width: 640px; }
-}
 </style>
 </head>
 <body>
@@ -360,8 +292,6 @@ address.contact { font-style: normal; line-height: 1.6; }
       <button type="button" data-go="start">Start</button>
       <button type="button" data-go="survey">Selbsteinschätzung</button>
       <button type="button" data-go="result">Ergebnis</button>
-      <button type="button" data-go="school">Schulauswertung</button>
-      <button type="button" data-go="custom">Eigene Fragen</button>
       <button type="button" data-go="info">Hilfe</button>
     </nav>
   </div>
@@ -375,8 +305,8 @@ address.contact { font-style: normal; line-height: 1.6; }
         <h2 id="h-start">Wo stehe ich beim Unterrichten mit digitalen Medien?</h2>
         <p class="lead">Die Selbsteinschätzung zeigt das eigene Kompetenzprofil in sechs Bereichen. Grundlage ist der europäische Referenzrahmen DigCompEdu. Das Ergebnis dient der persönlichen Standortbestimmung, dem Mitarbeitendengespräch und der Weiterbildungsplanung der Schule.</p>
         <ol class="steps">
-          <li><div><b>Angaben zum Arbeitsumfeld</b><br><span class="muted">Freiwillig und ohne Namen. Die Angaben helfen bei der Schulauswertung.</span></div></li>
-          <li><div><b>22 Fragen in 6 Bereichen</b><span id="steps-custom"></span><br><span class="muted">Pro Frage die Aussage wählen, die das eigene Handeln am besten beschreibt. Dauer: etwa 20 Minuten.</span></div></li>
+          <li><div><b>Angaben zum Arbeitsumfeld</b><br><span class="muted">Freiwillig und ohne Namen. Sie erscheinen im eigenen Ergebnis.</span></div></li>
+          <li><div><b>22 Fragen in 6 Bereichen</b><br><span class="muted">Pro Frage die Aussage wählen, die das eigene Handeln am besten beschreibt. Dauer: etwa 20 Minuten.</span></div></li>
           <li><div><b>Kompetenzprofil und nächste Schritte</b><br><span class="muted">Das Profil lässt sich speichern, drucken und später wieder öffnen.</span></div></li>
         </ol>
         <div class="stack" style="gap:8px">
@@ -385,12 +315,11 @@ address.contact { font-style: normal; line-height: 1.6; }
         </div>
         <div class="box">
           <h3>Datenschutz</h3>
-          <p>Alle Antworten bleiben auf diesem Gerät. Es werden keine Daten übermittelt. Wer das Ergebnis mit der Schulleitung teilen möchte, speichert es als Datei und gibt diese selbst weiter.</p>
+          <p>Alle Antworten bleiben auf diesem Gerät. Es werden keine Daten übermittelt. Das Ergebnis gehört der Lehrperson. Wer es im Mitarbeitendengespräch zeigen möchte, druckt es aus oder speichert es als PDF.</p>
         </div>
       </div>
 
       <div class="stack">
-        <div class="box box--info" id="school-version-box" hidden></div>
         <div class="box box--warning" id="resume-box" hidden>
           <h3>Auf diesem Gerät sind bereits Antworten gespeichert</h3>
           <p id="resume-text"></p>
@@ -465,7 +394,7 @@ address.contact { font-style: normal; line-height: 1.6; }
         </div>
         <div id="questions"></div>
         <details class="box" id="ctx-details" style="margin-top:28px" hidden>
-          <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted">(freiwillig, für die Schulauswertung)</span> <span class="small muted" id="ctx-summary"></span></summary>
+          <summary style="cursor:pointer"><b>Angaben zum Arbeitsumfeld</b> <span class="small muted">(freiwillig)</span> <span class="small muted" id="ctx-summary"></span></summary>
           <div class="stack" style="margin-top:14px">
             <div class="field"><label for="ctx2-zyklus">Zyklus</label><select id="ctx2-zyklus"></select></div>
             <div class="field"><label for="ctx2-funktion">Funktion</label><select id="ctx2-funktion"></select></div>
@@ -533,7 +462,6 @@ address.contact { font-style: normal; line-height: 1.6; }
       <div class="details-head"><h3>Alle Teilbereiche im Detail</h3><button class="btn quiet no-print" type="button" id="btn-toggle-all">Alle öffnen</button></div>
       <p class="small muted sum-hint">Einen Teilbereich anklicken, um die gewählte Aussage und den nächsten Schritt zu sehen.</p>
       <div id="result-areas"></div>
-      <div id="result-custom"></div>
       <div class="actions">
         <button class="btn" type="button" id="btn-save">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
@@ -547,48 +475,6 @@ address.contact { font-style: normal; line-height: 1.6; }
   </section>
 
   <!-- SCHULAUSWERTUNG -->
-  <section class="view" id="view-school" hidden aria-labelledby="h-school">
-    <div class="stack" style="gap:24px">
-      <div class="stack" style="gap:8px">
-        <div class="eyebrow">Für Schulleitungen</div>
-        <h2 id="h-school">Schulauswertung</h2>
-        <p class="muted" style="max-width:70ch">Die Ergebnisdateien des Kollegiums zusammenführen und den Weiterbildungsbedarf der Schule erkennen. Einzelne Profile werden nicht angezeigt. In der Serverversion geschieht dieses Zusammenführen automatisch.</p>
-      </div>
-      <div class="dropzone" id="dropzone">
-        <div>
-          <p><b>Ergebnisdateien hierher ziehen</b> oder auswählen</p>
-          <p class="small muted">Mehrere .json-Dateien gleichzeitig möglich.</p>
-        </div>
-        <div class="row">
-          <label class="btn secondary" for="file-school">Dateien auswählen</label>
-          <input type="file" id="file-school" accept=".json,application/json" multiple hidden>
-          <button class="btn quiet" type="button" id="btn-school-sample">Beispieldaten anzeigen</button>
-        </div>
-      </div>
-      <p class="small" id="school-msg" role="status"></p>
-      <div id="school-out" class="stack" style="gap:28px"></div>
-    </div>
-  </section>
-  <section id="report" class="report" hidden aria-hidden="true"></section>
-
-  <!-- EIGENE FRAGEN -->
-  <section class="view" id="view-custom" hidden aria-labelledby="h-custom">
-    <div class="stack" style="gap:28px">
-      <div class="stack" style="gap:8px">
-        <div class="eyebrow">Für Schulleitungen</div>
-        <h2 id="h-custom">Eigene Fragen der Schule</h2>
-        <p class="muted" style="max-width:72ch">Zusätzlich zu den 22 Kompetenzfragen kann eine Schule eigene Fragen stellen. Sie erscheinen als letzter Schritt im Fragebogen, fliessen nicht ins Kompetenzprofil ein und werden in der Schulauswertung separat ausgewertet.</p>
-      </div>
-      <ol class="steps">
-        <li><div><b>Fragen erstellen</b><br><span class="muted">Vier Frageformen, frei mischbar: Zustimmungsskala, eigene Stufenaussagen, Auswahl und Freitext.</span></div></li>
-        <li><div><b>Schulversion herunterladen und verteilen</b><br><span class="muted">Es entsteht eine neue HTML-Datei mit den eigenen Fragen. Diese Datei ans Kollegium weitergeben.</span></div></li>
-        <li><div><b>Ergebnisdateien einsammeln und auswerten</b><br><span class="muted">Die Lehrpersonen speichern ihr Ergebnis als Datei. Unter «Schulauswertung» lassen sich alle Dateien zusammen auswerten, inklusive der eigenen Fragen.</span></div></li>
-      </ol>
-      <div id="custom-editor" class="stack" style="gap:20px"></div>
-    </div>
-  </section>
-
-  <!-- HILFE -->
   <section class="view" id="view-info" hidden aria-labelledby="h-info">
     <div class="prose" style="max-width:760px">
       <h2 id="h-info">Hilfe und Hinweise</h2>
@@ -603,17 +489,13 @@ address.contact { font-style: normal; line-height: 1.6; }
       <details class="faq"><summary>Wo sind meine Antworten gespeichert?</summary>
         <p>Nur im Browser dieses Geräts, bis sie gelöscht werden. Es findet keine Übermittlung statt. Auf gemeinsam genutzten Geräten am Schluss «Alle Daten auf diesem Gerät löschen» wählen.</p></details>
       <details class="faq"><summary>Wie gebe ich das Ergebnis weiter?</summary>
-        <p>Mit «Ergebnis als Datei speichern» entsteht eine .json-Datei ohne Namen. Diese Datei kann der Schulleitung für die Schulauswertung abgegeben oder später unter «Start» wieder geöffnet werden. Für das Mitarbeitendengespräch das Profil drucken oder als PDF sichern.</p></details>
+        <p>Für das Mitarbeitendengespräch das Profil drucken oder als PDF sichern. Mit «Ergebnis als Datei speichern» entsteht zudem eine .json-Datei ohne Namen, die sich später unter «Start» wieder öffnen lässt, zum Beispiel für die nächste Standortbestimmung. Die Datei ist nur für den eigenen Gebrauch gedacht.</p></details>
       <details class="faq"><summary>Was sind die Weiterbildungsempfehlungen?</summary>
         <p>Zu den Entwicklungsfeldern nennt das Profil passende Themenbereiche der Weiterbildungsplattform fobizz. Es handelt sich um Themenbereiche, nicht um einzelne Kurse.</p></details>
 
       <h3>Für Schulleitungen</h3>
-      <details class="faq"><summary>Wie werte ich die Ergebnisse der Schule aus?</summary>
-        <p>Die Ergebnisdateien des Kollegiums einsammeln und unter «Schulauswertung» laden. Einzelne Profile werden nicht angezeigt. Bei weniger als fünf Ergebnissen erscheint ein Hinweis, weil Rückschlüsse auf einzelne Personen möglich sind.</p></details>
-      <details class="faq"><summary>Wie stelle ich eigene Fragen?</summary>
-        <p>Unter «Eigene Fragen» bis zu 15 Fragen erfassen und eine Schulversion herunterladen. Diese HTML-Datei ans Kollegium weitergeben. Die Antworten stehen in den Ergebnisdateien und erscheinen in der Schulauswertung.</p></details>
-      <details class="faq"><summary>Gibt es eine Version mit Server?</summary>
-        <p>Ja. In der Serverversion verteilt die Schulleitung einen Link, die Ergebnisse werden automatisch zusammengeführt, und Lehrpersonen öffnen ihr Profil mit einem persönlichen Code.</p></details>
+      <details class="faq"><summary>Gibt es eine Auswertung für die Schule?</summary>
+        <p>Nicht mit dieser Datei. Die Offline-Version dient nur der persönlichen Selbsteinschätzung. Schulauswertungen gibt es in der Serverversion: Die Schulleitung verteilt einen Link, die Ergebnisse werden automatisch und ohne Namen zusammengeführt und erst ab fünf Teilnahmen angezeigt.</p></details>
 
       <h3>Quelle</h3>
       <p>Die Aussagen basieren auf dem Selbsteinschätzungswerkzeug «DigCompEdu Bavaria» der Akademie für Lehrerfortbildung und Personalführung Dillingen und auf dem Referenzrahmen DigCompEdu der Europäischen Kommission. Die Anpassung an den Kanton Schwyz ist in Arbeit. Aussagen zu Künstlicher Intelligenz werden in einer nächsten Version ergänzt.</p>
@@ -835,270 +717,10 @@ window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
   fmt: (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 })) };
 </script>
 <script>
-// Diagramme der Schulauswertung (SVG, ohne Bibliothek). Alle Funktionen liefern SVG-Text.
-// Skala der Kompetenzstufen: I = 1 bis VI = 6. «Keine Gelegenheit» wird separat ausgewiesen.
+// Offline-Version: nur persönliche Selbsteinschätzung. Schulauswertungen gibt es in der Serverversion.
 (function () {
   'use strict';
-  const { ITEMS, LV, esc, fmt } = UI;
-  const W = 760, LABEL_W = 300, X0 = 312, X1 = 700;
-  const FONT = 'font-family="Helvetica, Arial, sans-serif"';
-  const COL = { cur: '#E2001A', cmp: '#6E6E6E', grid: '#D2D2D2', band: '#F4F4F4', head: '#EBEBEB', ink: '#000', ink2: '#464646' };
-  const LVCOL = ['#B4B4B4', '#FAD7C8', '#F5AF96', '#EB694B', '#E2001A', '#AF1400', '#780A00'];
-  const NEEDCOL = ['#F5AF96', '#E2001A', '#780A00'];
-  const pct = (x) => Math.round(x * 100) + ' %';
-
-  function wrap(text, max = 34) {
-    const lines = [];
-    String(text).split(' ').forEach((w) => {
-      if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= max) lines[lines.length - 1] += ' ' + w;
-      else lines.push(w);
-    });
-    if (lines.length > 2) lines.splice(1, lines.length, lines.slice(1).join(' ').slice(0, max - 1) + '…');
-    return lines;
-  }
-
-  /* Zeilen: Bereiche oder Teilbereiche (mit Zwischentitel pro Bereich) */
-  function rowsFor(level) {
-    const rows = [];
-    if (level === 'areas') ITEMS.areas.forEach((a, i) => rows.push({ type: 'item', kind: 'area', idx: i, id: a.id, label: a.title }));
-    else ITEMS.areas.forEach((a) => {
-      rows.push({ type: 'head', id: a.id, label: a.id + ' ' + a.title });
-      a.subareas.forEach((s) => rows.push({ type: 'item', kind: 'sub', id: s.id, label: s.title }));
-    });
-    return rows;
-  }
-
-  function layout(rows, top) {
-    let y = top;
-    rows.forEach((r) => {
-      r.lines = r.type === 'head' ? [r.label] : wrap(r.label);
-      r.h = r.type === 'head' ? 26 : r.lines.length > 1 ? 40 : 30;
-      r.y = y; r.cy = y + r.h / 2;
-      y += r.h;
-    });
-    return y;
-  }
-
-  function rowBackground(rows) {
-    let g = '', k = 0;
-    rows.forEach((r) => {
-      if (r.type === 'head') { g += `<rect x="0" y="${r.y}" width="${W}" height="${r.h}" fill="${COL.head}"/><text x="8" y="${r.cy + 4.5}" font-size="13" font-weight="700">${esc(r.label)}</text>`; k = 0; return; }
-      if (k++ % 2 === 0) g += `<rect x="0" y="${r.y}" width="${W}" height="${r.h}" fill="${COL.band}"/>`;
-      const idTxt = `<tspan font-weight="700">${esc(r.id)}</tspan> `;
-      g += `<text x="8" y="${r.cy + 4.5 - (r.lines.length - 1) * 7.5}" font-size="13" fill="${COL.ink}">` +
-        r.lines.map((l, i) => `<tspan x="${i ? 8 + (r.id.length + 1) * 7.4 : 8}" dy="${i ? 15 : 0}">${i ? '' : idTxt}${esc(l)}</tspan>`).join('') + '</text>';
-    });
-    return g;
-  }
-
-  function levelAxis(xf, top, bottom, from = 1) {
-    let g = '';
-    for (let v = from; v <= 6; v++) {
-      const x = xf(v).toFixed(1);
-      g += `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="${COL.grid}" stroke-width="1"/>`;
-      if (v >= 1) g += `<text x="${x}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}"><tspan font-weight="700">${LV[v - 1].roman}</tspan></text>`;
-    }
-    return g;
-  }
-  const svg = (h, body, label) => `<svg viewBox="0 0 ${W} ${Math.ceil(h)}" role="img" aria-label="${esc(label)}" ${FONT} font-size="13">${body}</svg>`;
-
-  /* Werte einer Zeile aus der Aggregation holen */
-  const rowMean = (agg, r) => (r.kind === 'area' ? agg.areas[r.idx].mean : agg.bySub[r.id].mean);
-  const rowBox = (agg, r) => (r.kind === 'area' ? agg.areas[r.idx].box : agg.bySub[r.id].box);
-
-  /* A1: Balken – Mittelwerte, optional mit Vergleich */
-  function bars(agg, level, cagg, names = {}) {
-    const rows = rowsFor(level);
-    const top = 34, bottom = layout(rows, top);
-    const xf = (v) => X0 + (v / 6) * (X1 - X0);
-    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
-    g += `<line x1="${X0}" y1="${top}" x2="${X0}" y2="${bottom}" stroke="${COL.ink2}" stroke-width="1"/>`;
-    rows.filter((r) => r.type === 'item').forEach((r) => {
-      const v = rowMean(agg, r), c = cagg ? rowMean(cagg, r) : null;
-      const bh = cagg ? 9 : 14, y1 = cagg ? r.cy - bh - 1 : r.cy - bh / 2;
-      if (v !== null) g += `<rect x="${X0}" y="${y1.toFixed(1)}" width="${(xf(v) - X0).toFixed(1)}" height="${bh}" fill="${COL.cur}"><title>${esc(names.cur || 'Aktuell')}: ${fmt(v)}</title></rect>
-        <text x="${(xf(v) + 6).toFixed(1)}" y="${(y1 + bh / 2 + 4.5).toFixed(1)}" font-size="12" font-weight="700">${fmt(v)}</text>`;
-      if (cagg && c !== null) g += `<rect x="${X0}" y="${(r.cy + 1).toFixed(1)}" width="${(xf(c) - X0).toFixed(1)}" height="${bh}" fill="${COL.cmp}"><title>${esc(names.cmp || 'Vergleich')}: ${fmt(c)}</title></rect>
-        <text x="${(xf(c) + 6).toFixed(1)}" y="${(r.cy + 1 + bh / 2 + 4.5).toFixed(1)}" font-size="12" fill="${COL.ink2}">${fmt(c)}</text>`;
-      if (v === null && c === null) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
-    });
-    return svg(bottom + 4, g, 'Balkendiagramm: Mittelwerte pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich'));
-  }
-
-  /* A2: Verteilung – 100-%-Balken der Stufen I–VI (ohne «keine Gelegenheit») */
-  function dist(agg, level) {
-    const rows = rowsFor(level);
-    const top = 34, bottom = layout(rows, top);
-    const x1 = X1 - 8, xf = (s) => X0 + s * (x1 - X0);
-    let g = rowBackground(rows);
-    [0, 0.25, 0.5, 0.75, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text><line x1="${xf(s).toFixed(1)}" y1="${top - 3}" x2="${xf(s).toFixed(1)}" y2="${top}" stroke="${COL.ink2}"/>`; });
-    rows.filter((r) => r.type === 'item').forEach((r) => {
-      const subs = r.kind === 'area' ? ITEMS.areas[r.idx].subareas.map((s) => agg.bySub[s.id]) : [agg.bySub[r.id]];
-      const counts = [0, 1, 2, 3, 4, 5, 6].map((k) => subs.reduce((a, d) => a + d.counts[k], 0));
-      const rated = counts.slice(1).reduce((a, b) => a + b, 0);
-      let x = X0;
-      for (let k = 1; k <= 6; k++) {
-        if (!counts[k]) continue;
-        const w = (counts[k] / rated) * (x1 - X0);
-        g += `<rect x="${x.toFixed(1)}" y="${r.cy - 8}" width="${w.toFixed(1)}" height="16" fill="${LVCOL[k]}" stroke="#fff" stroke-width="1"><title>Stufe ${LV[k - 1].roman}: ${counts[k]} (${pct(counts[k] / rated)})</title></rect>`;
-        if (w > 26) g += `<text x="${(x + w / 2).toFixed(1)}" y="${r.cy + 4}" font-size="11" text-anchor="middle" fill="${k >= 4 ? '#fff' : '#000'}">${pct(counts[k] / rated).replace(' ', '')}</text>`;
-        x += w;
-      }
-      if (!rated) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
-      if (counts[0]) g += `<text x="${W - 4}" y="${r.cy + 4.5}" font-size="11" text-anchor="end" fill="${COL.ink2}">+${counts[0]}&#160;k.&#160;G.</text>`;
-    });
-    const note = level === 'areas' ? 'Alle Einschätzungen der Teilbereiche zusammengezählt.' : '';
-    return svg(bottom + 4, g, 'Verteilung der Stufen pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich') + '. ' + note);
-  }
-
-  /* A4: Boxplot wie im Beurteilungstool – Box = mittlere 50 %, Antennen = 10.–90. Perzentil */
-  function boxplot(agg, level) {
-    const rows = rowsFor(level);
-    const top = 34, bottom = layout(rows, top);
-    const xf = (v) => X0 + ((v - 1) / 5) * (X1 - X0);
-    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
-    rows.filter((r) => r.type === 'item').forEach((r) => {
-      const b = rowBox(agg, r);
-      if (!b) { g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`; return; }
-      const [p10, q1, md, q3, p90, m] = [b.p10, b.q1, b.median, b.q3, b.p90, b.mean].map(xf);
-      const y = r.cy, h = 16;
-      const tip = `Median ${fmt(b.median)} · Mittelwert ${fmt(b.mean)} · mittlere 50 %: ${fmt(b.q1)}–${fmt(b.q3)} · 10–90 %: ${fmt(b.p10)}–${fmt(b.p90)} · ${b.n} Einschätzungen`;
-      g += `<g><title>${esc(tip)}</title>
-        <line x1="${p10.toFixed(1)}" y1="${y}" x2="${q1.toFixed(1)}" y2="${y}" stroke="#000" stroke-width="1.2"/>
-        <line x1="${q3.toFixed(1)}" y1="${y}" x2="${p90.toFixed(1)}" y2="${y}" stroke="#000" stroke-width="1.2"/>
-        <line x1="${p10.toFixed(1)}" y1="${y - 6}" x2="${p10.toFixed(1)}" y2="${y + 6}" stroke="#000" stroke-width="1.2"/>
-        <line x1="${p90.toFixed(1)}" y1="${y - 6}" x2="${p90.toFixed(1)}" y2="${y + 6}" stroke="#000" stroke-width="1.2"/>
-        <rect x="${q1.toFixed(1)}" y="${y - h / 2}" width="${Math.max(2, q3 - q1).toFixed(1)}" height="${h}" fill="#FAD7C8" stroke="#000" stroke-width="1.2"/>
-        <line x1="${md.toFixed(1)}" y1="${y - h / 2}" x2="${md.toFixed(1)}" y2="${y + h / 2}" stroke="#000" stroke-width="2.5"/>
-        <line x1="${m.toFixed(1)}" y1="${y - h / 2 - 3}" x2="${m.toFixed(1)}" y2="${y + h / 2 + 3}" stroke="${COL.cur}" stroke-width="2" stroke-dasharray="2 2"/></g>`;
-    });
-    return svg(bottom + 4, g, 'Boxplot pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich'));
-  }
-
-  /* A3: Vergleich zweier Erhebungen – Hantel pro Teilbereich, nach Veränderung sortiert */
-  function dumbbell(agg, cagg) {
-    const items = DKCore.allSubareas(ITEMS).map((s) => ({ id: s.id, label: s.title, a: agg.bySub[s.id].mean, b: cagg.bySub[s.id].mean }))
-      .filter((r) => r.a !== null && r.b !== null).map((r) => ({ ...r, d: r.a - r.b })).sort((x, y) => y.d - x.d);
-    const rows = items.map((r) => ({ type: 'item', ...r }));
-    const top = 34, bottom = layout(rows, top);
-    const xe = X1 - 40, xf = (v) => X0 + ((v - 1) / 5) * (xe - X0);
-    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
-    g += `<text x="${W - 6}" y="${top - 8}" font-size="12" text-anchor="end" fill="${COL.ink2}">Δ</text>`;
-    rows.forEach((r) => {
-      const xa = xf(r.a), xb = xf(r.b);
-      const col = r.d > 0.05 ? '#1f6b33' : r.d < -0.05 ? '#AF1400' : COL.ink2;
-      g += `<g><title>${esc(r.id + ' ' + r.label)}: vorher ${fmt(r.b)}, jetzt ${fmt(r.a)}</title>
-        <line x1="${xb.toFixed(1)}" y1="${r.cy}" x2="${xa.toFixed(1)}" y2="${r.cy}" stroke="#B4B4B4" stroke-width="3"/>
-        <circle cx="${xb.toFixed(1)}" cy="${r.cy}" r="5" fill="#fff" stroke="${COL.cmp}" stroke-width="2"/>
-        <circle cx="${xa.toFixed(1)}" cy="${r.cy}" r="5.5" fill="${COL.cur}"/></g>
-        <text x="${W - 6}" y="${r.cy + 4.5}" font-size="12" text-anchor="end" font-weight="700" fill="${col}">${r.d > 0 ? '+' : r.d < 0 ? '−' : '±'}${fmt(Math.abs(r.d))}</text>`;
-    });
-    return svg(bottom + 4, g, 'Veränderung pro Teilbereich zwischen zwei Erhebungen');
-  }
-
-  /* B1/B2: Wer braucht was? – Einstieg / Vertiefung / Weitergeben, mit Streuung */
-  function needs(agg, order) {
-    let subs = DKCore.allSubareas(ITEMS).map((s) => ({ s, g: DKCore.needGroups(agg.bySub[s.id]) }));
-    if (order === 'entry') subs.sort((a, b) => b.g.share[0] - a.g.share[0]);
-    if (order === 'spread') { const rk = { gespalten: 0, gemischt: 1, einig: 2 }; subs.sort((a, b) => (rk[a.g.spread] ?? 3) - (rk[b.g.spread] ?? 3) || (agg.bySub[b.s.id].sd || 0) - (agg.bySub[a.s.id].sd || 0)); }
-    const rows = subs.map(({ s, g }) => ({ type: 'item', id: s.id, label: s.title, g }));
-    const top = 34, bottom = layout(rows, top);
-    const xe = X1 - 36, xf = (s) => X0 + s * (xe - X0);
-    let g = rowBackground(rows);
-    [0, 0.5, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text>`; });
-    rows.forEach((r) => {
-      let x = X0;
-      const names = ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'];
-      r.g.counts.forEach((c, k) => {
-        if (!c) return;
-        const w = r.g.share[k] * (xe - X0);
-        g += `<rect x="${x.toFixed(1)}" y="${r.cy - 8}" width="${w.toFixed(1)}" height="16" fill="${NEEDCOL[k]}" stroke="#fff"><title>${names[k]}: ${c} (${pct(r.g.share[k])})</title></rect>`;
-        if (w > 22) g += `<text x="${(x + w / 2).toFixed(1)}" y="${r.cy + 4}" font-size="11" text-anchor="middle" fill="${k ? '#fff' : '#000'}">${c}</text>`;
-        x += w;
-      });
-      if (!r.g.rated) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
-      if (r.g.spread) {
-        const sym = r.g.spread === 'gespalten' ? '◆' : r.g.spread === 'einig' ? '●' : '';
-        g += `<text x="${W - 4}" y="${r.cy + 4.5}" font-size="11" text-anchor="end" fill="${r.g.spread === 'gespalten' ? '#AF1400' : COL.ink2}" ${r.g.spread === 'gespalten' ? 'font-weight="700"' : ''}>${sym ? sym + ' ' : ''}${r.g.spread}</text>`;
-      }
-    });
-    return svg(bottom + 4, g, 'Wer braucht was: Anteile Einstieg, Vertiefung und Weitergeben pro Teilbereich');
-  }
-
-  /* B3: Voraussetzungen – Anteil «keine Gelegenheit» */
-  function noOpp(agg) {
-    const items = DKCore.allSubareas(ITEMS).map((s) => ({ id: s.id, label: s.title, d: agg.bySub[s.id] }))
-      .filter((r) => r.d.counts[0] > 0).map((r) => ({ type: 'item', ...r, share: r.d.counts[0] / r.d.answered })).sort((a, b) => b.share - a.share);
-    if (!items.length) return '';
-    const top = 34, bottom = layout(items, top);
-    const xe = X1 - 30, xf = (s) => X0 + s * (xe - X0);
-    let g = rowBackground(items);
-    [0, 0.25, 0.5, 0.75, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text><line x1="${xf(s).toFixed(1)}" y1="${top}" x2="${xf(s).toFixed(1)}" y2="${bottom}" stroke="${COL.grid}"/>`; });
-    items.forEach((r) => {
-      g += `<rect x="${X0}" y="${r.cy - 7}" width="${Math.max(2, xf(r.share) - X0).toFixed(1)}" height="14" fill="${r.share >= 0.25 ? '#6E6E6E' : '#B4B4B4'}"><title>${r.d.counts[0]} von ${r.d.answered}</title></rect>
-        <text x="${(xf(r.share) + 6).toFixed(1)}" y="${r.cy + 4.5}" font-size="12">${pct(r.share)} <tspan fill="${COL.ink2}">(${r.d.counts[0]})</tspan></text>`;
-    });
-    g += `<line x1="${xf(0.25).toFixed(1)}" y1="${top}" x2="${xf(0.25).toFixed(1)}" y2="${bottom}" stroke="#000" stroke-dasharray="4 3"/>`;
-    return svg(bottom + 4, g, 'Anteil «keine Gelegenheit» pro Teilbereich');
-  }
-
-  /* B4: Gruppen nebeneinander (Zyklen, Schulen …) – Mittelwert pro Bereich und Gruppe */
-  const STUFE_COL = ['#E2001A', '#000000', '#8C8C8C', '#EB694B', '#780A00'];
-  const shape = (k, x, y, col, s = 5.5) => {
-    x = +(+x).toFixed(1); y = +(+y).toFixed(1);
-    if (k % 3 === 0) return `<circle cx="${x}" cy="${y}" r="${s}" fill="${col}"/>`;
-    if (k % 3 === 1) return `<rect x="${x - s}" y="${y - s}" width="${2 * s}" height="${2 * s}" fill="${col}"/>`;
-    return `<path d="M${x} ${y - s - 1}L${x + s + 1} ${y + s}H${x - s - 1}Z" fill="${col}"/>`;
-  };
-  function stufen(byStufe) {
-    const rows = rowsFor('areas');
-    const top = 34, bottom = layout(rows, top);
-    const xf = (v) => X0 + ((v - 1) / 5) * (X1 - X0);
-    let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
-    rows.forEach((r) => {
-      byStufe.forEach((st, k) => {
-        const v = st.areas[r.idx];
-        if (v === null) return;
-        g += `<g><title>${esc(st.label || st.stufe)}: ${fmt(v)}</title>${shape(k, xf(v).toFixed(1), r.cy, STUFE_COL[k % STUFE_COL.length])}</g>`;
-      });
-    });
-    return svg(bottom + 4, g, 'Mittelwerte pro Bereich nach Gruppe');
-  }
-  function stufenLegend(byStufe) {
-    return byStufe.map((st, k) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${shape(k, 7, 7, STUFE_COL[k % STUFE_COL.length], 5)}</svg> ${esc(st.label || st.stufe)} (${st.n})</span>`).join('');
-  }
-
-  /* Diagramm als PNG speichern */
-  function png(svgEl, fname) {
-    const vb = svgEl.viewBox.baseVal, scale = 2;
-    const clone = svgEl.cloneNode(true);
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    clone.setAttribute('width', vb.width); clone.setAttribute('height', vb.height);
-    if (!clone.getAttribute('font-family')) clone.setAttribute('font-family', 'Helvetica, Arial, sans-serif');
-    const img = new Image();
-    img.onload = () => {
-      const cv = document.createElement('canvas');
-      cv.width = vb.width * scale; cv.height = vb.height * scale;
-      const ctx = cv.getContext('2d');
-      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
-      ctx.drawImage(img, 0, 0, cv.width, cv.height);
-      cv.toBlob((blob) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname + '.png'; document.body.appendChild(a); a.click(); a.remove(); });
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
-  }
-
-  window.Charts = { bars, dist, boxplot, dumbbell, needs, noOpp, stufen, stufenLegend, png, LVCOL, NEEDCOL };
-})();
-
-</script>
-<script>
-// Schulversion: eigene Fragen der Schule. In der allgemeinen Datei null; beim Herunterladen einer Schulversion ersetzt.
-const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
-(function () {
-  'use strict';
-  // Unveränderte Seite festhalten, bevor etwas gerendert wird: Vorlage für neue Schulversionen
-  const PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML;
-  const STORE_KEY = 'dk-sz-selbsteinschaetzung-v1' + (SCHOOL ? '-' + SCHOOL.id : '');
+  const STORE_KEY = 'dk-sz-selbsteinschaetzung-v1';
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1114,9 +736,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
 
   /* ---------- Zustand ---------- */
   function newState() {
-    return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: uid(), created: new Date().toISOString(), updated: null, context: {}, answers: {},
-      school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : null,
-      custom_block: SCHOOL ? SCHOOL.block : null, custom_answers: {} };
+    return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: uid(), created: new Date().toISOString(), updated: null, context: {}, answers: {} };
   }
   function uid() { return 'r-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
   function load() {
@@ -1134,11 +754,10 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   }
   function wipe() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} state = newState(); }
   let state = load() || newState();
-  state.custom_answers = state.custom_answers || {};
   let areaIdx = 0;
 
   /* ---------- Navigation ---------- */
-  const HASH = { start: 'start', survey: 'fragebogen', result: 'ergebnis', school: 'schulauswertung', custom: 'eigene-fragen', info: 'hilfe' };
+  const HASH = { start: 'start', survey: 'fragebogen', result: 'ergebnis', info: 'hilfe' };
   let routing = false, replaceNext = true;
   function setHash(h) {
     if (routing) return;
@@ -1154,13 +773,11 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   window.addEventListener('popstate', () => { routing = true; try { go(viewFromHash()); } finally { routing = false; } });
   function go(view) {
     if (view !== 'survey') setHash(HASH[view]);
-    ['start', 'survey', 'result', 'school', 'custom', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
+    ['start', 'survey', 'result', 'info'].forEach((v) => { $('#view-' + v).hidden = v !== view; });
     $$('.nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.go === view ? 'page' : 'false'));
     if (view === 'start') renderStart();
     if (view === 'survey') renderSurvey();
     if (view === 'result') renderResult();
-    if (view === 'school') renderSchool();
-    if (view === 'custom') renderEditor();
     window.scrollTo({ top: 0 });
   }
   document.addEventListener('click', (e) => {
@@ -1200,11 +817,6 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     }
     ['zyklus', 'funktion', 'erfahrung'].forEach((k) => { $('#ctx-' + k).value = state.context[k] || ''; });
     $('#btn-start').firstChild.textContent = has ? 'Weiter zur Selbsteinschätzung ' : 'Selbsteinschätzung starten ';
-    const blk = blockOf();
-    $('#steps-custom').textContent = blk ? ` und ${blk.questions.length} Frage${blk.questions.length === 1 ? '' : 'n'} der Schule` : '';
-    const sv = $('#school-version-box');
-    sv.hidden = !SCHOOL;
-    if (SCHOOL) sv.innerHTML = `<h3>Schulversion ${esc(SCHOOL.name)}</h3><p class="small">Diese Datei enthält zusätzlich ${SCHOOL.block.questions.length} eigene Frage${SCHOOL.block.questions.length === 1 ? '' : 'n'} der Schule. Am Schluss das Ergebnis als Datei speichern und der Schulleitung abgeben.</p>`;
   }
   $('#context-form').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -1222,8 +834,8 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     try {
       const obj = JSON.parse(await f.text());
       if (!DKCore.validateRecord(obj)) throw new Error('format');
-      state = Object.assign(newState(), obj);
-      state.custom_answers = state.custom_answers || {};
+      // Nur Kompetenzantworten und Kontext übernehmen (ältere Dateien enthielten teils Fragen einer Schule)
+      state = Object.assign(newState(), { id: obj.id, created: obj.created, updated: obj.updated, context: obj.context || {}, answers: obj.answers || {} });
       persist();
       $('#file-own-msg').textContent = '';
       go('result');
@@ -1242,11 +854,8 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     const vals = Object.values(state.context || {}).filter(Boolean);
     $('#ctx-summary').textContent = vals.length ? '· ' + vals.join(', ') : '· keine Angaben';
   }
-  const SCALE = DKCore.SCALE;
-  const TYPE_LABEL = { scale: 'Zustimmungsskala', levels: 'Eigene Stufenaussagen', choice: 'Auswahl', text: 'Freitext' };
-  const blockOf = (r = state) => (r && r.custom_block && Array.isArray(r.custom_block.questions) && r.custom_block.questions.length ? r.custom_block : null);
-  const steps = () => ITEMS.areas.length + (blockOf() ? 1 : 0);
-  const stepTitle = (i) => (i < ITEMS.areas.length ? ITEMS.areas[i].title : blockOf().title);
+  const steps = () => ITEMS.areas.length;
+  const stepTitle = (i) => ITEMS.areas[i].title;
 
   // Unterkapitel des aktuellen Bereichs in der Übersicht; Klick scrollt zur Frage
   function subnav(items) {
@@ -1263,12 +872,12 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     if (!el) return;
     closeNav();
     scrollToEl(el);
-    const first = el.querySelector('input:checked, input, textarea');
+    const first = el.querySelector('input:checked, input');
     if (first) setTimeout(() => first.focus({ preventScroll: true }), smoothOK() ? 400 : 0);
   }
   function advanceFrom(fs) {
     const all = $$('#questions fieldset.q');
-    const next = all.slice(all.indexOf(fs) + 1).find((f) => !f.querySelector('input:checked') && !(f.querySelector('textarea') && f.querySelector('textarea').value.trim()));
+    const next = all.slice(all.indexOf(fs) + 1).find((f) => !f.querySelector('input:checked'));
     setTimeout(() => scrollToEl(next || $('.survey-foot')), 300);
   }
   function closeNav() { $('#survey-aside').classList.remove('open'); $('#nav-toggle').setAttribute('aria-expanded', 'false'); }
@@ -1279,93 +888,26 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
   });
 
   function renderAreaNav() {
-    const blk = blockOf();
-    const ca = state.custom_answers;
     $('#areanav').innerHTML = ITEMS.areas.map((a, i) => {
       const done = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
       const full = done === a.subareas.length;
       return `<button type="button" data-area="${i}" aria-current="${i === areaIdx ? 'step' : 'false'}">
         <span>${a.id}&nbsp; ${esc(a.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + a.subareas.length}</span></button>` +
         (i === areaIdx ? subnav(a.subareas.map((s) => ({ key: s.id, label: s.id, title: s.title, done: state.answers[s.id] !== undefined }))) : '');
-    }).join('') + (blk ? (() => {
-      const done = blk.questions.filter((q) => ca[q.id] !== undefined).length;
-      const full = done === blk.questions.length;
-      return `<button type="button" data-area="${ITEMS.areas.length}" aria-current="${areaIdx === ITEMS.areas.length ? 'step' : 'false'}" style="margin-top:8px;border-top:1px solid var(--line)">
-        <span>${esc(blk.title)}</span><span class="cnt ${full ? 'done' : ''}">${full ? '✓' : done + '/' + blk.questions.length}</span></button>` +
-        (areaIdx === ITEMS.areas.length ? subnav(blk.questions.map((q, k) => ({ key: q.id, label: String(k + 1), title: q.text, done: ca[q.id] !== undefined }))) : '');
-    })() : '');
+    }).join('');
     $$('#areanav button[data-area]').forEach((b) => b.addEventListener('click', () => { areaIdx = +b.dataset.area; closeNav(); renderSurvey(true); }));
     $$('#areanav [data-jump]').forEach((b) => b.addEventListener('click', () => jumpTo(b.dataset.jump)));
     const p = DKCore.progress(ITEMS, state.answers);
     $('#progress-fill').style.width = (100 * p.done / p.total) + '%';
     $('#progress-text').innerHTML = `${p.done}<span class="hide-narrow"> von ${p.total} Kompetenzfragen</span><span class="show-narrow">/${p.total}</span> beantwortet`;
-    if (areaIdx < ITEMS.areas.length) {
-      const a = ITEMS.areas[areaIdx];
-      const d = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
-      $('#nav-toggle-text').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}: ${a.title} · ${d}/${a.subareas.length}`;
-    } else if (blk) {
-      const d = blk.questions.filter((q) => ca[q.id] !== undefined).length;
-      $('#nav-toggle-text').textContent = `${blk.title} · ${d}/${blk.questions.length}`;
-    }
-  }
-
-  function customQuestionHTML(q, i) {
-    const v = state.custom_answers[q.id];
-    const name = 'cq-' + q.id;
-    let hint = '', body = '';
-    if (q.type === 'scale') {
-      hint = 'Wie weit trifft die Aussage zu?';
-      body = `<div class="opts inline">${SCALE.map((l, k) => `<label class="opt"><input type="radio" name="${name}" id="${name}-${k + 1}" value="${k + 1}" ${v === k + 1 ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
-        <div class="opts" style="margin-top:8px"><label class="opt none"><input type="radio" name="${name}" id="${name}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Kann ich nicht beurteilen</span></label></div>`;
-    } else if (q.type === 'levels') {
-      hint = 'Welche Aussage beschreibt das eigene Handeln am besten?';
-      body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="radio" name="${name}" id="${name}-${k + 1}" value="${k + 1}" ${v === k + 1 ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}
-        <label class="opt none"><input type="radio" name="${name}" id="${name}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit.</span></label></div>`;
-    } else if (q.type === 'choice') {
-      hint = q.multiple ? 'Mehrere Antworten möglich.' : 'Eine Antwort wählen.';
-      const sel = [].concat(v === undefined ? [] : v);
-      body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}" id="${name}-${k}" value="${k}" ${sel.includes(k) ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}</div>`;
-    } else {
-      hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen.';
-      body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" name="${name}" rows="4" maxlength="1000">${esc(v || '')}</textarea>`;
-    }
-    return `<fieldset class="q" id="fs-${q.id}" data-qtype="${q.type}"><legend><span class="qid">${i + 1}</span><span>${esc(q.text)}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
-  }
-
-  function renderCustomStep() {
-    const blk = blockOf();
-    $('#area-eyebrow').textContent = 'Fragen der Schule · nicht Teil des Kompetenzprofils';
-    $('#h-area').textContent = blk.title;
-    $('#area-desc').textContent = blk.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten stehen in der Ergebnisdatei und fliessen in die Schulauswertung ein.';
-    $('#questions').innerHTML = blk.questions.map(customQuestionHTML).join('');
-    blk.questions.forEach((q) => {
-      const name = 'cq-' + q.id;
-      if (q.type === 'text') {
-        $('#' + name).addEventListener('input', (e) => {
-          const val = e.target.value.trim();
-          if (val) state.custom_answers[q.id] = val.slice(0, 1000); else delete state.custom_answers[q.id];
-          persist(); renderAreaNav();
-        });
-        return;
-      }
-      $$(`input[name="${name}"]`).forEach((inp) => inp.addEventListener('change', () => {
-        if (q.type === 'choice' && q.multiple) {
-          const list = $$(`input[name="${name}"]:checked`).map((x) => +x.value);
-          if (list.length) state.custom_answers[q.id] = list; else delete state.custom_answers[q.id];
-        } else {
-          const first = state.custom_answers[q.id] === undefined;
-          state.custom_answers[q.id] = +inp.value;
-          if (first) advanceFrom(inp.closest('fieldset'));
-        }
-        persist(); renderAreaNav();
-      }));
-    });
+    const a = ITEMS.areas[areaIdx];
+    const d = a.subareas.filter((s) => state.answers[s.id] !== undefined).length;
+    $('#nav-toggle-text').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}: ${a.title} · ${d}/${a.subareas.length}`;
   }
 
   function renderSurvey(focus) {
     if (areaIdx >= steps()) areaIdx = steps() - 1;
-    if (areaIdx === ITEMS.areas.length) renderCustomStep();
-    else {
+    {
       const a = ITEMS.areas[areaIdx];
       $('#area-eyebrow').textContent = `Bereich ${areaIdx + 1} von ${ITEMS.areas.length}`;
       $('#h-area').textContent = a.title;
@@ -1487,7 +1029,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     $('#result-content').hidden = !any;
     if (!any) return;
     const d = new Date(state.updated || state.created);
-    $('#result-date').textContent = (SCHOOL ? SCHOOL.name + ' · ' : '') + 'Stand ' + d.toLocaleDateString('de-CH');
+    $('#result-date').textContent = 'Stand ' + d.toLocaleDateString('de-CH');
     levelsStrip($('#result-levels'));
     $('#btn-toggle-all').textContent = 'Alle öffnen';
     const ctx = state.context || {};
@@ -1526,17 +1068,6 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
           return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : v === 0 ? ' <span class="small muted">Keine Gelegenheit</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
         }).join('')}</div>`;
     }).join('');
-    const blk = blockOf();
-    const ca = state.custom_answers;
-    const ansTxt = (q, v) => {
-      if (v === undefined) return '<span class="muted">Keine Antwort</span>';
-      if (q.type === 'scale') return v === 0 ? 'Kann ich nicht beurteilen' : esc(SCALE[v - 1]);
-      if (q.type === 'levels') return v === 0 ? 'Keine Gelegenheit' : `Stufe ${v} von ${q.options.length}: ${esc(q.options[v - 1])}`;
-      if (q.type === 'choice') return [].concat(v).map((k) => esc(q.options[k])).join(', ');
-      return esc(v);
-    };
-    $('#result-custom').innerHTML = blk ? `<div class="area-block"><h3><span>${esc(blk.title)}</span><span class="avg">Fragen der Schule, nicht Teil des Kompetenzprofils</span></h3>
-      <dl class="custom-list">${blk.questions.map((q) => `<div><dt>${esc(q.text)}</dt><dd>${ansTxt(q, ca[q.id])}</dd></div>`).join('')}</dl></div>` : '';
     resetControl($('#reset-confirm-result'), 'Alle Daten auf diesem Gerät löschen');
   }
 
@@ -1560,464 +1091,7 @@ const SCHOOL = /*SCHOOL_CONFIG_START*/null/*SCHOOL_CONFIG_END*/;
     e.currentTarget.textContent = open ? 'Alle schliessen' : 'Alle öffnen';
   });
 
-  /* ---------- Schulauswertung ---------- */
-  let school = { records: [], sample: false, filter: '' };
-  const DEMO_BLOCK = { title: 'Fragen unserer Schule (Beispiel)', intro: '', questions: [
-    { id: 'qdemo1', type: 'scale', text: 'Die Geräte an unserer Schule funktionieren zuverlässig.' },
-    { id: 'qdemo2', type: 'levels', text: 'Umgang mit der Lernplattform unserer Schule', options: ['Ich kenne die Lernplattform kaum.', 'Ich nutze sie für Mitteilungen.', 'Ich stelle regelmässig Aufträge und Material bereit.', 'Ich unterstütze Kolleginnen und Kollegen bei der Nutzung.'] },
-    { id: 'qdemo3', type: 'choice', text: 'Welche Geräte setzen Sie im Unterricht ein?', options: ['Tablet', 'Notebook', 'Interaktive Wandtafel', 'Dokumentenkamera'], multiple: true },
-    { id: 'qdemo4', type: 'text', text: 'Welche Weiterbildung wünschen Sie sich?' },
-  ] };
-  const DEMO_TEXTS = ['Gemeinsames Ausprobieren im Team, zum Beispiel an einem Nachmittag pro Quartal.', 'Einführung in KI-Werkzeuge für die Unterrichtsvorbereitung.', 'Mehr Zeit, um Material auf der Lernplattform aufzubauen.', 'Kurze Inputs direkt im Schulhaus statt externer Kurse.'];
-  function sampleRecords() {
-    let seed = 20260928;
-    const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-    const base = { '1': 3.4, '2': 3.1, '3': 2.8, '4': 2.1, '5': 2.4, '6': 2.6 };
-    const stufen = ['Zyklus 1', 'Zyklus 2', 'Zyklusübergreifend'];
-    return Array.from({ length: 18 }, (_, k) => {
-      const skill = (rnd() - 0.5) * 2.2;
-      const answers = {};
-      SUBS.forEach((s) => {
-        if ((s.id === '5.1' || s.areaId === '4') && rnd() < 0.12) { answers[s.id] = 0; return; }
-        answers[s.id] = Math.max(1, Math.min(6, Math.round(base[s.areaId] + skill + (rnd() - 0.5) * 1.6)));
-      });
-      const blk = SCHOOL ? SCHOOL.block : DEMO_BLOCK;
-      const ca = {};
-      blk.questions.forEach((q) => {
-        if (q.type === 'scale') ca[q.id] = rnd() < 0.08 ? 0 : 1 + Math.floor(rnd() * 4);
-        else if (q.type === 'levels') ca[q.id] = 1 + Math.floor(rnd() * q.options.length);
-        else if (q.type === 'choice') ca[q.id] = q.multiple ? q.options.map((_, i) => i).filter(() => rnd() < 0.5) : Math.floor(rnd() * q.options.length);
-        else if (rnd() < 0.4) ca[q.id] = DEMO_TEXTS[k % DEMO_TEXTS.length];
-        if (Array.isArray(ca[q.id]) && !ca[q.id].length) delete ca[q.id];
-      });
-      return { format: DKCore.FORMAT, formatVersion: 1, instrumentVersion: ITEMS.version, id: 'beispiel-' + k, created: '2026-09-01T08:00:00Z', context: { zyklus: stufen[k % 3] }, answers,
-        school: SCHOOL ? { id: SCHOOL.id, name: SCHOOL.name, version: SCHOOL.version, created: SCHOOL.created } : { id: 'beispiel', name: 'Beispielschule', version: 'beispiel', created: '2026-09-01' },
-        custom_block: blk, custom_answers: ca };
-    });
-  }
-  async function addFiles(files) {
-    const msg = [];
-    if (school.sample) { school.records = []; school.sample = false; }
-    let added = 0, bad = 0, dup = 0;
-    for (const f of files) {
-      try {
-        const obj = JSON.parse(await f.text());
-        if (!DKCore.validateRecord(obj)) { bad++; continue; }
-        if (school.records.some((r) => r.id === obj.id)) { dup++; continue; }
-        school.records.push(obj); added++;
-      } catch (e) { bad++; }
-    }
-    msg.push(`${added} Ergebnis${added === 1 ? '' : 'se'} hinzugefügt.`);
-    if (dup) msg.push(`${dup} doppelt, nicht übernommen.`);
-    if (bad) msg.push(`${bad} Datei${bad === 1 ? '' : 'en'} nicht lesbar.`);
-    $('#school-msg').textContent = msg.join(' ');
-    renderSchool();
-  }
-  $('#file-school').addEventListener('change', (e) => { addFiles(Array.from(e.target.files)); e.target.value = ''; });
-  const dz = $('#dropzone');
-  ['dragenter', 'dragover'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('drag'); }));
-  ['dragleave', 'drop'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('drag'); }));
-  dz.addEventListener('drop', (e) => addFiles(Array.from(e.dataTransfer.files)));
-  $('#btn-school-sample').addEventListener('click', () => { school = { records: sampleRecords(), sample: true, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
-
-  function heatCell(count, total) {
-    if (!total) return `<td class="cell">–</td>`;
-    const share = count / total;
-    const bg = count === 0 ? "transparent" : `rgba(226,0,26,${(0.08 + share * 0.72).toFixed(2)})`;
-    const fg = "#000"; // Deckkraft höchstens 0.8: schwarze Schrift bleibt überall gut lesbar
-    return `<td class="cell" style="background:${bg};color:${fg}" title="${count} von ${total}">${count || ''}</td>`;
-  }
-  // Darstellung der Schulauswertung (wie Serverversion)
-  const sview = { chart: 'radar', level: 'areas', order: 'order' };
-  const CHARTS = [['radar', 'Netz'], ['bars', 'Balken'], ['dist', 'Verteilung'], ['box', 'Boxplot']];
-  const seg = (name, label, opts, cur, disabled) => `<div class="seg" role="group" aria-label="${esc(label)}">${opts.map(([v, t]) =>
-    `<button type="button" data-${name}="${v}" aria-pressed="${v === cur}" ${disabled ? 'disabled' : ''}>${esc(t)}</button>`).join('')}</div>`;
-  const saveBtn = (key) => `<button class="btn quiet small no-print" type="button" data-png="${key}">Als Bild speichern</button>`;
-  const schoolLabel = () => (SCHOOL ? SCHOOL.name : school.sample ? 'Beispielschule' : '');
-  const fileBase = () => (schoolLabel() || 'Schule').replace(/[^\wäöüÄÖÜ-]+/g, '_');
-  function chartExplain(chart, level) {
-    if (chart === 'radar') return 'Mittelwert der Teilbereiche pro Bereich. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.';
-    if (chart === 'bars') return `Mittelwert pro ${level === 'areas' ? 'Bereich' : 'Teilbereich'}. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.`;
-    if (chart === 'dist') return `Anteil der Einschätzungen pro Stufe${level === 'areas' ? ' (alle Teilbereiche eines Bereichs zusammen)' : ''}. «k. G.» = Anzahl «keine Gelegenheit», nicht in den Prozenten enthalten.`;
-    return `<span class="box-legend"><span><i class="lg-box"></i>mittlere 50 %</span><span><i class="lg-med"></i>Median</span><span><i class="lg-mean"></i>Mittelwert</span><span><i class="lg-wh"></i>10–90 %</span></span>
-      Minimum und Maximum werden zum Schutz einzelner Personen nicht gezeigt.${level === 'areas' ? ' Grundlage pro Bereich: die persönlichen Mittelwerte der Lehrpersonen.' : ''}`;
-  }
-  // Stufen nebeneinander nur, wenn jede Gruppe (auch ohne Angabe) die Mindestgrösse erreicht
-  function stufenGroups(records) {
-    const groups = {};
-    records.forEach((r) => { const k = zyklusOf(r); (groups[k] = groups[k] || []).push(r); });
-    const named = Object.keys(groups).filter((k) => k).sort((a, b) => a.localeCompare(b));
-    if (named.length < 2) return null;
-    if (!Object.values(groups).every((g) => g.length >= DKCore.MIN_GROUP)) return { hidden: true };
-    return named.map((k) => ({ label: k, n: groups[k].length, areas: DKCore.aggregate(ITEMS, groups[k]).areas.map((a) => a.mean) }));
-  }
-
-  function renderSchool() {
-    const out = $('#school-out');
-    if (!school.records.length && !school.sample) { school = { records: sampleRecords(), sample: true, filter: '' }; }
-    const stufen = [...new Set(school.records.map(zyklusOf).filter(Boolean))].sort();
-    const recs = school.filter ? school.records.filter((r) => zyklusOf(r) === school.filter) : school.records;
-    const agg = DKCore.aggregate(ITEMS, recs);
-    const tooFew = agg.n < DKCore.MIN_GROUP;
-    const sorted = SUBS.filter((s) => agg.bySub[s.id].mean !== null).sort((a, b) => agg.bySub[a.id].mean - agg.bySub[b.id].mean);
-    const pd = agg.n ? DKCore.schoolThemes(ITEMS, agg, 3) : { themes: [], multipliers: [], noOpp: [] };
-    const custom = customForRecords(recs);
-    const item = (s) => `<li class="focus-item"><span class="badge lv${Math.min(6, Math.max(1, Math.round(agg.bySub[s.id].mean)))}">Ø ${fmt(agg.bySub[s.id].mean)}</span><span><b>${s.id}</b> ${esc(s.title)}</span></li>`;
-    const noOppSVG = agg.n ? Charts.noOpp(agg) : '';
-    const bs = school.filter ? null : stufenGroups(school.records);
-
-    out.innerHTML = `
-      ${school.sample ? `<div class="box box--info"><b>Beispieldaten:</b> ${school.records.length} fiktive Lehrpersonen zur Veranschaulichung${SCHOOL ? '' : ', inklusive vier Beispielfragen einer Schule'}. Sobald eigene Dateien geladen werden, ersetzen sie die Beispieldaten.</div>` : ''}
-      ${tooFew && agg.n > 0 ? `<div class="box box--warning"><b>Weniger als ${DKCore.MIN_GROUP} Ergebnisse.</b> Bei so kleinen Gruppen lassen sich Rückschlüsse auf einzelne Personen ziehen. Die Auswertung ist nur zur Kontrolle gedacht.</div>` : ''}
-      <div class="row" style="justify-content:space-between;align-items:flex-end">
-        <div class="stat-row">
-          <div class="stat"><span class="small muted">Ergebnisse</span><b>${agg.n}</b></div>
-          ${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small muted">Bereich ${a.id}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}
-        </div>
-        <div class="row">
-          <div class="field" style="min-width:220px"><label for="school-filter" class="small">Zyklus</label>
-            <select id="school-filter"><option value="">Alle Zyklen</option>${stufen.map((s) => `<option ${s === school.filter ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
-        </div>
-      </div>
-      <nav class="an-jump small no-print" aria-label="Abschnitte der Auswertung"><a href="#sec-profil">Profil</a><a href="#sec-needs">Wer braucht was?</a>${noOppSVG ? '<a href="#sec-noopp">Voraussetzungen</a>' : ''}${Array.isArray(bs) ? '<a href="#sec-stufen">Zyklen</a>' : ''}<a href="#sec-table">Tabelle</a></nav>
-
-      <section class="an-sec stack" id="sec-profil" aria-labelledby="h-profil">
-        <div class="row" style="justify-content:space-between;align-items:flex-end">
-          <h3 id="h-profil">Profil der Schule</h3>
-          <div class="row no-print" id="chart-controls"></div>
-        </div>
-        <figure tabindex="0" class="chart" id="chart-main"></figure>
-      </section>
-
-      <div class="an-grid">
-        <div class="stack" style="gap:12px"><h3>Handlungsfelder für die Weiterbildung</h3><ul class="list-plain">${sorted.slice(0, 4).map(item).join('')}</ul></div>
-        <div class="stack" style="gap:12px"><h3>Stärken des Kollegiums</h3><ul class="list-plain">${sorted.slice(-3).reverse().map(item).join('')}</ul></div>
-        ${pd.themes.length ? `<div class="stack" style="gap:10px"><h3>Themen für die schulinterne Weiterbildung</h3>
-          <ul class="pd-list">${pd.themes.map((x) => `<li><span class="pd-chip">${esc(x.theme)}</span> <span class="small muted">passt zu ${x.subs.join(', ')}</span></li>`).join('')}</ul>
-          <p class="small muted">fobizz-Themenbereiche, abgeleitet aus den Handlungsfeldern.</p>
-          ${pd.multipliers.length ? `<p class="small"><b>Potenzial für interne Weitergabe:</b> ${pd.multipliers.map((s) => s.id).join(', ')}. Hier steht mindestens ein Viertel des Kollegiums auf Stufe V oder VI.</p>` : ''}
-          ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}. Passender Themenbereich für die Schulleitung: ${esc(ITEMS.pd.lead)}.</p>` : ''}</div>` : ''}
-      </div>
-
-      <section class="an-sec stack" id="sec-needs" aria-labelledby="h-needs">
-        <div class="row" style="justify-content:space-between;align-items:flex-end">
-          <div class="stack" style="gap:4px"><h3 id="h-needs">Wer braucht was?</h3>
-            <p class="small muted" style="max-width:80ch">Wie viele Lehrpersonen brauchen einen Einstieg, eine Vertiefung oder können ihr Wissen weitergeben? Die Spalte rechts zeigt, ob das Kollegium eher <b>einig</b> ist oder <b>gespalten</b> (mindestens je ein Viertel auf I–II und auf V–VI). Bei gespaltenen Teilbereichen eignen sich Angebote in verschiedenen Niveaus oder Tandems.</p></div>
-          <div class="row no-print"><label class="small" for="needs-order">Sortieren</label><select id="needs-order">
-            <option value="order" ${sview.order === 'order' ? 'selected' : ''}>nach Teilbereich</option>
-            <option value="entry" ${sview.order === 'entry' ? 'selected' : ''}>grösster Bedarf an Einstieg zuerst</option>
-            <option value="spread" ${sview.order === 'spread' ? 'selected' : ''}>gespaltene zuerst</option></select>${saveBtn('needs')}</div>
-        </div>
-        <div class="legend"><span><i style="background:${Charts.NEEDCOL[0]}"></i>Einstieg (I–II)</span><span><i style="background:${Charts.NEEDCOL[1]}"></i>Vertiefung (III–IV)</span><span><i style="background:${Charts.NEEDCOL[2]}"></i>Weitergeben (V–VI)</span><span>Zahlen im Balken: Anzahl Lehrpersonen</span></div>
-        <figure tabindex="0" class="chart" data-chart="needs" id="chart-needs">${Charts.needs(agg, sview.order)}</figure>
-      </section>
-
-      ${noOppSVG ? `<section class="an-sec stack" id="sec-noopp" aria-labelledby="h-noopp">
-        <div class="row" style="justify-content:space-between"><h3 id="h-noopp">Voraussetzungen: «keine Gelegenheit»</h3>${saveBtn('noopp')}</div>
-        <p class="small muted" style="max-width:80ch">Anteil der Lehrpersonen, die in einem Teilbereich bisher keine Gelegenheit hatten. Ab einem Viertel (gestrichelte Linie) lohnt es sich, Voraussetzungen zu klären, zum Beispiel Geräte, Plattformen oder Absprachen im Team.</p>
-        <figure tabindex="0" class="chart" data-chart="noopp">${noOppSVG}</figure>
-      </section>` : ''}
-
-      ${Array.isArray(bs) ? `<section class="an-sec stack" id="sec-stufen" aria-labelledby="h-stufen">
-        <div class="row" style="justify-content:space-between"><h3 id="h-stufen">Zyklen im Vergleich</h3>${saveBtn('stufen')}</div>
-        <p class="small muted">Mittelwert pro Bereich und Zyklus. Nur sichtbar, wenn jede Gruppe mindestens ${DKCore.MIN_GROUP} Ergebnisse umfasst.</p>
-        <div class="legend">${Charts.stufenLegend(bs)}</div>
-        <figure tabindex="0" class="chart" data-chart="stufen">${Charts.stufen(bs)}</figure>
-      </section>` : bs && bs.hidden ? `<p class="small muted">Der Vergleich der Zyklen erscheint, sobald jeder Zyklus (und die Gruppe ohne Angabe) mindestens ${DKCore.MIN_GROUP} Ergebnisse hat.</p>` : ''}
-
-      <details class="an-sec" id="sec-table">
-        <summary><b>Tabelle: Anzahl Lehrpersonen pro Stufe</b></summary>
-        <div class="stack" style="gap:12px;margin-top:12px"><p class="small muted">Je dunkler, desto grösser der Anteil.</p>
-        <div class="table-scroll"><table class="heat">
-          <thead><tr><th scope="col">Teilbereich</th>${LV.map((l) => `<th scope="col">${l.roman}<br><span style="font-weight:400">${esc(l.label)}</span></th>`).join('')}<th scope="col">Keine<br>Gelegenheit</th><th scope="col">Ø</th></tr></thead>
-          <tbody>${ITEMS.areas.map((a) => `<tr class="area-row"><td colspan="9">${a.id} ${esc(a.title)}</td></tr>` + a.subareas.map((s) => {
-            const d = agg.bySub[s.id];
-            return `<tr><td>${s.id} ${esc(s.title)}</td>${[1, 2, 3, 4, 5, 6].map((k) => heatCell(d.counts[k], d.answered)).join('')}<td class="cell">${d.counts[0] || ''}</td><td><b>${fmt(d.mean)}</b></td></tr>`;
-          }).join('')).join('')}</tbody></table></div></div>
-      </details>
-      ${custom ? customSection(custom) : ''}
-      <div class="actions" style="border-top:0;padding-top:0">
-        <button class="btn" type="button" id="btn-report">Bericht für Konferenz drucken / als PDF</button>
-        <button class="btn secondary" type="button" id="btn-csv">Auswertung als CSV speichern</button>
-        ${!school.sample ? '<button class="btn quiet" type="button" id="btn-school-clear">Geladene Dateien entfernen</button>' : ''}
-      </div>`;
-
-    function drawMain() {
-      const isRadar = sview.chart === 'radar';
-      $('#chart-controls').innerHTML = seg('chart', 'Darstellung', CHARTS, sview.chart) +
-        seg('level', 'Ebene', [['areas', 'Bereiche'], ['subs', 'Teilbereiche']], isRadar ? 'areas' : sview.level, isRadar) + saveBtn('main');
-      let svg;
-      if (isRadar) svg = `<div class="radar-wrap">${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm: Mittelwerte der Schule pro Bereich' })}</div>`;
-      else if (sview.chart === 'bars') svg = Charts.bars(agg, sview.level, null, {});
-      else if (sview.chart === 'dist') svg = Charts.dist(agg, sview.level);
-      else svg = Charts.boxplot(agg, sview.level);
-      const lvLegend = sview.chart === 'dist' ? LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('') : '';
-      $('#chart-main').className = 'chart' + (isRadar ? ' chart--radar' : '');
-      $('#chart-main').innerHTML = svg + `<figcaption class="legend">${lvLegend}<span>${chartExplain(sview.chart, sview.level)}</span></figcaption>`;
-      $$('#chart-controls [data-chart]').forEach((b) => b.addEventListener('click', () => { sview.chart = b.dataset.chart; drawMain(); $('#chart-controls [aria-pressed=true]').focus(); }));
-      $$('#chart-controls [data-level]').forEach((b) => b.addEventListener('click', () => { sview.level = b.dataset.level; drawMain(); $(`#chart-controls [data-level=${sview.level}]`).focus(); }));
-      $('#chart-controls [data-png]').addEventListener('click', () => Charts.png($('#chart-main svg'), `${fileBase()}_${CHARTS.find((x) => x[0] === sview.chart)[1]}_${today()}`));
-    }
-    drawMain();
-
-    $('#needs-order').addEventListener('change', (e) => { sview.order = e.target.value; $('#chart-needs').innerHTML = Charts.needs(agg, sview.order); });
-    const pngNames = { needs: 'Wer_braucht_was', noopp: 'Voraussetzungen', stufen: 'Zyklen' };
-    $$('#school-out .an-sec [data-png]').filter((b) => b.dataset.png !== 'main').forEach((b) => b.addEventListener('click', () =>
-      Charts.png($(`[data-chart=${b.dataset.png}] svg`), `${fileBase()}_${pngNames[b.dataset.png]}_${today()}`)));
-    $$('.an-jump a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); const t = $(a.getAttribute('href')); if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
-    $('#school-filter').addEventListener('change', (e) => { school.filter = e.target.value; renderSchool(); });
-    $('#btn-csv').addEventListener('click', () => download(`Schulauswertung_SZ_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg) + customCSV(custom), 'text/csv;charset=utf-8'));
-    $('#btn-report').addEventListener('click', () => printReport(agg, sorted, pd));
-    const clr = $('#btn-school-clear');
-    if (clr) clr.addEventListener('click', () => { school = { records: [], sample: false, filter: '' }; $('#school-msg').textContent = ''; renderSchool(); });
-  }
-
-  /* Bericht auf einer Seite (Schulkonferenz, Schulpflege) */
-  function printReport(agg, sorted, pd) {
-    const r = $('#report');
-    const li = (s) => `<li><b>${s.id}</b> ${esc(s.title)} <span class="muted">(Ø ${fmt(agg.bySub[s.id].mean)})</span></li>`;
-    const split = SUBS.filter((s) => DKCore.needGroups(agg.bySub[s.id]).spread === 'gespalten');
-    r.innerHTML = `
-      <div class="rp-head"><div><div class="eyebrow">${esc(schoolLabel())}</div><h2>Digitale Kompetenzen des Kollegiums</h2>
-        <p>${agg.n} Ergebnis${agg.n === 1 ? '' : 'se'}${school.filter ? ' · ' + esc(school.filter) : ''} · Stand ${new Date().toLocaleDateString('de-CH')}${school.sample ? ' · Beispieldaten' : ''}</p></div></div>
-      <div class="stat-row rp-stats">${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small">${a.id} ${esc(a.short)}</span><b>${fmt(agg.areas[i].mean)}</b></div>`).join('')}</div>
-      <div class="rp-grid">
-        <div>${radarSVG([{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }], { valueLabels: true, label: 'Netzdiagramm' })}
-          <p class="small">Mittelwert pro Bereich, Stufe I = 1 bis VI = 6.</p></div>
-        <div class="rp-lists">
-          <h3>Handlungsfelder</h3><ul>${sorted.slice(0, 4).map(li).join('')}</ul>
-          <h3>Stärken</h3><ul>${sorted.slice(-3).reverse().map(li).join('')}</ul>
-          ${pd.themes.length ? `<h3>Themen für die Weiterbildung</h3><ul>${pd.themes.map((t) => `<li>${esc(t.theme)} <span class="muted">(${t.subs.join(', ')})</span></li>`).join('')}</ul>` : ''}
-          ${pd.multipliers.length ? `<p class="small"><b>Interne Weitergabe möglich:</b> ${pd.multipliers.map((s) => s.id).join(', ')}</p>` : ''}
-          ${split.length ? `<p class="small"><b>Kollegium gespalten:</b> ${split.map((s) => s.id).join(', ')}</p>` : ''}
-          ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}</p>` : ''}
-        </div>
-      </div>
-      <h3>Verteilung der Stufen pro Bereich</h3>
-      ${Charts.dist(agg, 'areas')}
-      <div class="legend">${LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('')}</div>
-      <p class="small rp-foot">Zusammengefasste Selbsteinschätzungen der Lehrpersonen nach DigCompEdu. Einzelne Profile werden nicht angezeigt. Kanton Schwyz, Amt für Volksschulen und Sport.</p>`;
-    document.body.classList.add('print-report');
-    const done = () => { document.body.classList.remove('print-report'); window.removeEventListener('afterprint', done); };
-    window.addEventListener('afterprint', done);
-    window.print();
-  }
-
-  /* ---------- Eigene Fragen: Auswertung ---------- */
-  function customForRecords(recs) {
-    const withBlock = recs.filter((r) => blockOf(r));
-    if (!withBlock.length) return null;
-    const bySchool = {};
-    withBlock.forEach((r) => { const k = (r.school && r.school.id) || 'ohne'; (bySchool[k] = bySchool[k] || []).push(r); });
-    const group = Object.values(bySchool).sort((a, b) => b.length - a.length)[0];
-    // Neueste Schulversion bestimmt die Fragen; Antworten werden über die Frage-Kennung zusammengeführt
-    const latest = group.slice().sort((a, b) => String((b.school || {}).created || '').localeCompare(String((a.school || {}).created || '')))[0];
-    const block = latest.custom_block;
-    return { block, n: group.length, other: withBlock.length - group.length, school: latest.school, ...DKCore.aggregateCustom(block, group.map((r) => r.custom_answers)) };
-  }
-  const RAMP = ['var(--l1)', 'var(--l2)', 'var(--l3)', 'var(--l4)', 'var(--l5)', 'var(--l6)'];
-  const rampFor = (n) => (n === 4 ? [RAMP[0], RAMP[2], RAMP[3], RAMP[5]] : n === 3 ? [RAMP[0], RAMP[3], RAMP[5]] : n === 5 ? [RAMP[0], RAMP[1], RAMP[2], RAMP[3], RAMP[5]] : RAMP.slice(0, n));
-  function distBar(counts, labels) {
-    const total = counts.reduce((a, b) => a + b, 0) || 1;
-    const cols = rampFor(counts.length);
-    return `<div class="dist" role="img" aria-label="${esc(labels.map((l, i) => l + ': ' + counts[i]).join(', '))}">${counts.map((n, i) => n ? `<span style="width:${(100 * n / total).toFixed(2)}%;background:${cols[i]}" title="${esc(labels[i])}: ${n}"></span>` : '').join('')}</div>
-      <div class="dist-legend">${labels.map((l, i) => `<span><i style="background:${cols[i]}"></i>${esc(l)}: <b>${counts[i]}</b></span>`).join('')}</div>`;
-  }
-  function customSection(c) {
-    const res = Object.fromEntries(c.questions.map((r) => [r.id, r]));
-    return `<div class="stack" style="gap:18px">
-      <div class="stack" style="gap:6px"><h3>${esc(c.block.title)}</h3><p class="small muted">Eigene Fragen${c.school && c.school.name ? ' der ' + esc(c.school.name) : ''}. Nicht Teil des Kompetenzprofils. ${c.n} Ergebnisdatei${c.n === 1 ? '' : 'en'} mit diesen Fragen.${c.other ? ` ${c.other} Datei${c.other === 1 ? '' : 'en'} einer anderen Schulversion sind hier nicht berücksichtigt.` : ''}</p></div>
-      ${c.block.questions.map((q, i) => {
-        const r = res[q.id] || { answered: 0, counts: [], texts: [] };
-        let body = '';
-        if (q.type === 'scale') {
-          body = distBar(r.counts.slice(1), SCALE) + `<p class="small muted">Ø ${fmt(r.mean)} auf der Skala 1 bis 4${r.counts[0] ? ` · Kann ich nicht beurteilen: ${r.counts[0]}` : ''}</p>`;
-        } else if (q.type === 'levels') {
-          body = distBar(r.counts.slice(1), q.options.map((_, k) => 'Stufe ' + (k + 1))) +
-            `<p class="small muted">Ø ${fmt(r.mean)} von ${q.options.length}${r.counts[0] ? ` · Keine Gelegenheit: ${r.counts[0]}` : ''}</p>
-            <details><summary class="small" style="cursor:pointer">Stufenaussagen anzeigen</summary><ol class="small" style="margin:8px 0 0">${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ol></details>`;
-        } else if (q.type === 'choice') {
-          const base = r.answered || 1;
-          body = `<div class="choice-rows">${q.options.map((o, k) => `<span>${esc(o)}</span><span class="bar"><span style="width:${(100 * r.counts[k] / base).toFixed(1)}%"></span></span><span>${r.counts[k]} · ${Math.round(100 * r.counts[k] / base)}&nbsp;%</span>`).join('')}</div>
-            ${q.multiple ? '<p class="small muted">Mehrfachauswahl: Die Anteile beziehen sich auf alle, die geantwortet haben.</p>' : ''}`;
-        } else {
-          body = r.texts.length ? `<ul class="texts">${r.texts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><p class="small muted">In zufälliger Reihenfolge.</p>` : '<p class="muted small">Keine Antworten.</p>';
-        }
-        return `<div class="cq-card"><p><b>${i + 1}. ${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}${q.type === 'choice' && q.multiple ? ', mehrfach' : ''} · ${r.answered} von ${c.n} beantwortet</span></p>${body}</div>`;
-      }).join('')}</div>`;
-  }
-  function customCSV(c) {
-    if (!c) return '';
-    const rows = [[], ['Eigene Fragen', c.block.title], ['Frage', 'Form', 'Antwort', 'Anzahl']];
-    const res = Object.fromEntries(c.questions.map((r) => [r.id, r]));
-    c.block.questions.forEach((q) => {
-      const r = res[q.id];
-      if (q.type === 'scale') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], k === 0 ? 'Kann ich nicht beurteilen' : SCALE[k - 1], n]));
-      else if (q.type === 'levels') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], k === 0 ? 'Keine Gelegenheit' : 'Stufe ' + k + ': ' + q.options[k - 1], n]));
-      else if (q.type === 'choice') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], q.options[k], n]));
-      else r.texts.forEach((x) => rows.push([q.text, TYPE_LABEL[q.type], x, '']));
-    });
-    return '\r\n' + rows.map((r) => r.map((x) => '"' + String(x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
-  }
-
-  /* ---------- Eigene Fragen: Editor und Schulversion ---------- */
-  const DRAFT_KEY = 'dk-sz-schulblock-entwurf';
-  const rid = (p) => p + Math.random().toString(36).slice(2, 9);
-  const clone = (x) => JSON.parse(JSON.stringify(x));
-  function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); return d && d.block && Array.isArray(d.block.questions) ? d : null; } catch (e) { return null; } }
-  function saveDraft() { if (SCHOOL) return; try { localStorage.setItem(DRAFT_KEY, JSON.stringify(ed)); } catch (e) { /* ohne Zwischenspeicher weiter */ } }
-  let ed = SCHOOL ? { name: SCHOOL.name, block: clone(SCHOOL.block) } : (loadDraft() || { name: '', block: { title: 'Fragen unserer Schule', intro: '', questions: [] } });
-  const emptyQ = (type) => ({ id: rid('q'), type, text: '', options: type === 'levels' ? ['', '', ''] : type === 'choice' ? ['', ''] : undefined, multiple: false });
-
-  function validateConfig() {
-    const name = (ed.name || '').trim().slice(0, 120);
-    if (!name) return { error: 'Bitte den Namen der Schule eingeben.' };
-    const qs = ed.block.questions;
-    if (!qs.length) return { error: 'Bitte mindestens eine Frage erfassen.' };
-    if (qs.length > 15) return { error: 'Höchstens 15 Fragen pro Schule.' };
-    const questions = [];
-    for (const [i, q] of qs.entries()) {
-      const text = (q.text || '').trim().slice(0, 300);
-      if (!text) return { error: `Frage ${i + 1}: Bitte den Fragetext eingeben.` };
-      const out = { id: /^q[a-z0-9]{4,12}$/.test(q.id || '') ? q.id : rid('q'), type: q.type, text };
-      if (q.type === 'levels' || q.type === 'choice') {
-        const opts = (q.options || []).map((o) => o.trim().slice(0, q.type === 'levels' ? 400 : 120)).filter(Boolean);
-        const [lo, hi] = q.type === 'levels' ? [3, 6] : [2, 10];
-        if (opts.length < lo || opts.length > hi) return { error: `Frage ${i + 1}: ${q.type === 'levels' ? 'Stufenaussagen' : 'Auswahl'} braucht ${lo} bis ${hi} ${q.type === 'levels' ? 'Aussagen' : 'Optionen'}.` };
-        out.options = opts;
-        if (q.type === 'choice') out.multiple = !!q.multiple;
-      }
-      questions.push(out);
-    }
-    return { config: {
-      id: SCHOOL ? SCHOOL.id : rid('s-'), name, version: rid('v-'), created: new Date().toISOString(),
-      block: { title: (ed.block.title || '').trim().slice(0, 80) || 'Fragen unserer Schule', intro: (ed.block.intro || '').trim().slice(0, 500), questions },
-    } };
-  }
-
-  function downloadSchoolVersion() {
-    const v = validateConfig();
-    const msg = $('#cf-msg');
-    if (v.error) { msg.className = 'small error'; msg.textContent = v.error; return; }
-    const START = '/*SCHOOL_' + 'CONFIG_START*/', END = '/*SCHOOL_' + 'CONFIG_END*/';
-    const i = PRISTINE.indexOf(START), j = PRISTINE.indexOf(END);
-    if (i < 0 || j < i) { msg.className = 'small error'; msg.textContent = 'Die Schulversion konnte nicht erstellt werden. Bitte die unveränderte Originaldatei verwenden.'; return; }
-    const json = JSON.stringify(v.config).replace(/</g, '\\u003c');
-    const html = PRISTINE.slice(0, i + START.length) + json + PRISTINE.slice(j);
-    const slug = v.config.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '');
-    download(`DigKomp_SZ_${slug || 'Schule'}.html`, html, 'text/html;charset=utf-8');
-    ed.block.questions = clone(v.config.block.questions);
-    saveDraft();
-    msg.className = 'small ok';
-    msg.textContent = `Schulversion «${v.config.name}» heruntergeladen. Diese Datei ans Kollegium weitergeben.`;
-  }
-
-  function renderEditor() {
-    const box = $('#custom-editor');
-    const b = ed.block;
-    box.innerHTML = `
-      ${SCHOOL ? `<div class="box box--info"><b>Diese Datei ist die Schulversion «${esc(SCHOOL.name)}»</b>, erstellt am ${new Date(SCHOOL.created).toLocaleDateString('de-CH')}. Änderungen erzeugen eine neue Datei; bereits verteilte Dateien bleiben unverändert. Fragen, die gleich bleiben, werden in der Schulauswertung gemeinsam ausgewertet.</div>` : ''}
-      <div class="two-col">
-        <div class="field"><label for="cf-school">Name der Schule</label><input type="text" id="cf-school" maxlength="120" value="${esc(ed.name || '')}" placeholder="z. B. Schule Musterdorf"></div>
-        <div class="field"><label for="cf-title">Titel des Frageblocks</label><input type="text" id="cf-title" maxlength="80" value="${esc(b.title || '')}"></div>
-      </div>
-      <div class="field"><label for="cf-intro">Einleitung <span class="small muted">(freiwillig)</span></label><textarea id="cf-intro" rows="2" maxlength="500">${esc(b.intro || '')}</textarea></div>
-      <div class="stack" id="cf-questions" style="gap:12px">${b.questions.map(qEditHTML).join('') || '<p class="muted">Noch keine Fragen.</p>'}</div>
-      <div class="row">
-        <label for="cf-newtype" class="small"><b>Frage hinzufügen</b></label>
-        <select id="cf-newtype" style="width:auto">${Object.entries(TYPE_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
-        <button class="btn secondary" type="button" id="cf-add" ${b.questions.length >= 15 ? 'disabled' : ''}>Hinzufügen</button>
-      </div>
-      <div class="row" style="border-top:1px solid var(--line);padding-top:16px">
-        <button class="btn" type="button" id="cf-download">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16h12"/></svg>
-          Schulversion herunterladen</button>
-        <button class="btn secondary" type="button" id="cf-preview-btn" aria-expanded="${edPreview}" ${b.questions.length ? '' : 'disabled'}>${edPreview ? 'Vorschau schliessen' : 'Vorschau für Lehrpersonen'}</button>
-        <span class="small" id="cf-msg" role="status"></span>
-      </div>
-      <div id="cf-preview" class="preview" ${edPreview && b.questions.length ? '' : 'hidden'}>${edPreview ? previewHTML(b) : ''}</div>
-      <p class="small muted">Der Entwurf bleibt in diesem Browser gespeichert. Die heruntergeladene Schulversion lässt sich später wieder öffnen und hier weiterbearbeiten.</p>`;
-    bindEditor();
-  }
-
-  let edPreview = false;
-  function previewHTML(b) {
-    const qs = b.questions.map((q, i) => {
-      const opts = (q.options || []).map((o) => o.trim()).filter(Boolean);
-      const name = 'pv-' + i;
-      let hint = '', body = '';
-      if (q.type === 'scale') {
-        hint = 'Wie weit trifft die Aussage zu?';
-        body = `<div class="opts inline">${SCALE.map((l) => `<label class="opt"><input type="radio" name="${name}"><span>${l}</span></label>`).join('')}</div>
-          <div class="opts" style="margin-top:8px"><label class="opt none"><input type="radio" name="${name}"><span>Kann ich nicht beurteilen</span></label></div>`;
-      } else if (q.type === 'levels') {
-        hint = 'Welche Aussage beschreibt das eigene Handeln am besten?';
-        body = `<div class="opts">${opts.map((o) => `<label class="opt"><input type="radio" name="${name}"><span>${esc(o)}</span></label>`).join('')}
-          <label class="opt none"><input type="radio" name="${name}"><span>Dazu hatte ich bisher keine Gelegenheit.</span></label></div>`;
-      } else if (q.type === 'choice') {
-        hint = q.multiple ? 'Mehrere Antworten möglich.' : 'Eine Antwort wählen.';
-        body = `<div class="opts">${opts.map((o) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}"><span>${esc(o)}</span></label>`).join('')}</div>`;
-      } else {
-        hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen.';
-        body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" rows="3"></textarea>`;
-      }
-      return `<fieldset class="q"><legend><span class="qid">${i + 1}</span><span>${esc(q.text || '(ohne Fragetext)')}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
-    }).join('');
-    return `<div class="eyebrow">Vorschau · so sehen Lehrpersonen den letzten Schritt · Eingaben werden nicht gespeichert</div>
-      <h2 style="margin-top:6px">${esc(b.title || 'Fragen unserer Schule')}</h2>
-      <p class="muted">${esc(b.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten stehen in der Ergebnisdatei und fliessen in die Schulauswertung ein.')}</p>${qs}`;
-  }
-  function qEditHTML(q, i) {
-    const n = ed.block.questions.length;
-    let extra = '';
-    if (q.type === 'scale') extra = `<p class="small muted">Antworten: ${SCALE.join(' · ')} · Kann ich nicht beurteilen</p>`;
-    if (q.type === 'levels') extra = `<div class="field"><label for="qe-${i}-opts" class="small">Stufenaussagen: eine pro Zeile, von der tiefsten zur höchsten Stufe (3 bis 6)</label><textarea id="qe-${i}-opts" rows="5" data-i="${i}" data-f="options">${esc((q.options || []).join('\n'))}</textarea></div>
-      <p class="small muted">Zusätzlich gibt es immer die Option «Dazu hatte ich bisher keine Gelegenheit».</p>`;
-    if (q.type === 'choice') extra = `<div class="field"><label for="qe-${i}-opts" class="small">Antwortoptionen: eine pro Zeile (2 bis 10)</label><textarea id="qe-${i}-opts" rows="4" data-i="${i}" data-f="options">${esc((q.options || []).join('\n'))}</textarea></div>
-      <label class="check small"><input type="checkbox" id="qe-${i}-multi" data-i="${i}" data-f="multiple" ${q.multiple ? 'checked' : ''}><span>Mehrere Antworten erlaubt</span></label>`;
-    if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Offene Fragen sparsam einsetzen.</p>`;
-    return `<div class="qedit">
-      <div class="qedit-head"><span><span class="num">Frage ${i + 1}</span> · ${TYPE_LABEL[q.type]}</span>
-        <span class="row" style="gap:4px">
-          <button class="btn quiet small" type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="Frage ${i + 1} nach oben">▲</button>
-          <button class="btn quiet small" type="button" data-move="${i}" data-dir="1" ${i === n - 1 ? 'disabled' : ''} aria-label="Frage ${i + 1} nach unten">▼</button>
-          <button class="btn quiet small" type="button" data-remove="${i}">Entfernen</button></span></div>
-      <div class="field"><label for="qe-${i}-text" class="small">${q.type === 'scale' ? 'Aussage' : 'Frage'}</label><textarea id="qe-${i}-text" rows="2" maxlength="300" data-i="${i}" data-f="text">${esc(q.text)}</textarea></div>
-      ${extra}</div>`;
-  }
-
-  function bindEditor() {
-    const b = ed.block;
-    $('#cf-school').addEventListener('input', (e) => { ed.name = e.target.value; saveDraft(); });
-    $('#cf-title').addEventListener('input', (e) => { b.title = e.target.value; saveDraft(); });
-    $('#cf-intro').addEventListener('input', (e) => { b.intro = e.target.value; saveDraft(); });
-    $$('#cf-questions [data-f]').forEach((el) => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', () => {
-      const q = b.questions[+el.dataset.i];
-      if (el.dataset.f === 'options') q.options = el.value.split('\n');
-      else if (el.dataset.f === 'multiple') q.multiple = el.checked;
-      else q.text = el.value;
-      saveDraft();
-    }));
-    $$('#cf-questions [data-move]').forEach((btn) => btn.addEventListener('click', () => {
-      const i = +btn.dataset.move, j = i + +btn.dataset.dir;
-      [b.questions[i], b.questions[j]] = [b.questions[j], b.questions[i]];
-      saveDraft(); renderEditor();
-    }));
-    $$('#cf-questions [data-remove]').forEach((btn) => btn.addEventListener('click', () => { b.questions.splice(+btn.dataset.remove, 1); saveDraft(); renderEditor(); }));
-    $('#cf-add').addEventListener('click', () => { b.questions.push(emptyQ($('#cf-newtype').value)); saveDraft(); renderEditor(); $(`#qe-${b.questions.length - 1}-text`).focus(); });
-    $('#cf-download').addEventListener('click', downloadSchoolVersion);
-    $('#cf-preview-btn').addEventListener('click', () => { edPreview = !edPreview; renderEditor(); if (edPreview) $('#cf-preview').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    const refresh = () => { if (edPreview) $('#cf-preview').innerHTML = previewHTML(b); };
-    ['#cf-title', '#cf-intro'].forEach((s) => $(s).addEventListener('input', refresh));
-    $$('#cf-questions [data-f]').forEach((el) => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', refresh));
-  }
-
-  if (SCHOOL) {
-    $('#brand-eyebrow').textContent = SCHOOL.name;
-    $('#brand-sub').textContent = 'Selbsteinschätzung · Schulversion';
-  }
-
-  go(location.hash === '#school' ? 'school' : location.hash === '#result' ? 'result' : viewFromHash());
+  go(location.hash === '#result' ? 'result' : viewFromHash());
 })();
 </script>
 </body>

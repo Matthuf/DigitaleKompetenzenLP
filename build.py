@@ -12,8 +12,7 @@ logo_png = root / 'src/logo-kanton-schwyz.png'
 # Offline-Version
 tpl = (root / 'src/template.html').read_text(encoding='utf-8')
 logo = 'data:image/png;base64,' + base64.b64encode(logo_png.read_bytes()).decode()
-charts = (root / 'public/assets/charts.js').read_text(encoding='utf-8')
-out = (tpl.replace('__CORE_JS__', core).replace('__CHARTS_JS__', charts).replace('__ITEMS_JSON__', json.dumps(items, ensure_ascii=False)).replace('__LOGO__', logo))
+out = (tpl.replace('__CORE_JS__', core).replace('__ITEMS_JSON__', json.dumps(items, ensure_ascii=False)).replace('__LOGO__', logo))
 for dst in [root / 'dist/DigKomp_SZ_Selbsteinschaetzung.html', root / 'public/offline/DigKomp_SZ_Selbsteinschaetzung.html']:
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(out, encoding='utf-8')

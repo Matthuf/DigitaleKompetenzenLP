@@ -23,7 +23,7 @@
     <nav class="nav" id="mainnav" aria-label="Hauptnavigation"></nav>
   </div>
 </header>
-<div class="userstrip no-print" id="userbar" hidden>
+<div class="userstrip no-print" id="userbar" role="region" aria-label="Angemeldetes Konto" hidden>
   <div class="wrap topbar-user">
       <span class="who" id="user-name"></span>
       <button class="btn quiet" type="button" id="btn-pw-open">Passwort ändern</button>
@@ -63,6 +63,7 @@
       <a href="#import" data-tab="import">Liste importieren</a>
       <a href="#runden" data-tab="runden">Runden</a>
       <a href="#auswertung" data-tab="auswertung">Kantonale Auswertung</a>
+      <a href="#protokoll" data-tab="protokoll">Protokoll</a>
     </nav>
 
     <div class="tabpanel stack" id="tab-traeger" style="gap:32px">
@@ -144,13 +145,19 @@
     <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stack" style="gap:6px"><h2>Kantonale Auswertung</h2>
-          <p class="muted small" style="max-width:72ch">Alle abgeschlossenen Selbsteinschätzungen des Kantons zusammen. Ohne Angaben zu Schulen oder Schulträgern, ohne eigene Fragen der Schulen und ohne Freitexte. Jede Lehrperson zählt einmal (ihre jüngste Teilnahme).</p></div>
+          <p class="muted small" style="max-width:72ch">Alle abgeschlossenen Selbsteinschätzungen des Kantons zusammen. Ohne Angaben zu Schulen oder Schulträgern, ohne eigene Fragen der Schulen und ohne Freitexte. Ausgewertet wird immer eine Runde; jede Lehrperson zählt darin einmal.</p></div>
         <div class="row">
           <div class="field"><label for="k-round" class="small">Runde</label><select id="k-round"></select></div>
           <div class="field"><label for="k-zyklus" class="small">Zyklus</label><select id="k-zyklus"></select></div>
         </div>
       </div>
       <div id="k-out" class="stack" style="gap:28px"></div>
+    </div>
+
+    <div class="tabpanel stack" id="tab-protokoll" style="gap:16px" hidden>
+      <div class="stack" style="gap:6px"><h2>Protokoll</h2>
+        <p class="muted small" style="max-width:72ch">Die letzten 300 Aktionen: Anmeldungen, Einladungen, Passwort-Links, gelöschte Zugänge und Schulen, eröffnete Erhebungen und eingesehene Auswertungen. Ohne Passwörter, Codes, Links oder Antworten.</p></div>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Protokoll"><table class="list" id="audit-table"></table></div>
     </div>
   </section>
   <section id="report" class="report" hidden aria-hidden="true"></section>

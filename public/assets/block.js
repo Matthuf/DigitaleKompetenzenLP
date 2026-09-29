@@ -24,6 +24,10 @@ window.Block = (function () {
       ${custom.block.questions.map((q, i) => {
         const r = res[q.id] || { answered: 0, counts: [], texts: [] };
         let body = '';
+        const head = `<p><b>${i + 1}. ${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}${q.type === 'choice' && q.multiple ? ', mehrfach' : ''}`;
+        if (r.suppressed) {
+          return `<div class="cq-card">${head}</span></p><p class="small muted">Zu wenige Antworten für eine Auswertung (mindestens ${r.need}${q.type === 'text' ? ' bei Freitexten' : ''}). So bleiben einzelne Antworten geschützt.</p></div>`;
+        }
         if (q.type === 'scale') {
           body = distBar(r.counts.slice(1), SCALE) + `<p class="small muted">Ø ${fmt(r.mean)} auf der Skala 1 bis 4${r.counts[0] ? ` · Kann ich nicht beurteilen: ${r.counts[0]}` : ''}</p>`;
         } else if (q.type === 'levels') {
@@ -37,22 +41,29 @@ window.Block = (function () {
         } else {
           body = r.texts.length ? `<ul class="texts">${r.texts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><p class="small muted">In zufälliger Reihenfolge.</p>` : '<p class="muted small">Keine Antworten.</p>';
         }
-        return `<div class="cq-card"><p><b>${i + 1}. ${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}${q.type === 'choice' && q.multiple ? ', mehrfach' : ''} · ${r.answered} von ${n} beantwortet</span></p>${body}</div>`;
+        return `<div class="cq-card">${head} · ${r.answered} von ${n} beantwortet</span></p>${body}</div>`;
       }).join('')}</div>`;
   }
 
+  // CSV-Zelle: Text, der mit = + - @ beginnt, würde Excel als Formel ausführen. Darum mit ' entschärfen.
+  function csvCell(c) {
+    let v = String(c === null || c === undefined ? '' : c);
+    if (typeof c === 'string' && /^[=+\-@\t\r]/.test(v)) v = "'" + v;
+    return '"' + v.replace(/"/g, '""') + '"';
+  }
   function csv(custom) {
     if (!custom) return '';
     const rows = [[], ['Eigene Fragen', custom.block.title], ['Frage', 'Form', 'Antwort', 'Anzahl']];
     const res = Object.fromEntries(custom.questions.map((r) => [r.id, r]));
     custom.block.questions.forEach((q) => {
       const r = res[q.id];
+      if (!r || r.suppressed) { rows.push([q.text, TYPE_LABEL[q.type], 'Zu wenige Antworten für eine Auswertung', '']); return; }
       if (q.type === 'scale') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], k === 0 ? 'Kann ich nicht beurteilen' : SCALE[k - 1], n]));
       else if (q.type === 'levels') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], k === 0 ? 'Keine Gelegenheit' : 'Stufe ' + k + ': ' + q.options[k - 1], n]));
       else if (q.type === 'choice') r.counts.forEach((n, k) => rows.push([q.text, TYPE_LABEL[q.type], q.options[k], n]));
       else r.texts.forEach((x) => rows.push([q.text, TYPE_LABEL[q.type], x, '']));
     });
-    return '\r\n' + rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+    return '\r\n' + rows.map((r) => r.map(csvCell).join(';')).join('\r\n');
   }
 
   /* ---------- Vorschau aus Sicht der Lehrperson (nicht gespeichert) ---------- */
@@ -212,5 +223,5 @@ window.Block = (function () {
     } catch (err) { msg.className = 'small error'; msg.textContent = err.message; }
   }
 
-  return { SCALE, TYPE_LABEL, count, section, csv, open };
+  return { SCALE, TYPE_LABEL, count, section, csv, csvCell, open };
 })();

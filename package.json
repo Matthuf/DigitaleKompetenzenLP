@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build:items": "python3 data/excel_to_json.py && python3 build.py",
-    "dev": "node dev-server.js"
+    "dev": "node dev-server.js",
+    "test": "node test/run.mjs"
   },
   "dependencies": {
     "pg": "^8.13.0"

@@ -45,6 +45,7 @@
           ? `Rücklauf ${quote} % von ${l.expected} <button class="btn quiet small" type="button" data-expected="${l.id}">ändern</button><span class="bar"><span style="width:${quote}%"></span></span>`
           : `<button class="btn quiet small" type="button" data-expected="${l.id}">Anzahl Lehrpersonen eintragen</button>`}</span>
       </div>
+      ${l.expected && l.submitted + l.drafts > l.expected ? `<p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über das Kollegium hinaus weitergegeben. Bei Bedarf die Erhebung abschliessen und eine neue eröffnen.</p>` : ''}
       ${c.status === 'open' ? `<div class="camp-link"><code>${esc(linkFor(l))}</code>
         <button class="btn secondary small" type="button" data-copy="${l.id}">Link kopieren</button>
         <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail-Vorlage</button>

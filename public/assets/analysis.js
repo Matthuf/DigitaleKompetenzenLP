@@ -31,7 +31,7 @@ window.Analysis = (function () {
   /* opts: title, cmpTitle, org, filterText, groups: [[key, Titel, Hinweis]], tooFewHint, showCustom */
   function render(out, data, cmp, o) {
     if (data.tooFew) {
-      const txt = data.n === 0
+      const txt = data.reason ? esc(data.reason) : data.n === 0
         ? `Für «${esc(o.title)}»${o.filterText ? ' (' + esc(o.filterText) + ')' : ''} ist noch keine Teilnahme abgeschlossen.`
         : `${data.n} von mindestens ${data.min} abgeschlossenen Teilnahmen${o.filterText ? ' (' + esc(o.filterText) + ')' : ''}. Die Auswertung erscheint ab ${data.min}, damit keine Rückschlüsse auf einzelne Lehrpersonen möglich sind.`;
       out.innerHTML = testNote(data) + `<div class="box box--info stack" style="gap:8px"><h3>Noch keine Auswertung</h3><p>${txt}</p>${o.tooFewHint || ''}</div>`;
