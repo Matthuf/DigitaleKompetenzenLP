@@ -298,6 +298,7 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
 
 
   /* ---------- Schulen und Zugänge (Selbstverwaltung) ---------- */
+  const zyklenText = (z) => (z.length === 3 ? 'Zyklus 1–3' : z.length === 1 ? z[0] + ' (fest)' : z.join(', ').replace(/, Zyklus /g, ', '));
   const ROLE_LABEL = (u) => (u.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + (u.school_name || ''));
   async function loadTeam() {
     const box = $('#tab-team');
@@ -312,8 +313,9 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
 
       ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
         <h3 id="h-schools">Schulhäuser</h3>
-        <ul class="list-plain team-list">${t.schools.map((s) => `<li data-school="${s.id}"><span class="team-name">${esc(s.name)}</span>
-          <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></li>`).join('')}</ul>
+        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
+        <ul class="list-plain team-list">${t.schools.map((s) => `<li data-school="${s.id}"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}</span></span>
+          <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen</button><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></li>`).join('')}</ul>
         <form class="row" id="form-team-school" style="align-items:flex-end">
           <div class="field"><label for="team-school-new" class="small">Weiteres Schulhaus</label><input type="text" id="team-school-new" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
           <button class="btn secondary" type="submit">Hinzufügen</button><span class="error small" id="team-school-msg" role="alert"></span>
@@ -365,6 +367,18 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
         const [save, cancel] = li.querySelectorAll('button');
         li.querySelector('input').focus();
         save.addEventListener('click', async () => { try { await api('PATCH', 'leitung/schools/' + s.id, { name: li.querySelector('input').value }); await refreshCtx(); loadTeam(); } catch (err) { li.querySelector('.error').textContent = err.message; } });
+        cancel.addEventListener('click', loadTeam);
+      }));
+      $$('[data-zyk]').forEach((b) => b.addEventListener('click', () => {
+        const li = b.closest('li'); const s = t.schools.find((x) => x.id === b.dataset.zyk);
+        li.innerHTML = `<fieldset class="inline-edit" style="border:0;padding:0;margin:0"><legend class="small"><b>Zyklen ${esc(s.name)}</b></legend>
+          ${['Zyklus 1', 'Zyklus 2', 'Zyklus 3'].map((z, k) => `<label class="check small"><input type="checkbox" value="${z}" ${s.zyklen.includes(z) ? 'checked' : ''}><span>${z}</span></label>`).join('')}
+          <button class="btn secondary small" type="button">Speichern</button><button class="btn quiet small" type="button">Abbrechen</button><span class="error small"></span></fieldset>`;
+        const [save, cancel] = li.querySelectorAll('button');
+        save.addEventListener('click', async () => {
+          try { await api('PATCH', 'leitung/schools/' + s.id, { zyklen: [...li.querySelectorAll('input:checked')].map((i) => i.value) }); await refreshCtx(); loadTeam(); }
+          catch (err) { li.querySelector('.error').textContent = err.message; }
+        });
         cancel.addEventListener('click', loadTeam);
       }));
       $$('[data-sdel]').forEach((el) => confirmButton(el, 'Entfernen', 'Schulhaus entfernen?', 'Ja, entfernen', async () => { await api('DELETE', 'leitung/schools/' + el.dataset.sdel); await refreshCtx(); loadTeam(); }, 'btn quiet small'));

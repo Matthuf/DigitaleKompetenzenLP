@@ -6,7 +6,10 @@
   let current = null;
   let rounds = [];
   let filter = '';
-  const KIND = { primar: 'Gemeinde · Primarstufe', sek: 'Bezirk · Sekundarstufe' };
+  const KIND = { primar: 'Primarstufe', sek: 'Sekundarstufe', gesamt: 'Primar- und Sekundarstufe' };
+  const zyklenText = (z) => (z.length === 3 ? 'Zyklus 1–3' : z.join(', ').replace(/, Zyklus /g, ', '));
+  // Stufe aus der Importliste: «beide», «gesamt», «Primar und Sek» → gesamt; Sek/Bezirk → sek; sonst primar
+  const parseKind = (v) => (/beide|gesamt|alle|primar.*sek|sek.*primar|1\s*[-–]\s*3/i.test(v || '') ? 'gesamt' : /sek|bezirk|zyklus\s*3/i.test(v || '') ? 'sek' : 'primar');
 
   /* ---------- Reiter ---------- */
   function route() {
@@ -46,7 +49,19 @@
     $('#tr-panel').hidden = false;
     $('#tr-title').textContent = t.name;
     $('#tr-kind-label').textContent = KIND[t.kind];
-    $('#sc-list').innerHTML = t.schools.length ? t.schools.map((s) => `<li class="row" style="justify-content:space-between"><span>${esc(s.name)} <span class="small muted">· ${s.users} Zugang${s.users === 1 ? '' : 'e'}</span></span><span class="confirm" data-scdel="${s.id}"></span></li>`).join('') : '<li class="muted">Noch keine Schule.</li>';
+    $('#sc-list').innerHTML = t.schools.length ? t.schools.map((s) => `<li class="row" style="justify-content:space-between"><span>${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))} · ${s.users} Zugang${s.users === 1 ? '' : 'e'}</span></span><span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen</button><span class="confirm" data-scdel="${s.id}"></span></span></li>`).join('') : '<li class="muted">Noch keine Schule.</li>';
+    $$('#sc-list [data-zyk]').forEach((b) => b.addEventListener('click', () => {
+      const li = b.closest('li'); const s = t.schools.find((x) => x.id === b.dataset.zyk);
+      li.innerHTML = `<fieldset class="inline-edit" style="border:0;padding:0;margin:0"><legend class="small"><b>Zyklen ${esc(s.name)}</b></legend>
+        ${['Zyklus 1', 'Zyklus 2', 'Zyklus 3'].map((z) => `<label class="check small"><input type="checkbox" value="${z}" ${s.zyklen.includes(z) ? 'checked' : ''}><span>${z}</span></label>`).join('')}
+        <button class="btn secondary small" type="button">Speichern</button><button class="btn quiet small" type="button">Abbrechen</button><span class="error small"></span></fieldset>`;
+      const [save, cancel] = li.querySelectorAll('button');
+      save.addEventListener('click', async () => {
+        try { await api('PATCH', 'admin/schools/' + s.id, { zyklen: [...li.querySelectorAll('input:checked')].map((i) => i.value) }); loadTraeger(); }
+        catch (err) { li.querySelector('.error').textContent = err.message; }
+      });
+      cancel.addEventListener('click', () => renderPanel());
+    }));
     $$('[data-scdel]').forEach((el) => {
       const s = t.schools.find((x) => x.id === el.dataset.scdel);
       confirmButton(el, 'Entfernen', `«${s.name}» mit allen Links, Antworten und Zugängen löschen?`, 'Ja, löschen', async () => { await api('DELETE', `admin/schools/${s.id}`); loadTraeger(); }, 'btn quiet small');
@@ -129,7 +144,7 @@
     const rows = lines.map(split);
     if (/träger|traeger/i.test(rows[0][0] || '')) rows.shift();
     return rows.filter((r) => r[0]).map((r) => ({
-      traeger: r[0], kind: /sek|bezirk|zyklus\s*3/i.test(r[1] || '') ? 'sek' : 'primar', name: r[2] || '', email: r[3] || '',
+      traeger: r[0], kind: parseKind(r[1]), name: r[2] || '', email: r[3] || '',
       schools: (r[4] || '').split(delim === ',' ? /[;|]/ : /[,;|]/).map((x) => x.trim()).filter(Boolean),
     }));
   }
@@ -171,7 +186,7 @@
   }
   $('#imp-preview').addEventListener('click', preview);
   $('#imp-file').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; $('#imp-text').value = await f.text(); e.target.value = ''; preview(); });
-  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat;E-Mail;Schulhäuser\r\nGemeinde Musterdorf;Gemeinde;Maria Muster;rektorat@musterdorf.ch;Schulhaus Dorf, Schulhaus Berg\r\nBezirk Muster;Bezirk;Hans Beispiel;hauptschulleitung@bezirk-muster.ch;Schulhaus Nord, Schulhaus Süd\r\n', 'text/csv;charset=utf-8'));
+  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat;E-Mail;Schulhäuser\r\nGemeinde Musterdorf;Primar;Maria Muster;rektorat@musterdorf.ch;Schulhaus Dorf, Schulhaus Berg\r\nBezirk Muster;Sek;Hans Beispiel;hauptschulleitung@bezirk-muster.ch;Schulhaus Nord, Schulhaus Süd\r\nBezirk Beispiel;beide;Eva Beispiel;rektorat@bezirk-beispiel.ch;Schulhaus Dorf, Oberstufenzentrum\r\n', 'text/csv;charset=utf-8'));
 
   /* ---------- Runden ---------- */
   async function loadRounds() {

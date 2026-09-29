@@ -30,7 +30,7 @@ Im Reiter «Eigene Fragen» erstellt die Schulleitung ihre Fragen (gleiche vier 
 
 ## Rollen der Serverversion
 
-Aufbau: **Schulträger** (Gemeinde = Primarstufe mit Zyklus 1 und 2, Bezirk = Sekundarstufe mit Zyklus 3) → **Schulen bzw. Schulhäuser**. Eine Erhebung gehört dem Träger, jede beteiligte Schule hat einen **eigenen Link**.
+Aufbau: **Schulträger** (Primarstufe, Sekundarstufe oder beides, z. B. Einsiedeln, Küssnacht, Gersau) → **Schulen bzw. Schulhäuser**. Die **Zyklen werden pro Schulhaus** festgelegt (Standard nach Stufe des Trägers: Primar Zyklus 1–2, Sek Zyklus 3, beides Zyklus 1–3); Rektorat oder AVS passen sie an. Ein Zyklus = für Lehrpersonen fest eingestellt, mehrere = Auswahl inkl. «zyklusübergreifend». Eine Erhebung gehört dem Träger, jede beteiligte Schule hat einen **eigenen Link**.
 
 - **AVS (Admin)**, `/admin`: erfasst Schulträger, Schulen und Zugänge, legt **Runden** fest (z. B. die erste kantonale Runde) und sieht die **kantonale Auswertung**: alle Teilnahmen zusammen, filterbar nach Runde und Zyklus, Vergleiche nach Zyklus, Berufserfahrung und Funktion. **Keine Angaben zu Schulen oder Trägern** (weder Filter noch Namen noch IDs in der Antwort), keine eigenen Fragen, keine Freitexte; jede Person zählt einmal (jüngste Teilnahme). Keine Einsicht in Schulauswertungen.
 - **Rektorat / Hauptschulleitung**, `/leitung`: eröffnet Erhebungen für alle oder ausgewählte Schulen des Trägers, verteilt die Links oder überlässt sie den Schulleitungen, sieht alle Erhebungen des Trägers (auch jene der Schulleitungen), die Gesamtauswertung, den Filter nach Schule und «Schulen im Vergleich». Pro Runde kann das Rektorat auch alle Erhebungen der Schulen zusammen auswerten.
@@ -39,7 +39,7 @@ Aufbau: **Schulträger** (Gemeinde = Primarstufe mit Zyklus 1 und 2, Bezirk = Se
 - **Runden**: Die erste Runde gibt das AVS vor. Pro Runde nimmt jede Schule einmal teil (sonst würden Lehrpersonen doppelt gezählt). Weitere Erhebungen legen die Schulen frei fest.
 - **Mindestgrösse**: alle Auswertungen erst ab `MIN_GROUP_SIZE` (Echtbetrieb 5) abgeschlossenen Teilnahmen. Keine Einzelprofile.
 - **Schulblock**: Pro Erhebung bis zu 15 eigene Fragen, vier Formen mischbar: Zustimmungsskala (4 Stufen), eigene Stufenaussagen (3–6), Auswahl (einfach oder mehrfach) und Freitext. Erscheinen als zusätzlicher Schritt, fliessen nicht ins Kompetenzprofil ein, werden erst ab Mindestgrösse ausgewertet (Freitexte in zufälliger Reihenfolge). Nach der ersten abgeschlossenen Teilnahme gesperrt, übernehmbar in eine neue Erhebung.
-- **Lehrperson**, `/t/<link>`: nimmt ohne Namen und E-Mail teil und erhält einen **persönlichen Code**. Damit: fortsetzen, Profil wieder ansehen (`/mein-profil`), bei der nächsten Erhebung erneut ausfüllen mit Vergleich, alle eigenen Daten löschen. Der Code gilt innerhalb des ganzen Schulträgers. Zyklus: Gemeindeschulen wählen Zyklus 1, 2 oder zyklusübergreifend; bei Bezirksschulen ist Zyklus 3 fest.
+- **Lehrperson**, `/t/<link>`: nimmt ohne Namen und E-Mail teil und erhält einen **persönlichen Code**. Damit: fortsetzen, Profil wieder ansehen (`/mein-profil`), bei der nächsten Erhebung erneut ausfüllen mit Vergleich, alle eigenen Daten löschen. Der Code gilt innerhalb des ganzen Schulträgers. Zyklus: je nach Schulhaus fest eingestellt oder zur Auswahl (inkl. zyklusübergreifend); der Server akzeptiert nur Zyklen des Schulhauses.
 - **Migration**: Bestehende Schulen werden beim Start automatisch zu eigenen Trägern (Primarstufe), bisherige Erhebungslinks bleiben gültig, Schulstufen werden zu Zyklen.
 
 ## Aufbau

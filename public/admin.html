@@ -70,11 +70,11 @@
         <div class="row" style="justify-content:space-between;align-items:flex-end">
           <div class="stack" style="gap:6px">
             <h2>Schulträger</h2>
-            <p class="muted small" style="max-width:72ch">Gemeinden führen die Primarstufe (Zyklus 1 und 2), Bezirke die Sekundarstufe (Zyklus 3). Jeder Träger hat eine oder mehrere Schulen bzw. Schulhäuser. Zugänge gibt es für das Rektorat bzw. die Hauptschulleitung (ganzer Träger) und für die Schulleitungen (eine Schule).</p>
+            <p class="muted small" style="max-width:72ch">Gemeinden führen die Primarstufe (Zyklus 1 und 2), Bezirke die Sekundarstufe (Zyklus 3); Einsiedeln, Küssnacht und Gersau beide. Die Stufe bestimmt die Zyklen neuer Schulhäuser; pro Schulhaus lassen sie sich anpassen. Jeder Träger hat eine oder mehrere Schulen bzw. Schulhäuser. Zugänge gibt es für das Rektorat bzw. die Hauptschulleitung (ganzer Träger) und für die Schulleitungen (eine Schule).</p>
           </div>
           <form class="row" id="form-traeger" style="align-items:flex-end">
             <div class="field"><label for="tr-new" class="small">Neuer Schulträger</label><input type="text" id="tr-new" placeholder="z. B. Gemeinde Musterdorf" style="width:240px"></div>
-            <div class="field"><label for="tr-kind" class="small">Stufe</label><select id="tr-kind" style="width:auto"><option value="primar">Gemeinde · Primarstufe</option><option value="sek">Bezirk · Sekundarstufe</option></select></div>
+            <div class="field"><label for="tr-kind" class="small">Stufe</label><select id="tr-kind" style="width:auto"><option value="primar">Primarstufe (Zyklus 1–2)</option><option value="sek">Sekundarstufe (Zyklus 3)</option><option value="gesamt">Primar- und Sekundarstufe (Zyklus 1–3)</option></select></div>
             <button class="btn" type="submit">Erfassen</button>
           </form>
         </div>
@@ -120,7 +120,7 @@
     <div class="tabpanel stack" id="tab-import" style="gap:20px" hidden>
       <div class="stack" style="gap:6px"><h2>Liste importieren</h2>
         <p class="muted small" style="max-width:76ch">Die Liste der Schulträger mit Rektorat bzw. Hauptschulleitung einfügen. Daraus entstehen die Schulträger, ihre Schulhäuser und je ein Einladungslink. Bereits vorhandene Träger werden ergänzt, nicht doppelt angelegt. Der Import lässt sich wiederholen, zum Beispiel für neue Rektorate.</p></div>
-      <div class="box box--info small"><b>Spalten in dieser Reihenfolge:</b> Schulträger · Stufe (Gemeinde/Primar oder Bezirk/Sek) · Name Rektorat · E-Mail · Schulhäuser (freiwillig, mehrere mit Komma getrennt).
+      <div class="box box--info small"><b>Spalten in dieser Reihenfolge:</b> Schulträger · Stufe (Primar, Sek oder «beide») · Name Rektorat · E-Mail · Schulhäuser (freiwillig, mehrere mit Komma getrennt).
         Am einfachsten die Zeilen in Excel markieren, kopieren und unten einfügen. Eine Titelzeile wird erkannt und übersprungen. <button class="btn quiet small" type="button" id="imp-template">Vorlage als CSV herunterladen</button></div>
       <div class="field"><label for="imp-text">Liste einfügen</label><textarea id="imp-text" class="import-area" spellcheck="false" placeholder="Bezirk March&#9;Bezirk&#9;Maria Muster&#9;rektorat@bezirk-march.ch&#9;Schulhaus Lachen, Schulhaus Siebnen"></textarea></div>
       <div class="row"><label class="btn secondary" for="imp-file">CSV-Datei wählen</label><input type="file" id="imp-file" accept=".csv,.txt,text/csv" hidden>

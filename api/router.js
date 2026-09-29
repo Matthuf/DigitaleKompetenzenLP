@@ -45,17 +45,27 @@ function participant(req) {
   if (!s) fail(401, 'Bitte mit dem persönlichen Code anmelden.');
   return s;
 }
-const ZYKLEN = { primar: ['Zyklus 1', 'Zyklus 2', 'Zyklusübergreifend'], sek: ['Zyklus 3'] };
-function cleanContext(c, kind) {
+// Zyklen: pro Schulhaus festgelegt; ohne Angabe gilt der Standard der Trägerstufe.
+const ALL_ZYKLEN = ['Zyklus 1', 'Zyklus 2', 'Zyklus 3'];
+const DEFAULT_ZYKLEN = { primar: ['Zyklus 1', 'Zyklus 2'], sek: ['Zyklus 3'], gesamt: ['Zyklus 1', 'Zyklus 2', 'Zyklus 3'] };
+const KINDS = ['primar', 'sek', 'gesamt'];
+function schoolZyklen(zyklen, kind) {
+  const z = Array.isArray(zyklen) ? ALL_ZYKLEN.filter((x) => zyklen.includes(x)) : [];
+  return z.length ? z : (DEFAULT_ZYKLEN[kind] || DEFAULT_ZYKLEN.primar);
+}
+// Auswahl für Lehrpersonen: ein Zyklus = fest; mehrere = Wahl inkl. «zyklusübergreifend»
+const zyklusChoices = (z) => (z.length > 1 ? [...z, 'Zyklusübergreifend'] : z);
+function cleanContext(c, zyklen) {
   const out = {};
   ['funktion', 'erfahrung'].forEach((k) => {
     if (c && typeof c[k] === 'string' && c[k].trim()) out[k] = c[k].trim().slice(0, 80);
   });
-  // Bezirksschulen: immer Zyklus 3. Gemeindeschulen: Zyklus 1, 2 oder zyklusübergreifend (freiwillig)
-  if (kind === 'sek') out.zyklus = 'Zyklus 3';
-  else if (c && ZYKLEN.primar.includes(c.zyklus)) out.zyklus = c.zyklus;
+  const z = Array.isArray(zyklen) && zyklen.length ? zyklen : DEFAULT_ZYKLEN.primar;
+  if (z.length === 1) out.zyklus = z[0];
+  else if (c && zyklusChoices(z).includes(c.zyklus)) out.zyklus = c.zyklus;
   return out;
 }
+const parseKind = (k) => (KINDS.includes(k) ? k : 'primar');
 function cleanAnswers(a) {
   const out = {};
   if (!a || typeof a !== 'object') return out;
@@ -67,11 +77,12 @@ function cleanAnswers(a) {
 async function campaignByToken(token) {
   const c = await one(
     `select c.id, c.title, c.status, c.custom_block, c.traeger_id, l.id as link_id, l.school_id,
-            s.name as school_name, t.name as traeger_name, t.kind
+            s.name as school_name, s.zyklen as school_zyklen, t.name as traeger_name, t.kind
        from campaign_links l join campaigns c on c.id = l.campaign_id
        join schools s on s.id = l.school_id join traeger t on t.id = c.traeger_id
       where l.token = $1`, [String(token || '')]);
   if (!c) fail(404, 'Dieser Link ist ungültig. Bitte den Link der Schulleitung prüfen.');
+  c.zyklen = schoolZyklen(c.school_zyklen, c.kind);
   return c;
 }
 async function participantTraeger(p) {
@@ -82,12 +93,13 @@ async function participantTraeger(p) {
 async function myResponses(pid) {
   return q(`select r.id, r.campaign_id, r.status, r.context, r.answers, r.custom_answers, r.created_at, r.updated_at, r.submitted_at,
                    c.title as campaign_title, c.status as campaign_status, l.token as campaign_token, c.custom_block,
-                   t.kind as traeger_kind, s.name as school_name
+                   t.kind as traeger_kind, s.name as school_name, s.zyklen as school_zyklen
               from responses r join campaigns c on c.id = r.campaign_id
               left join campaign_links l on l.id = r.link_id
               left join traeger t on t.id = c.traeger_id
               left join schools s on s.id = r.school_id
-             where r.participant_id = $1 order by r.created_at asc`, [pid]);
+             where r.participant_id = $1 order by r.created_at asc`, [pid]).then((rows) =>
+    rows.map(({ school_zyklen, ...r }) => ({ ...r, zyklen: zyklusChoices(schoolZyklen(school_zyklen, r.traeger_kind)) })));
 }
 async function ensureResponse(p, campaign, context) {
   let r = await one(`select id from responses where participant_id = $1 and campaign_id = $2`, [p.pid, campaign.id]);
@@ -97,7 +109,7 @@ async function ensureResponse(p, campaign, context) {
     const prev = await one(`select context from responses where participant_id = $1 order by created_at desc limit 1`, [p.pid]);
     r = { id: newId() };
     await q(`insert into responses (id, participant_id, campaign_id, instrument_version, context, school_id, link_id) values ($1,$2,$3,$4,$5,$6,$7)`,
-      [r.id, p.pid, campaign.id, ITEMS.version, JSON.stringify(cleanContext(context || (prev && prev.context) || {}, campaign.kind)), campaign.school_id, campaign.link_id]);
+      [r.id, p.pid, campaign.id, ITEMS.version, JSON.stringify(cleanContext(context || (prev && prev.context) || {}, campaign.zyklen)), campaign.school_id, campaign.link_id]);
   }
   return r.id;
 }
@@ -140,7 +152,7 @@ const on = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + p
 // Öffentlich: Erhebung über Link
 on('GET', 'c/:token', async ({ params }) => {
   const c = await campaignByToken(params.token);
-  return { campaign: { title: c.title, status: c.status }, school: { name: c.school_name }, traeger: { name: c.traeger_name, kind: c.kind } };
+  return { campaign: { title: c.title, status: c.status }, school: { name: c.school_name, zyklen: zyklusChoices(c.zyklen) }, traeger: { name: c.traeger_name, kind: c.kind } };
 });
 
 // Lehrperson: erstmals teilnehmen → Code erzeugen
@@ -195,14 +207,14 @@ on('POST', 'me/responses', async ({ req, body }) => {
 
 on('PUT', 'me/responses/:id', async ({ req, params, body }) => {
   const p = participant(req);
-  const r = await one(`select r.id, c.status as cstatus, c.custom_block, t.kind from responses r join campaigns c on c.id = r.campaign_id
-                         left join traeger t on t.id = c.traeger_id where r.id = $1 and r.participant_id = $2`, [params.id, p.pid]);
+  const r = await one(`select r.id, c.status as cstatus, c.custom_block, t.kind, s.zyklen from responses r join campaigns c on c.id = r.campaign_id
+                         left join traeger t on t.id = c.traeger_id left join schools s on s.id = r.school_id where r.id = $1 and r.participant_id = $2`, [params.id, p.pid]);
   if (!r) fail(404, 'Teilnahme nicht gefunden.');
   if (r.cstatus !== 'open') fail(409, 'Die Erhebung ist abgeschlossen. Antworten lassen sich nicht mehr ändern.');
   const answers = cleanAnswers(body.answers);
   const custom = cleanCustomAnswers(r.custom_block, body.custom_answers);
   await q(`update responses set answers = $1, context = $2, custom_answers = $3, updated_at = now() where id = $4`,
-    [JSON.stringify(answers), JSON.stringify(cleanContext(body.context, r.kind)), JSON.stringify(custom), r.id]);
+    [JSON.stringify(answers), JSON.stringify(cleanContext(body.context, schoolZyklen(r.zyklen, r.kind))), JSON.stringify(custom), r.id]);
   return { ok: true, saved: new Date().toISOString() };
 });
 
@@ -271,9 +283,9 @@ async function manageableCampaign(u, id) {
 on('GET', 'leitung/context', async ({ req }) => {
   const u = await lead(req);
   const traeger = await one(`select id, name, kind from traeger where id = $1`, [u.tid]);
-  const schools = u.role === 'traeger'
-    ? await q(`select id, name from schools where traeger_id = $1 order by name`, [u.tid])
-    : await q(`select id, name from schools where id = $1`, [u.sid]);
+  const schools = (u.role === 'traeger'
+    ? await q(`select id, name, zyklen from schools where traeger_id = $1 order by name`, [u.tid])
+    : await q(`select id, name, zyklen from schools where id = $1`, [u.sid])).map((x) => ({ ...x, zyklen: schoolZyklen(x.zyklen, traeger.kind) }));
   const rounds = await q(`select id, title, active from rounds order by created_at desc`);
   return { role: u.role, traeger, schools, rounds, min: MIN };
 });
@@ -507,8 +519,9 @@ async function teamInvite(u, id) {
 
 on('GET', 'leitung/team', async ({ req }) => {
   const u = await lead(req);
-  const schools = await q(`select s.id, s.name, (select count(*)::int from campaign_links l where l.school_id = s.id) as links
-                             from schools s where s.traeger_id = $1 ${u.role === 'leitung' ? 'and s.id = $2' : ''} order by s.name`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
+  const tk = (await one(`select kind from traeger where id = $1`, [u.tid])).kind;
+  const schools = (await q(`select s.id, s.name, s.zyklen, (select count(*)::int from campaign_links l where l.school_id = s.id) as links
+                             from schools s where s.traeger_id = $1 ${u.role === 'leitung' ? 'and s.id = $2' : ''} order by s.name`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid])).map((x) => ({ ...x, zyklen: schoolZyklen(x.zyklen, tk), zyklenSet: Array.isArray(x.zyklen) }));
   const users = await q(`select u.id, u.username, u.display_name, u.email, u.role, u.last_login, u.school_id, s.name as school_name
                            from users u left join schools s on s.id = u.school_id
                           where (u.traeger_id = $1 or s.traeger_id = $1) ${u.role === 'leitung' ? 'and u.school_id = $2' : ''}
@@ -531,12 +544,22 @@ on('POST', 'leitung/schools', async ({ req, body }) => {
 on('PATCH', 'leitung/schools/:id', async ({ req, params, body }) => {
   const u = await lead(req);
   if (u.role !== 'traeger') fail(403, 'Schulen verwaltet der Schulträger.');
-  const name = String(body.name || '').trim().slice(0, 120);
-  if (!name) fail(400, 'Bitte einen Namen angeben.');
-  const r = await one(`update schools set name = $1 where id = $2 and traeger_id = $3 returning id`, [name, params.id, u.tid]);
-  if (!r) fail(404, 'Schule nicht gefunden.');
+  if (!(await one(`select 1 from schools where id = $1 and traeger_id = $2`, [params.id, u.tid]))) fail(404, 'Schule nicht gefunden.');
+  await updateSchool(params.id, body);
   return { ok: true };
 });
+async function updateSchool(id, body) {
+  if ('name' in body) {
+    const name = String(body.name || '').trim().slice(0, 120);
+    if (!name) fail(400, 'Bitte einen Namen angeben.');
+    await q(`update schools set name = $1 where id = $2`, [name, id]);
+  }
+  if ('zyklen' in body) {
+    const z = ALL_ZYKLEN.filter((x) => Array.isArray(body.zyklen) && body.zyklen.includes(x));
+    if (!z.length) fail(400, 'Bitte mindestens einen Zyklus wählen.');
+    await q(`update schools set zyklen = $1 where id = $2`, [JSON.stringify(z), id]);
+  }
+}
 on('DELETE', 'leitung/schools/:id', async ({ req, params }) => {
   const u = await lead(req);
   if (u.role !== 'traeger') fail(403, 'Schulen verwaltet der Schulträger.');
@@ -591,7 +614,7 @@ on('POST', 'admin/import', async ({ req, body }) => {
   for (const r of rows) {
     const name = String(r.traeger || '').trim().slice(0, 120);
     if (!name) { out.push({ traeger: '', status: 'übersprungen: kein Name' }); continue; }
-    const kind = r.kind === 'sek' ? 'sek' : 'primar';
+    const kind = parseKind(r.kind);
     let t = await one(`select id, kind from traeger where lower(name) = lower($1)`, [name]);
     let created = false;
     if (!t) { t = { id: newId(), kind }; await q(`insert into traeger (id, name, kind) values ($1,$2,$3)`, [t.id, name, kind]); created = true; }
@@ -645,14 +668,14 @@ on('GET', 'admin/traeger', async ({ req }) => {
                              (select count(*)::int from participants p where p.traeger_id = t.id) as participants,
                              (select count(*)::int from campaigns c where c.traeger_id = t.id) as campaigns
                         from traeger t order by t.name`);
-  const sc = await q(`select s.id, s.name, s.traeger_id, (select count(*)::int from users u where u.school_id = s.id) as users from schools s order by s.name`);
-  return tr.map((t) => ({ ...t, schools: sc.filter((s) => s.traeger_id === t.id) }));
+  const sc = await q(`select s.id, s.name, s.traeger_id, s.zyklen, (select count(*)::int from users u where u.school_id = s.id) as users from schools s order by s.name`);
+  return tr.map((t) => ({ ...t, schools: sc.filter((s) => s.traeger_id === t.id).map((s) => ({ ...s, zyklen: schoolZyklen(s.zyklen, t.kind) })) }));
 });
 on('POST', 'admin/traeger', async ({ req, body }) => {
   staff(req, 'admin');
   const name = String(body.name || '').trim().slice(0, 120);
   if (!name) fail(400, 'Bitte den Namen des Schulträgers angeben, z. B. «Gemeinde Musterdorf» oder «Bezirk March».');
-  const kind = body.kind === 'sek' ? 'sek' : 'primar';
+  const kind = parseKind(body.kind);
   const id = newId();
   await q(`insert into traeger (id, name, kind) values ($1,$2,$3)`, [id, name, kind]);
   // Ein erstes Schulhaus mit gleichem Namen, damit kleine Träger sofort starten können
@@ -662,7 +685,7 @@ on('POST', 'admin/traeger', async ({ req, body }) => {
 on('PATCH', 'admin/traeger/:id', async ({ req, params, body }) => {
   staff(req, 'admin');
   if (typeof body.name === 'string' && body.name.trim()) await q(`update traeger set name = $1 where id = $2`, [body.name.trim().slice(0, 120), params.id]);
-  if (body.kind === 'primar' || body.kind === 'sek') await q(`update traeger set kind = $1 where id = $2`, [body.kind, params.id]);
+  if (KINDS.includes(body.kind)) await q(`update traeger set kind = $1 where id = $2`, [body.kind, params.id]);
   return { ok: true };
 });
 on('DELETE', 'admin/traeger/:id', async ({ req, params }) => {
@@ -678,6 +701,12 @@ on('POST', 'admin/traeger/:id/schools', async ({ req, params, body }) => {
   const id = newId();
   await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [id, name, params.id]);
   return { id };
+});
+on('PATCH', 'admin/schools/:id', async ({ req, params, body }) => {
+  staff(req, 'admin');
+  if (!(await one(`select 1 from schools where id = $1`, [params.id]))) fail(404, 'Schule nicht gefunden.');
+  await updateSchool(params.id, body);
+  return { ok: true };
 });
 on('DELETE', 'admin/schools/:id', async ({ req, params }) => {
   staff(req, 'admin');

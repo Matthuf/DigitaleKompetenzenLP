@@ -6,18 +6,26 @@
 
   // Werte werden gespeichert, Beschriftungen nur angezeigt. Bezirksschulen: Zyklus 3 fest, das Feld entfällt.
   const CONTEXT_OPTIONS = {
-    zyklus: [['Zyklus 1', 'Zyklus 1 (Kindergarten bis 2. Klasse)'], ['Zyklus 2', 'Zyklus 2 (3. bis 6. Klasse)'], ['Zyklusübergreifend', 'Zyklusübergreifend (z. B. SHP, DaZ, Fachlehrperson)']],
+    zyklus: [['Zyklus 1', 'Zyklus 1 (Kindergarten bis 2. Klasse)'], ['Zyklus 2', 'Zyklus 2 (3. bis 6. Klasse)'], ['Zyklus 3', 'Zyklus 3 (Sekundarstufe I)'], ['Zyklusübergreifend', 'Zyklusübergreifend (z. B. SHP, DaZ, Fachlehrperson)']],
     funktion: ['Klassenlehrperson', 'Fachlehrperson', 'Schulische Heilpädagogin / Schulischer Heilpädagoge', 'Lehrperson Deutsch als Zweitsprache', 'Andere Funktion'],
     erfahrung: ['Weniger als 5 Jahre', '5 bis 15 Jahre', 'Mehr als 15 Jahre'],
   };
   ['ctx', 'ctx2'].forEach((p) => Object.entries(CONTEXT_OPTIONS).forEach(([k, opts]) => {
     $(`#${p}-${k}`).innerHTML = `<option value="">Keine Angabe</option>` + opts.map((o) => Array.isArray(o) ? `<option value="${esc(o[0])}">${esc(o[1])}</option>` : `<option>${esc(o)}</option>`).join('');
   }));
-  let traegerKind = 'primar';
-  function setKind(kind) {
-    traegerKind = kind || 'primar';
-    $$('[data-zyklus-field]').forEach((f) => { f.hidden = traegerKind === 'sek'; });
+  // Zyklen des Schulhauses: einer = fest (Feld entfällt), mehrere = Auswahl inkl. «zyklusübergreifend»
+  let zyklen = ['Zyklus 1', 'Zyklus 2', 'Zyklusübergreifend'];
+  function setZyklen(list) {
+    if (Array.isArray(list) && list.length) zyklen = list;
+    ['ctx', 'ctx2'].forEach((p) => {
+      const sel = $(`#${p}-zyklus`);
+      const keep = sel.value;
+      sel.innerHTML = `<option value="">Keine Angabe</option>` + CONTEXT_OPTIONS.zyklus.filter(([v]) => zyklen.includes(v)).map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+      if (zyklen.includes(keep)) sel.value = keep;
+    });
+    $$('[data-zyklus-field]').forEach((f) => { f.hidden = zyklen.length === 1; });
   }
+  setZyklen();
 
   const m = location.pathname.match(/^\/t\/([^/]+)/);
   const TOKEN = m ? decodeURIComponent(m[1]) : null;
@@ -89,7 +97,7 @@
       try { camp = await api('GET', 'c/' + encodeURIComponent(TOKEN)); }
       catch (e) { return showError('Dieser Link funktioniert nicht', e.message); }
       $('#school-name').textContent = camp.school.name;
-      setKind(camp.traeger && camp.traeger.kind);
+      setZyklen(camp.school && camp.school.zyklen);
       $('#campaign-name').textContent = 'Selbsteinschätzung · ' + camp.campaign.title;
       await loadMe();
       if (me) {
@@ -156,7 +164,7 @@
   /* ---------- Einstieg ---------- */
   const readCtx = (p) => {
     const c = Object.fromEntries(Object.keys(CONTEXT_OPTIONS).map((k) => [k, $(`#${p}-${k}`).value || null]));
-    if (traegerKind === 'sek') c.zyklus = 'Zyklus 3';
+    if (zyklen.length === 1) c.zyklus = zyklen[0];
     return c;
   };
   $('#form-start').addEventListener('submit', async (e) => {
@@ -250,7 +258,7 @@
       const firstOpen = p.open[0];
       areaIdx = firstOpen ? ITEMS.areas.findIndex((a) => a.id === SUBS.find((s) => s.id === firstOpen).areaId) : 0;
     }
-    setKind(cur.traeger_kind);
+    setZyklen(cur.zyklen);
     Object.keys(CONTEXT_OPTIONS).forEach((k) => { $(`#ctx2-${k}`).value = (cur.context && cur.context[k]) || ''; });
     ctxSummary();
     setSaveState(cur.updated_at ? 'Zuletzt gespeichert am ' + date(cur.updated_at) : '');
