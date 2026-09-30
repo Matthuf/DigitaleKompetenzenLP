@@ -129,7 +129,7 @@ window.Block = (function () {
     const head = `<p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen am Schluss des Fragebogens und fliessen nicht ins Kompetenzprofil ein. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
     if (ed.locked) {
       el.innerHTML = head + (ed.byOther
-        ? `<div class="box box--info small">Diese Erhebung hat das Rektorat eröffnet. Eigene Fragen legt darum das Rektorat fest.</div>`
+        ? `<div class="box box--info small">Diese Erhebung stammt von Rektorat/Hauptschulleitung. Die eigenen Fragen werden dort festgelegt.</div>`
         : `<div class="box box--info small">Es gibt bereits abgeschlossene Teilnahmen. Die Fragen sind darum gesperrt. Für geänderte Fragen eine neue Erhebung eröffnen und die Fragen dort übernehmen.</div>`) +
         (b.questions.length ? `<ol class="stack" style="gap:10px;padding-left:20px">${b.questions.map((q) => `<li><b>${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}</span>${q.options ? `<ul class="small">${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol>` : '<p class="muted small">Keine eigenen Fragen.</p>');
       return;

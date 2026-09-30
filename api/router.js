@@ -356,7 +356,7 @@ async function visibleCampaign(u, id) {
 const canManage = (u, c) => u.role === 'traeger' || (!!c.owner_school_id && c.owner_school_id === u.sid);
 async function manageableCampaign(u, id) {
   const c = await visibleCampaign(u, id);
-  if (!canManage(u, c)) fail(403, 'Diese Erhebung wurde vom Rektorat eröffnet. Änderungen nimmt das Rektorat vor.');
+  if (!canManage(u, c)) fail(403, 'Diese Erhebung stammt von Rektorat/Hauptschulleitung. Änderungen nehmen diese vor.');
   return c;
 }
 
@@ -451,10 +451,10 @@ on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
 // Rektorat: Schulhaus nachträglich in eine laufende Erhebung aufnehmen (z. B. später erfasstes Schulhaus)
 on('POST', 'leitung/campaigns/:id/links', async ({ req, params, body }) => {
   const u = await lead(req);
-  if (u.role !== 'traeger') fail(403, 'Schulhäuser nimmt das Rektorat in eine Erhebung auf.');
+  if (u.role !== 'traeger') fail(403, 'Schulhäuser nehmen Rektorat bzw. Hauptschulleitung in eine Erhebung auf.');
   const c = await manageableCampaign(u, params.id);
   if (c.status !== 'open') fail(409, 'Die Erhebung ist abgeschlossen.');
-  if (c.owner_school_id) fail(409, 'Diese Erhebung hat eine Schulleitung für ihre Schule eröffnet. Weitere Schulhäuser lassen sich nur in Erhebungen des Rektorats aufnehmen.');
+  if (c.owner_school_id) fail(409, 'Diese Erhebung hat eine Schulleitung für ihre Schule eröffnet. Weitere Schulhäuser lassen sich nur in Erhebungen von Rektorat/Hauptschulleitung aufnehmen.');
   const s = await one(`select id, name from schools where id = $1 and traeger_id = $2`, [String(body.schoolId || ''), u.tid]);
   if (!s) fail(404, 'Schule nicht gefunden.');
   if (await one(`select 1 from campaign_links where campaign_id = $1 and school_id = $2`, [c.id, s.id])) fail(409, `${s.name} ist bereits dabei.`);

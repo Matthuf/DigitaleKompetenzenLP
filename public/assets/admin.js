@@ -34,7 +34,7 @@
     const t = $('#tr-table');
     const shown = traeger.filter((x) => !filter || x.name.toLowerCase().includes(filter) || x.schools.some((s) => s.name.toLowerCase().includes(filter)));
     t.innerHTML = !traeger.length ? `<tbody><tr><td class="muted">Noch kein Schulträger erfasst.</td></tr></tbody>` : !shown.length ? `<tbody><tr><td class="muted">Nichts gefunden.</td></tr></tbody>`
-      : `<thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Schulen</th><th scope="col" class="num">Zugänge Rektorat</th><th scope="col" class="num">Zugänge Schulleitung</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
+      : `<thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Schulen</th><th scope="col" class="num">Zugänge Rektorat/ Hauptschulleitung</th><th scope="col" class="num">Zugänge Schulleitung</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${shown.map((x) => `<tr><td><b>${esc(x.name)}</b></td><td>${KIND[x.kind]}</td><td class="small">${x.schools.map((s) => esc(s.name)).join(', ') || '–'}</td>
         <td class="num">${x.rektorat}</td><td class="num">${x.schools.reduce((a, s) => a + s.users, 0)}</td><td class="num">${x.campaigns}</td><td class="num">${x.participants}</td>
         <td><button class="btn ${current === x.id ? '' : 'secondary'}" type="button" data-tr="${x.id}">Verwalten</button></td></tr>`).join('')}</tbody>`;
@@ -158,7 +158,7 @@
     const known = new Set(traeger.map((t) => t.name.toLowerCase()));
     $('#imp-out').innerHTML = `<h3>Vorschau: ${parsed.length} Schulträger</h3>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Vorschau Import"><table class="list">
-        <thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Rektorat</th><th scope="col">E-Mail</th><th scope="col">Schulhäuser</th><th scope="col">Hinweis</th></tr></thead>
+        <thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Rektorat/ Hauptschulleitung</th><th scope="col">E-Mail</th><th scope="col">Schulhäuser</th><th scope="col">Hinweis</th></tr></thead>
         <tbody>${parsed.map((r) => `<tr><td><b>${esc(r.traeger)}</b></td><td>${KIND[r.kind]}</td><td>${esc(r.name)}</td><td class="small">${esc(r.email)}</td><td class="small">${esc(r.schools.join(', ') || '–')}</td>
           <td class="small">${[known.has(r.traeger.toLowerCase()) ? 'bereits vorhanden, wird ergänzt' : '', validEmail(r.email) ? '' : '<b>keine gültige E-Mail, keine Einladung</b>'].filter(Boolean).join(' · ') || 'neu'}</td></tr>`).join('')}</tbody></table></div>
       <div class="row"><button class="btn" type="button" id="imp-run">${parsed.length} Schulträger importieren und Einladungen erstellen</button></div>`;
@@ -174,7 +174,7 @@
     $('#imp-out').innerHTML = `<div class="box box--success"><b>Import abgeschlossen.</b> ${withLink.length} Einladung${withLink.length === 1 ? '' : 'en'} erstellt. Die Links werden nur jetzt angezeigt: jetzt per E-Mail verschicken oder die Liste für einen Serienbrief speichern. Später lässt sich pro Schulträger ein neuer Link erzeugen.</div>
       <div class="row"><button class="btn" type="button" id="imp-csv">Einladungen als CSV (Serienbrief)</button></div>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Ergebnis Import"><table class="list">
-        <thead><tr><th scope="col">Schulträger</th><th scope="col">Rektorat</th><th scope="col">Ergebnis</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
+        <thead><tr><th scope="col">Schulträger</th><th scope="col">Rektorat/ Hauptschulleitung</th><th scope="col">Ergebnis</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
         <tbody>${res.rows.map((r, k) => `<tr><td><b>${esc(r.traeger)}</b></td><td class="small">${esc(r.name || '')}<br>${esc(r.email || '')}</td><td class="small">${esc(r.status)}</td>
           <td>${r.token ? `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-icopy="${k}">Link kopieren</button><a class="btn secondary small" data-imail="${k}" href="#">E-Mail öffnen</a></div>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
     const mailOf = (r) => UI.inviteMail({ token: r.token, expires_at: r.expires_at, name: r.name, roleText: 'Schulträger ' + r.traeger, from: 'Amt für Volksschulen und Sport' });
@@ -189,7 +189,7 @@
   }
   $('#imp-preview').addEventListener('click', preview);
   $('#imp-file').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; $('#imp-text').value = await f.text(); e.target.value = ''; preview(); });
-  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat;E-Mail;Schulhäuser\r\nGemeinde Musterdorf;Primar;Maria Muster;rektorat@musterdorf.ch;Schulhaus Dorf, Schulhaus Berg\r\nBezirk Muster;Sek;Hans Beispiel;hauptschulleitung@bezirk-muster.ch;Schulhaus Nord, Schulhaus Süd\r\nBezirk Beispiel;beide;Eva Beispiel;rektorat@bezirk-beispiel.ch;Schulhaus Dorf, Oberstufenzentrum\r\n', 'text/csv;charset=utf-8'));
+  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat/Hauptschulleitung;E-Mail;Schulhäuser\r\nGemeinde Musterdorf;Primar;Maria Muster;rektorat@musterdorf.ch;Schulhaus Dorf, Schulhaus Berg\r\nBezirk Muster;Sek;Hans Beispiel;hauptschulleitung@bezirk-muster.ch;Schulhaus Nord, Schulhaus Süd\r\nBezirk Beispiel;beide;Eva Beispiel;rektorat@bezirk-beispiel.ch;Schulhaus Dorf, Oberstufenzentrum\r\n', 'text/csv;charset=utf-8'));
 
   /* ---------- Runden ---------- */
   async function loadRounds() {

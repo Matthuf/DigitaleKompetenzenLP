@@ -12,6 +12,12 @@
   const byId = (id) => campaigns.find((c) => c.id === id);
   const linkById = (id) => campaigns.flatMap((c) => c.links.map((l) => ({ ...l, campaign: c }))).find((l) => l.id === id);
   const orgName = () => (isRektorat() ? ctx.traeger.name : (ctx.schools[0] ? ctx.schools[0].name : ''));
+  // Absender in E-Mail-Vorlagen: Name der angemeldeten Person (falls erfasst) und Funktion
+  function signature() {
+    const u = window.StaffUser || {};
+    const name = u.display_name && u.display_name !== u.username ? u.display_name + '\n' : '';
+    return name + (isRektorat() ? 'Rektorat/Hauptschulleitung ' + ctx.traeger.name : 'Schulleitung ' + orgName());
+  }
 
   /* ---------- Reiter mit eigener Adresse (Zurück-Knopf funktioniert) ----------
    * #erhebungen[/id] · #auswertung[/quelle] · #team. Alte Adresse #fragen/id führt zur Karte der Erhebung. */
@@ -100,9 +106,9 @@
 
   function cardHTML(c) {
     const n = Block.count(c);
-    const who = c.byTraeger ? 'vom Rektorat' : `von der Schulleitung ${esc(c.owner_school_name || '')}`;
+    const who = c.byTraeger ? 'durch Rektorat/Hauptschulleitung' : `durch Schulleitung ${esc(c.owner_school_name || '')}`;
     const missing = missingSchools(c);
-    const qState = !c.manageable ? 'legt das Rektorat fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
+    const qState = !c.manageable ? 'legt Rektorat/Hauptschulleitung fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
     return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
       <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Kantonale Runde</span>` : ''}</span>
         <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
@@ -262,12 +268,12 @@ Im Rahmen der Erhebung «${l.campaign.title}» laden wir Sie ein, die Selbsteins
 Link zur Selbsteinschätzung für ${l.school_name}:
 ${linkFor(l)}
 
-Die Teilnahme erfolgt ohne Namen. Nach dem Start erhalten Sie einen persönlichen Code. Bitte bewahren Sie ihn gut auf: Damit können Sie später weiterfahren und Ihr Profil wieder öffnen. Schulleitung und Rektorat sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.
+Die Teilnahme erfolgt ohne Namen. Nach dem Start erhalten Sie einen persönlichen Code. Bitte bewahren Sie ihn gut auf: Damit können Sie später weiterfahren und Ihr Profil wieder öffnen. Schulleitung sowie Rektorat/Hauptschulleitung sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.
 
 Bitte schliessen Sie die Selbsteinschätzung bis ${due} ab.
 
 Freundliche Grüsse
-${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
+${signature()}`;
   }
   function sharePanel(l) {
     $$('[data-share]').forEach((p) => { if (p.dataset.share !== l.id) p.hidden = true; });
@@ -295,7 +301,7 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
     const due = l.campaign.due_date ? UI.dueLong(l.campaign.due_date) : '';
     const greet = leaders.length === 1 && leaders[0].name && !/^[a-z0-9._-]+$/.test(leaders[0].name) ? `Guten Tag ${leaders[0].name}` : 'Guten Tag';
     const intro = `Für die Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» ist die Erhebung «${l.campaign.title}» eröffnet. ${l.school_name} nimmt mit einem eigenen Link teil.`;
-    const privacy = 'Die Teilnahme dauert etwa 20 Minuten und erfolgt ohne Namen. Schulleitung und Rektorat sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.';
+    const privacy = 'Die Teilnahme dauert etwa 20 Minuten und erfolgt ohne Namen. Schulleitung sowie Rektorat/Hauptschulleitung sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.';
     const body = leaders.length
       ? `${intro}
 
@@ -316,7 +322,7 @@ ${privacy}`;
 ${body}
 
 Freundliche Grüsse
-Rektorat ${ctx.traeger.name}`;
+${signature()}`;
   }
   function showLeaderMail(l) {
     const p = sharePanel(l);
@@ -412,8 +418,8 @@ Rektorat ${ctx.traeger.name}`;
     $('#camp-schools-field').hidden = !isRektorat();
     $('#camp-due').min = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     $('#camp-intro').textContent = isRektorat()
-      ? 'Eine Erhebung ist ein Zeitraum, in dem die Kollegien die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Das Rektorat sieht die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
-      : 'Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt. Erhebungen des Rektorats erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
+      ? 'Eine Erhebung ist ein Zeitraum, in dem die Kollegien die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Rektorat bzw. Hauptschulleitung sehen die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
+      : 'Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
   }
   $('#create-box').addEventListener('toggle', () => { if (!$('#create-box').open) { formBuilt = false; fillCreateForm(); } });
 
@@ -567,7 +573,7 @@ Rektorat ${ctx.traeger.name}`;
       </section>` : ''}`;
 
     const out = $('#team-inv-out');
-    const from = () => (R ? 'Rektorat ' + ctx.traeger.name : orgName());
+    const from = () => signature();
     if (R) {
       $('#form-team-school').addEventListener('submit', async (e) => {
         e.preventDefault(); $('#team-school-msg').textContent = '';
@@ -629,7 +635,7 @@ Rektorat ${ctx.traeger.name}`;
     try {
       ctx = await api('GET', 'leitung/context');
       // Rolle immer ausschreiben: Rektorat (ganzer Träger) oder Schulleitung (ein Schulhaus)
-      $('#school-name').textContent = isRektorat() ? `Rektorat · ${ctx.traeger.name}` : `Schulleitung · ${orgName()}${ctx.traeger.name !== orgName() ? ' · ' + ctx.traeger.name : ''}`;
+      $('#school-name').textContent = isRektorat() ? `Rektorat/Hauptschulleitung · ${ctx.traeger.name}` : `Schulleitung · ${orgName()}${ctx.traeger.name !== orgName() ? ' · ' + ctx.traeger.name : ''}`;
       $('#tab-team-link').textContent = isRektorat() ? 'Schulen und Zugänge' : 'Zugänge';
       await loadCampaigns();
     } catch (err) { $('#camp-list').innerHTML = `<p class="error">${esc(err.message)}</p>`; }

@@ -8,7 +8,7 @@
 
   function error(title, text) {
     box.innerHTML = `<h2>${esc(title)}</h2><p>${esc(text)}</p>
-      <p class="small muted">Einen neuen Link erhalten Sie beim Rektorat bzw. bei der Hauptschulleitung Ihres Schulträgers. Rektorate wenden sich an das Amt für Volksschulen und Sport, <a href="mailto:avs@sz.ch">avs@sz.ch</a>.</p>
+      <p class="small muted">Einen neuen Link erhalten Sie beim Rektorat bzw. bei der Hauptschulleitung Ihres Schulträgers. Rektorate und Hauptschulleitungen wenden sich an das Amt für Volksschulen und Sport, <a href="mailto:avs@sz.ch">avs@sz.ch</a>.</p>
       <div><a class="btn secondary" href="/leitung">Zur Anmeldung</a></div>`;
   }
 
