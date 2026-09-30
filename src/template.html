@@ -274,6 +274,23 @@ address.contact { font-style: normal; line-height: 1.6; }
   body { font-size: 11pt; }
   .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+/* Fragebogen: Einleitung pro Teilbereich und Stufenkennzeichnung neben den Aussagen */
+.q-intro { margin: 2px 0 10px; color: var(--ink-2); font-size: 0.95rem; }
+.q-intro p { margin: 0 0 2px; }
+.q-intro-label { font-weight: 700; color: var(--ink); }
+.opt.opt-level { grid-template-columns: 22px 1fr 108px; align-items: center; }
+.opt.opt-level input { align-self: start; }
+.opt-text strong { font-weight: 700; }
+.lvtag { display: flex; flex-direction: column; justify-content: center; align-self: stretch; min-height: 42px; padding: 4px 8px; margin: -6px -8px -6px 0; border-radius: 2px; font-size: 0.75rem; line-height: 1.2; }
+.lvtag b { font-size: 0.9rem; }
+@media print { .lvtag { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+@media (max-width: 560px) {
+  .opt.opt-level { grid-template-columns: 22px 1fr; row-gap: 6px; align-items: start; }
+  .opt.opt-level input { grid-row: 1 / span 2; }
+  .lvtag { grid-column: 2; grid-row: 1; flex-direction: row; gap: 6px; align-items: baseline; justify-self: start; min-height: 0; margin: 0; padding: 2px 8px; }
+  .lvtag b { font-size: 0.8rem; }
+  .opt-text { grid-column: 2; grid-row: 2; }
+}
 </style>
 </head>
 <body>
@@ -551,6 +568,16 @@ window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
   const LV = ITEMS.levels;
+  const richText = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  function introHTML(s) {
+    if (!s.intro) return '';
+    const parts = s.intro.split(/\s*(?=Beispiele:)/).filter(Boolean);
+    return `<div class="q-intro">${parts.map((p) => {
+      const m = p.match(/^(Worum es geht:|Beispiele:)\s*(.*)$/);
+      return `<p>${m ? `<span class="q-intro-label">${esc(m[1])}</span> ${esc(m[2])}` : esc(p)}</p>`;
+    }).join('')}</div>`;
+  }
+  const levelTag = (l) => `<span class="lvtag lv${l.level}"><b><span class="sr-only">Stufe </span>${l.roman}</b><span class="lvtag-name">${esc(l.label)}</span></span>`;
   const roman = (v) => (v >= 1 ? LV[v - 1].roman : '–');
   const SUBS = DKCore.allSubareas(ITEMS);
   const subById = Object.fromEntries(SUBS.map((s) => [s.id, s]));
@@ -740,9 +767,10 @@ window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
       $('#questions').innerHTML = a.subareas.map((s) => {
         const cur = state.answers[s.id];
         const opts = s.levels.map((l) => `
-          <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${cur === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('');
+          <label class="opt opt-level"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${cur === l.level ? 'checked' : ''}><span class="opt-text">${richText(l.rich || l.text)}</span>${levelTag(l)}</label>`).join('');
         return `<fieldset class="q" id="fs-${s.id}">
           <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
+          ${introHTML(s)}
           <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
           <div class="opts">${opts}
             <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${cur === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
@@ -887,8 +915,8 @@ window.UI = window.UI || { ITEMS, LV: ITEMS.levels,
           if (v === undefined) body = `<p class="muted">Noch nicht beantwortet.</p>`;
           else if (v === 0) body = `<p>Bisher keine Gelegenheit. Zu klären: Sind die Voraussetzungen an der Schule gegeben, etwa Geräte, Plattformen oder ein entsprechender Auftrag?</p>`;
           else {
-            body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${esc(s.levels[v - 1].text)}</p></div>`;
-            if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${esc(s.levels[v].text)}</p></div>`;
+            body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${richText(s.levels[v - 1].rich || s.levels[v - 1].text)}</p></div>`;
+            if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${richText(s.levels[v].rich || s.levels[v].text)}</p></div>`;
           }
           return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : v === 0 ? ' <span class="small muted">Keine Gelegenheit</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;
         }).join('')}</div>`;

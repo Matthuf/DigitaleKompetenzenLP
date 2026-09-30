@@ -1,6 +1,6 @@
 # Digitale Kompetenzen von Lehrpersonen – Kanton Schwyz
 
-Prototyp der Selbsteinschätzung digitaler Kompetenzen für Lehrpersonen (Umsetzung Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz»). Grundlage: DigCompEdu, Itemtexte vorläufig aus «DigCompEdu Bavaria» (ALP Dillingen); Anpassung an den Kanton Schwyz in Arbeit.
+Prototyp der Selbsteinschätzung digitaler Kompetenzen für Lehrpersonen (Umsetzung Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz»). Grundlage: DigCompEdu, Itemtexte aus «DigCompEdu Bavaria» (ALP Dillingen), im Fragebogen als Schwyzer Kurzfassung (Entwurf) mit Einleitung pro Teilbereich.
 
 Zwei Versionen aus derselben Quelle:
 
@@ -48,7 +48,7 @@ Aufbau: **Schulträger** (Primarstufe, Sekundarstufe oder beides, z. B. Einsiede
 
 ```
 data/items_master.xlsx     Masterdatei der Items (einzige Quelle)
-data/excel_to_json.py      Excel → data/items.json
+data/excel_to_json.py      Excel → data/items.json (Kapitelreiter: Spalte D Original, Spalte E Kurzfassung mit Fettdruck bzw. Einleitung in der Kopfzeile)
 src/core.js                Auswertungslogik (Offline und Server gemeinsam)
 src/template.html          Offline-Version
 build.py                   erzeugt dist/, public/assets/core.js, public/assets/items.js, lib/core.cjs, lib/items.json

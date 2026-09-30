@@ -421,9 +421,10 @@
         const v = cur.answers[s.id];
         return `<fieldset class="q" id="fs-${s.id}">
           <legend><span class="qid">${s.id}</span><span>${esc(s.title)}${s.ki ? ' <span class="chip">KI</span>' : ''}</span></legend>
+          ${UI.introHTML(s)}
           <p class="hint">Welche Aussage beschreibt das eigene Handeln am besten?</p>
           <div class="opts">${s.levels.map((l) => `
-            <label class="opt"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${v === l.level ? 'checked' : ''}><span>${esc(l.text)}</span></label>`).join('')}
+            <label class="opt opt-level"><input type="radio" name="q-${s.id}" id="q-${s.id}-${l.level}" value="${l.level}" ${v === l.level ? 'checked' : ''}><span class="opt-text">${UI.richText(l.rich || l.text)}</span>${UI.levelTag(l)}</label>`).join('')}
             <label class="opt none"><input type="radio" name="q-${s.id}" id="q-${s.id}-0" value="0" ${v === 0 ? 'checked' : ''}><span>Dazu hatte ich bisher keine Gelegenheit, zum Beispiel wegen fehlender Geräte oder weil es nicht zu meiner Funktion gehört.</span></label>
           </div></fieldset>`;
       }).join('');
@@ -532,8 +533,8 @@
           if (v === undefined) body = `<p class="muted">Noch nicht beantwortet.</p>`;
           else if (v === 0) body = `<p>Bisher keine Gelegenheit. Zu klären: Sind die Voraussetzungen an der Schule gegeben, etwa Geräte, Plattformen oder ein entsprechender Auftrag?</p>`;
           else {
-            body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${esc(s.levels[v - 1].text)}</p></div>`;
-            if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${esc(s.levels[v].text)}</p></div>`;
+            body = `<div><h4>Gewählte Aussage · Stufe ${LV[v - 1].roman} ${esc(LV[v - 1].label)}</h4><p>${UI.richText(s.levels[v - 1].rich || s.levels[v - 1].text)}</p></div>`;
+            if (v < 6) body += `<div><h4>Nächster Schritt · Stufe ${LV[v].roman} ${esc(LV[v].label)}</h4><p>${UI.richText(s.levels[v].rich || s.levels[v].text)}</p></div>`;
           }
           if (pv !== undefined) body += `<p class="small muted">Bei «${esc(prev.campaign_title)}»: ${pv === 0 ? 'keine Gelegenheit' : 'Stufe ' + LV[pv - 1].roman + ' ' + esc(LV[pv - 1].label)}</p>`;
           return `<details class="sub"><summary><span class="t">${s.id} ${esc(s.title)}</span>${meter(v)}<span style="text-align:right">${badge(v)}${v >= 1 ? ' <span class="small muted">' + esc(LV[v - 1].label) + '</span>' : v === 0 ? ' <span class="small muted">Keine Gelegenheit</span>' : ''}</span></summary><div class="sub-body">${body}</div></details>`;

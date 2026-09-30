@@ -32,6 +32,20 @@
     return data;
   }
 
+  // Kurzfassung mit **Fettdruck** (aus der Excel) sicher als HTML
+  const richText = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Einleitung pro Teilbereich: «Worum es geht: …» und «Beispiele: …» je auf eigener Zeile
+  function introHTML(s) {
+    if (!s.intro) return '';
+    const parts = s.intro.split(/\s*(?=Beispiele:)/).filter(Boolean);
+    return `<div class="q-intro">${parts.map((p) => {
+      const m = p.match(/^(Worum es geht:|Beispiele:)\s*(.*)$/);
+      return `<p>${m ? `<span class="q-intro-label">${esc(m[1])}</span> ${esc(m[2])}` : esc(p)}</p>`;
+    }).join('')}</div>`;
+  }
+  // Stufenkennzeichnung rechts neben einer Aussage (Farben wie im Stufenmodell)
+  const levelTag = (l) => `<span class="lvtag lv${l.level}"><b><span class="sr-only">Stufe </span>${l.roman}</b><span class="lvtag-name">${esc(l.label)}</span></span>`;
+
   function levelsStrip(el) {
     el.innerHTML = LV.map((l) => `<div class="lv${l.level}"><b>${l.roman}</b>${esc(l.label)}</div>`).join('');
   }
@@ -202,5 +216,5 @@
     if (m.status === 'failed') el.insertAdjacentHTML('afterbegin', `<p class="small" style="margin-bottom:10px"><b>Die E-Mail an ${esc(m.to || o.email || '')} konnte nicht verschickt werden.</b> ${esc(m.error || '')} Bitte den Link selbst weitergeben oder später «Erneut senden».</p>`);
   }
 
-  window.UI = { inviteChip, userChip, bindChips, inviteResult, ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
+  window.UI = { inviteChip, userChip, bindChips, inviteResult, ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, richText, introHTML, levelTag, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
 })();

@@ -538,3 +538,20 @@ details.past .stack { gap: 16px; }
 .field-error:empty { display: none; }
 .check.is-invalid { color: var(--red-dark); font-weight: 700; }
 .check.is-invalid input { outline: 2px solid var(--red-dark); outline-offset: 1px; }
+/* Fragebogen: Einleitung pro Teilbereich und Stufenkennzeichnung neben den Aussagen */
+.q-intro { margin: 2px 0 10px; color: var(--ink-2); font-size: 0.95rem; }
+.q-intro p { margin: 0 0 2px; }
+.q-intro-label { font-weight: 700; color: var(--ink); }
+.opt.opt-level { grid-template-columns: 22px 1fr 108px; align-items: center; }
+.opt.opt-level input { align-self: start; }
+.opt-text strong { font-weight: 700; }
+.lvtag { display: flex; flex-direction: column; justify-content: center; align-self: stretch; min-height: 42px; padding: 4px 8px; margin: -6px -8px -6px 0; border-radius: 2px; font-size: 0.75rem; line-height: 1.2; }
+.lvtag b { font-size: 0.9rem; }
+@media print { .lvtag { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+@media (max-width: 560px) {
+  .opt.opt-level { grid-template-columns: 22px 1fr; row-gap: 6px; align-items: start; }
+  .opt.opt-level input { grid-row: 1 / span 2; }
+  .lvtag { grid-column: 2; grid-row: 1; flex-direction: row; gap: 6px; align-items: baseline; justify-self: start; min-height: 0; margin: 0; padding: 2px 8px; }
+  .lvtag b { font-size: 0.8rem; }
+  .opt-text { grid-column: 2; grid-row: 2; }
+}
