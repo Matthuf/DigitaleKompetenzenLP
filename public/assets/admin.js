@@ -77,7 +77,7 @@
       : `<tbody><tr><td class="muted">Noch kein Zugang für diesen Schulträger.</td></tr></tbody>`;
     $('#inv-open').innerHTML = invs.length ? `<h3>Offene Einladungen</h3><ul class="list-plain team-list">${invs.map((i) => `<li><span>${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.email || '')} · ${i.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + esc(i.school_name || '')} · ${i.expired ? '<b>abgelaufen</b>' : 'gültig bis ' + date(i.expires_at)}</span></span>
       <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">Neuer Link</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>` : '';
-    const roleText = (i) => (i.role === 'traeger' || !i.school_name ? 'Schulträger ' + t.name : 'Schulleitung ' + i.school_name);
+    const roleText = (i) => (i.role === 'traeger' || !i.school_name ? 'Rektorat/Hauptschulleitung ' + t.name : 'Schulleitung ' + i.school_name);
     $$('[data-reset]').forEach((b) => b.addEventListener('click', async () => {
       const u = users.find((x) => x.id === b.dataset.reset);
       const r = await api('POST', `admin/users/${u.id}/reset`);
@@ -121,7 +121,7 @@
       $('#user-new').value = ''; $('#user-new-name').value = '';
       await renderPanel();
       const school = schoolId ? t.schools.find((s) => s.id === schoolId) : null;
-      UI.invitePanel($('#pw-once'), { ...r, email: body.email, name: body.name, roleText: school ? 'Schulleitung ' + school.name : 'Schulträger ' + t.name, from: 'Amt für Volksschulen und Sport' });
+      UI.invitePanel($('#pw-once'), { ...r, email: body.email, name: body.name, roleText: school ? 'Schulleitung ' + school.name : 'Rektorat/Hauptschulleitung ' + t.name, from: 'Amt für Volksschulen und Sport' });
     } catch (err) { $('#user-msg').textContent = err.message; }
   });
 
@@ -177,7 +177,7 @@
         <thead><tr><th scope="col">Schulträger</th><th scope="col">Rektorat/ Hauptschulleitung</th><th scope="col">Ergebnis</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
         <tbody>${res.rows.map((r, k) => `<tr><td><b>${esc(r.traeger)}</b></td><td class="small">${esc(r.name || '')}<br>${esc(r.email || '')}</td><td class="small">${esc(r.status)}</td>
           <td>${r.token ? `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-icopy="${k}">Link kopieren</button><a class="btn secondary small" data-imail="${k}" href="#">E-Mail öffnen</a></div>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
-    const mailOf = (r) => UI.inviteMail({ token: r.token, expires_at: r.expires_at, name: r.name, roleText: 'Schulträger ' + r.traeger, from: 'Amt für Volksschulen und Sport' });
+    const mailOf = (r) => UI.inviteMail({ token: r.token, expires_at: r.expires_at, name: r.name, roleText: 'Rektorat/Hauptschulleitung ' + r.traeger, from: 'Amt für Volksschulen und Sport' });
     $$('[data-icopy]').forEach((b) => b.addEventListener('click', () => copyText(UI.inviteLink(res.rows[b.dataset.icopy].token), b)));
     $$('[data-imail]').forEach((a) => { const r = res.rows[a.dataset.imail]; const m = mailOf(r); a.href = `mailto:${encodeURIComponent(r.email)}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}`; });
     $('#imp-csv').addEventListener('click', () => {

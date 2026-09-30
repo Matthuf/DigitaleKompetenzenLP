@@ -573,8 +573,8 @@ async function renewInvite(id) {
   return { id: r.id, token, expires_at: r.expires_at };
 }
 async function inviteByToken(token) {
-  const i = await one(`select i.*, t.name as traeger_name, t.kind as traeger_kind, s.name as school_name, u.username
-                         from invitations i left join users u on u.id = i.user_id
+  const i = await one(`select i.*, t.name as traeger_name, t.kind as traeger_kind, s.name as school_name, u.username, cb.role as creator_role
+                         from invitations i left join users u on u.id = i.user_id left join users cb on cb.id = i.created_by
                          left join schools s on s.id = coalesce(i.school_id, u.school_id)
                          left join traeger t on t.id = coalesce(i.traeger_id, u.traeger_id, s.traeger_id)
                         where i.token_hash = $1`, [hashInviteToken(token)]);
@@ -591,7 +591,9 @@ async function suggestUsername(email, name) {
   while (await one(`select 1 from users where username = $1`, [u])) u = base + n++;
   return u;
 }
-const roleText = (i) => (i.role === 'traeger' ? `Schulträger ${i.traeger_name}` : `Schulleitung ${i.school_name || ''}`);
+// Vom AVS eingeladen: Rektorat/Hauptschulleitung. Vom Rektorat eingeladen (z. B. Verwaltung): gleiche Rechte, neutral benannt.
+const roleText = (i) => (i.role !== 'traeger' ? `Schulleitung ${i.school_name || ''}`
+  : i.creator_role === 'traeger' ? `Person mit Zugang für alle Schulhäuser von ${i.traeger_name}` : `Rektorat/Hauptschulleitung ${i.traeger_name}`);
 
 const TOO_MANY_LINKS = 'Zu viele Versuche mit Einladungslinks. Bitte in 15 Minuten nochmals versuchen.';
 on('GET', 'invite/:token', async ({ req, params }) => {

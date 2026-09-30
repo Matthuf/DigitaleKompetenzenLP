@@ -23,8 +23,8 @@
       ${reset
         ? `<p>Für den Zugang <b>${esc(inv.username)}</b>${inv.school ? ' · ' + esc(inv.school) : inv.traeger ? ' · ' + esc(inv.traeger) : ''}.</p>`
         : `<p>Sie wurden eingeladen als <b>${esc(inv.roleText)}</b>. ${inv.role === 'traeger'
-          ? 'Damit eröffnen Sie Erhebungen für die Schulen Ihres Trägers, sehen deren Auswertung und verwalten Schulhäuser und Zugänge.'
-          : 'Damit eröffnen Sie Erhebungen für Ihre Schule und sehen deren Auswertung.'}</p>`}
+          ? 'Damit eröffnen Sie Erhebungen für alle Schulhäuser Ihres Schulträgers, sehen deren Auswertung und verwalten Schulhäuser und Zugänge.'
+          : 'Damit verteilen Sie den Link Ihres Schulhauses, sehen dessen Rücklauf und Auswertung und können eigene Erhebungen eröffnen.'}</p>`}
       <form class="stack" id="inv-form">
         ${reset ? '' : `<div class="field"><label for="inv-user">Benutzername</label><input type="text" id="inv-user" autocomplete="username" autocapitalize="none" spellcheck="false" value="${esc(inv.suggestedUsername || '')}">
           <p class="small muted">3 bis 40 Zeichen, Kleinbuchstaben, Ziffern, Punkt oder Bindestrich.</p></div>

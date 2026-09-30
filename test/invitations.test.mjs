@@ -19,7 +19,7 @@ export default async function (B) {
   await expectErr(pub('GET', 'invite/' + imp.rows[0].token), 404, 'Alter Link nach Erneuerung ungültig');
   const tok = imp2.rows[0].token;
   const info = await pub('GET', 'invite/' + tok);
-  ok(info.roleText === 'Schulträger Bezirk Höfe' && info.suggestedUsername === 'rektorat', 'Einladung: Rolle und Vorschlag Benutzername');
+  ok(info.roleText === 'Rektorat/Hauptschulleitung Bezirk Höfe' && info.suggestedUsername === 'rektorat', 'Einladung: Rolle und Vorschlag Benutzername');
   await expectErr(pub('POST', 'invite/' + tok, { username: 'rita', password: 'kurz' }), 400, 'Zu kurzes Passwort abgelehnt');
   const rek = client(B);
   const acc = await rek('POST', 'invite/' + tok, { username: 'rita.rektorin', password: 'sicheres-pw-2026', display_name: 'Rita Rektorin' });
@@ -35,6 +35,7 @@ export default async function (B) {
   const iSL = await rek('POST', 'leitung/invitations', { role: 'leitung', schoolId: pf.id, name: 'Paul Pfäffikon', email: 'sl@pf.ch' });
   const iST = await rek('POST', 'leitung/invitations', { role: 'traeger', name: 'Verwaltung Höfe', email: 'verwaltung@hoefe.ch' });
   const sl = client(B); await sl('POST', 'invite/' + iSL.token, { username: 'paul.pf', password: 'sicheres-pw-2026' });
+  ok((await pub('GET', 'invite/' + iST.token)).roleText === 'Person mit Zugang für alle Schulhäuser von Bezirk Höfe', 'Vom Rektorat eingeladen: neutral benannt');
   const vw = client(B); await vw('POST', 'invite/' + iST.token, { username: 'verwaltung.hoefe', password: 'sicheres-pw-2026' });
   ok((await vw('GET', 'leitung/context')).role === 'traeger', 'Verwaltung hat Trägerzugang');
   ok((await sl('GET', 'leitung/context')).schools.length === 1, 'SL sieht nur eigene Schule');

@@ -495,3 +495,17 @@ details.past .stack { gap: 16px; }
 .first-steps .st { display: block; font-size: 0.9rem; color: var(--ink-2); margin-top: 2px; max-width: 80ch; }
 /* Grid-Kinder dürfen schmaler werden als ihr Inhalt (lange Links sonst breiter als der Bildschirm) */
 .camp-card > *, .links > *, .link-row > *, .camp-link { min-width: 0; }
+
+/* Schulhäuser mit Schulleitung pro Zeile */
+.school-list > li { display: grid; gap: 6px; justify-content: stretch; }
+.school-main { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; align-items: center; }
+.school-lead { color: var(--ink-2); display: grid; gap: 4px; }
+.school-lead > div { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.school-lead .warn { color: #6b4e00; font-weight: 700; }
+.school-inv { padding: 8px 0 4px; align-items: flex-end; }
+.school-inv input { width: auto; }
+
+/* «hidden» gilt immer, auch bei Elementen mit display-Klassen (z. B. .inline-edit) */
+[hidden] { display: none !important; }
+/* Unsichtbare Beschriftungen in scrollbaren Tabellen dürfen die Seite nicht verbreitern */
+.table-scroll { position: relative; }
