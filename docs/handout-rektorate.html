@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<title>Kurzanleitung für Rektorate und Hauptschulleitungen</title>
+<style>
+  :root {
+    --red: #E2001A; --red-dark: #AF1400; --ink: #000; --ink-2: #464646; --ink-3: #767676;
+    --line: #D2D2D2; --box: #F2F2F2;
+    --l1: #FAD7C8; --l2: #F5AF96; --l3: #EB694B; --l4: #E2001A; --l5: #AF1400; --l6: #780A00;
+  }
+  @page { size: A4; margin: 14mm 15mm 12mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0; color: var(--ink); background: #fff;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.6pt; line-height: 1.42;
+  }
+  h1 { font-size: 17pt; line-height: 1.15; margin: 0 0 3px; }
+  h2 {
+    font-size: 11.5pt; margin: 15px 0 6px; padding-bottom: 3px;
+    border-bottom: 2px solid var(--red);
+  }
+  h2:first-of-type { margin-top: 12px; }
+  h3 { font-size: 9.8pt; margin: 9px 0 2px; }
+  p { margin: 0 0 6px; }
+  ul, ol { margin: 0 0 6px; padding-left: 17px; }
+  li { margin-bottom: 2.5px; }
+  b, strong { font-weight: 700; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 8.6pt; }
+
+  /* Kopf */
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 3px solid var(--ink); padding-bottom: 9px; }
+  header img { width: 135px; height: auto; flex: none; }
+  .eyebrow { font-size: 8pt; letter-spacing: 0.09em; text-transform: uppercase; color: var(--red); font-weight: 700; margin-bottom: 4px; }
+  .lead { font-size: 10.2pt; color: var(--ink-2); margin-top: 4px; }
+
+  /* Bausteine */
+  .box { background: var(--box); border-left: 3px solid var(--red); padding: 8px 11px; margin: 8px 0; }
+  .box.plain { border-left-color: var(--ink-3); }
+  .cols { display: flex; gap: 14px; }
+  .cols > * { flex: 1; min-width: 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 4px 0 6px; }
+  th, td { text-align: left; vertical-align: top; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line); }
+  th { font-size: 8.4pt; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); border-bottom: 1px solid var(--ink-3); }
+  td:first-child, th:first-child { width: 31%; }
+
+  /* Schritte */
+  ol.steps { list-style: none; padding: 0; margin: 4px 0 0; counter-reset: s; }
+  ol.steps > li { counter-increment: s; position: relative; padding-left: 26px; margin-bottom: 8px; break-inside: avoid; }
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: 0;
+    width: 18px; height: 18px; border-radius: 50%; background: var(--red); color: #fff;
+    font-size: 8.6pt; font-weight: 700; text-align: center; line-height: 18px;
+  }
+  ol.steps ul { margin-top: 2px; }
+
+  /* Stufenband */
+  .levels { display: flex; gap: 2px; margin: 5px 0 7px; }
+  .levels div { flex: 1; padding: 5px 4px; font-size: 7.6pt; line-height: 1.2; }
+  .levels b { display: block; font-size: 8.8pt; }
+  .l1 { background: var(--l1); } .l2 { background: var(--l2); } .l3 { background: var(--l3); }
+  .l4 { background: var(--l4); color: #fff; } .l5 { background: var(--l5); color: #fff; } .l6 { background: var(--l6); color: #fff; }
+
+  .tag { display: inline-block; background: var(--ink); color: #fff; font-size: 7.6pt; font-weight: 700; padding: 1px 5px; margin-right: 4px; vertical-align: 1px; }
+  code { font-family: Menlo, Consolas, monospace; font-size: 8.6pt; background: var(--box); padding: 0 3px; }
+
+  footer { margin-top: 14px; padding-top: 7px; border-top: 1px solid var(--line); font-size: 8.2pt; color: var(--ink-2); display: flex; justify-content: space-between; gap: 16px; }
+  .page-break { break-before: page; }
+  .avoid { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="eyebrow">Amt für Volksschulen und Sport</div>
+    <h1>Digitale Kompetenzen von Lehrpersonen</h1>
+    <div class="lead">Kurzanleitung für Rektorate und Hauptschulleitungen</div>
+  </div>
+  <img src="LOGO" alt="Kanton Schwyz">
+</header>
+
+<h2>Worum es geht</h2>
+<p>Lehrpersonen schätzen ihre digitalen Kompetenzen selbst ein: 22 Fragen aus sechs Kompetenzbereichen, pro Frage sechs Aussagen von «Einsteigen» bis «Weitergeben». Das Ausfüllen dauert rund 20 Minuten und lässt sich jederzeit unterbrechen.</p>
+
+<div class="levels">
+  <div class="l1"><b>I</b>Einsteigen</div>
+  <div class="l2"><b>II</b>Entdecken</div>
+  <div class="l3"><b>III</b>Anwenden</div>
+  <div class="l4"><b>IV</b>Integrieren</div>
+  <div class="l5"><b>V</b>Entwickeln</div>
+  <div class="l6"><b>VI</b>Weitergeben</div>
+</div>
+
+<p>Jede Lehrperson erhält sofort ihr persönliches Profil mit Entwicklungsfeldern und passenden Weiterbildungsthemen. Die Schule erhält ein zusammengefasstes Bild als Grundlage für die Weiterbildungsplanung. <b>Das Instrument dient der Entwicklung, nicht der Beurteilung einzelner Lehrpersonen.</b> Es setzt Kapitel 4.4 der Strategie «Digitaler Wandel im Bildungsraum im Kanton Schwyz» um.</p>
+
+<h2>Wer sieht was</h2>
+<table>
+  <thead><tr><th>Rolle</th><th>Sichtbar</th></tr></thead>
+  <tbody>
+    <tr><td><b>Lehrperson</b></td><td>Nur das eigene Profil, abrufbar mit dem persönlichen Code.</td></tr>
+    <tr><td><b>Schulleitung</b></td><td>Zusammengefasste Werte des eigenen Schulhauses.</td></tr>
+    <tr><td><b>Rektorat / Hauptschulleitung</b></td><td>Zusammengefasste Werte aller eigenen Schulhäuser, einzeln und gemeinsam.</td></tr>
+    <tr><td><b>Amt für Volksschulen und Sport</b></td><td>Nur Werte des ganzen Kantons, ohne Angaben zu Schulträgern und Schulen.</td></tr>
+  </tbody>
+</table>
+<p class="small muted">Niemand sieht einzelne Profile. Die Teilnahme erfolgt ohne Namen und ohne E-Mail-Adresse.</p>
+
+<h2>In vier Schritten zur Erhebung</h2>
+<ol class="steps">
+  <li>
+    <h3>Zugang einrichten</h3>
+    <p>Das Amt für Volksschulen und Sport verschickt eine Einladung per E-Mail. Über den Link legen Sie Benutzername und Passwort selbst fest (mindestens 10 Zeichen). Der Link gilt 30 Tage und nur einmal. Danach melden Sie sich jederzeit unter <code>/leitung</code> an, auf der Website über «Für Schulen».</p>
+  </li>
+  <li>
+    <h3>Schulhäuser erfassen</h3>
+    <p>Unter «Schulen und Zugänge». Zwei Möglichkeiten, je nach dem, wie Sie auswerten möchten:</p>
+    <ul>
+      <li><b>Pro Schulhaus ein Eintrag:</b> Jedes Schulhaus erhält einen eigenen Link. Sie sehen die Auswertung pro Schulhaus und für alle zusammen, jede Schulleitung ihr eigenes Schulhaus.</li>
+      <li><b>Ein Eintrag für die ganze Schule:</b> ein gemeinsamer Link und eine gemeinsame Auswertung, ohne Aufteilung nach Schulhaus.</li>
+    </ul>
+    <p>Pro Schulhaus stellen Sie ein, welche Zyklen vorkommen. Nur diese werden den Lehrpersonen zur Auswahl angeboten; kommt nur ein Zyklus vor, entfällt die Frage.</p>
+  </li>
+  <li>
+    <h3>Schulleitungen einladen <span class="muted small">(empfohlen)</span></h3>
+    <p>In der Liste der Schulhäuser laden Sie die Schulleitung direkt beim jeweiligen Schulhaus ein. Sie gibt den Link an ihr Kollegium weiter und sieht die Auswertung ihres Schulhauses. Die Liste zeigt pro Schulhaus, ob ein Zugang besteht, eine Einladung offen ist oder noch nichts geschehen ist. Weitere Personen für alle Schulhäuser, etwa eine Stellvertretung oder die Schulverwaltung, laden Sie im Formular darunter ein.</p>
+  </li>
+  <li>
+    <h3>Erhebung eröffnen und Links verteilen</h3>
+    <p>Unter «Erhebungen» auf «Neue Erhebung eröffnen». Die Vorgabe des Amts für Volksschulen und Sport ist bereits ausgewählt. Eine Erhebung umfasst alle Schulhäuser zusammen, jedes mit eigenem Link. Ein freiwilliges Zieldatum («Ausfüllen bis …») erscheint in der E-Mail-Vorlage und auf der Startseite der Lehrpersonen.</p>
+  </li>
+</ol>
+
+<div class="page-break"></div>
+
+<h2>Die Erhebung im Alltag</h2>
+<p>Jede Erhebung erscheint als Karte mit einer Zeile pro Schulhaus. Dort finden Sie:</p>
+<table>
+  <tbody>
+    <tr><td><b>Link, QR-Code, E-Mail-Vorlagen</b></td><td>Den Teilnahmelink kopieren, als QR-Code anzeigen (für Sitzungen und Aushänge) oder eine fertige E-Mail öffnen: <b>ans Kollegium</b> mit dem Link, oder <b>an die Schulleitung</b> mit dem Hinweis auf ihren Zugang. Die Vorlagen lassen sich vor dem Versand frei anpassen.</td></tr>
+    <tr><td><b>Rücklauf</b></td><td>Tragen Sie die erwartete Anzahl Lehrpersonen ein, dann zeigt ein Balken den Rücklauf in Prozent. Werden mehr Teilnahmen gestartet als erwartet, erscheint ein Hinweis: möglicherweise wurde der Link über das Kollegium hinaus weitergegeben.</td></tr>
+    <tr><td><b>Eigene Fragen</b></td><td>Bis zu 15 zusätzliche Fragen pro Erhebung als Zustimmungsskala, eigene Stufenaussagen, Auswahl oder Freitext. Sie erscheinen am Schluss des Fragebogens und werden getrennt vom Kompetenzprofil ausgewertet. Änderungen sind möglich, solange niemand abgeschlossen hat.</td></tr>
+    <tr><td><b>Schulhaus aufnehmen</b></td><td>Später erfasste Schulhäuser lassen sich in eine laufende Erhebung aufnehmen.</td></tr>
+    <tr><td><b>Schliessen</b></td><td>Am Ende schliessen Sie die Erhebung von Hand; sie schliesst nicht automatisch am Zieldatum. Danach sind keine neuen Teilnahmen mehr möglich, die Auswertung bleibt erhalten.</td></tr>
+  </tbody>
+</table>
+
+<h2>Auswertung</h2>
+<p>Im Bereich «Auswertung» wählen Sie oben die Erhebung, wahlweise eine zweite Erhebung zum Vergleich sowie eine einzelne Schule oder einen Zyklus als Filter. Die Auswertung erscheint, sobald die ersten Teilnahmen abgeschlossen sind.</p>
+<div class="cols">
+  <div>
+    <h3>Darstellungen</h3>
+    <ul>
+      <li><b>Profil</b> als Netz, Balken, Verteilung oder Boxplot, für Bereiche oder Teilbereiche</li>
+      <li><b>Wer braucht was?</b> Anteile Einstieg, Vertiefung und Weitergeben, mit Hinweis auf gespaltene oder einige Kollegien</li>
+      <li><b>Voraussetzungen:</b> wo «keine Gelegenheit» gehäuft vorkommt, etwa wegen fehlender Geräte</li>
+      <li><b>Veränderung</b> gegenüber einer früheren Erhebung</li>
+      <li><b>Vergleiche</b> zwischen Zyklen und zwischen Schulhäusern</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Weitergeben</h3>
+    <ul>
+      <li><b>Bericht</b> auf einer Seite als PDF, für Schulkonferenz oder Schulpflege</li>
+      <li>Jedes <b>Diagramm einzeln als Bild</b> für Präsentationen</li>
+      <li><b>CSV</b> für eigene Auswertungen</li>
+    </ul>
+    <div class="box plain small" style="margin-top:8px">
+      <b>Zum Schulvergleich:</b> Er dient der Planung der Weiterbildung, nicht als Rangliste. Unterschiede hängen stark von Stufe, Fächern und Ausstattung ab.
+    </div>
+  </div>
+</div>
+
+<h2>Datenschutz auf einen Blick</h2>
+<ul>
+  <li>Die Teilnahme erfolgt <b>ohne Namen und ohne E-Mail-Adresse</b>. Jede Lehrperson erhält einen persönlichen Code, den nur sie kennt.</li>
+  <li>Freiwillig sind Angaben zu Zyklus, Funktion und Berufserfahrung. Sie dienen der Auswertung nach Gruppen.</li>
+  <li>Sie sehen <b>ausschliesslich zusammengefasste Werte</b>, nie ein einzelnes Profil und nie, wer teilgenommen hat.</li>
+  <li>Freitexte aus eigenen Fragen erscheinen erst ab zehn Antworten und in zufälliger Reihenfolge.</li>
+  <li>Lehrpersonen können ihre Daten jederzeit mit ihrem Code vollständig löschen.</li>
+</ul>
+<p class="small muted">Bitte geben Sie den Teilnahmelink nur an das eigene Kollegium weiter. Er ist nicht persönlich, wer ihn hat, kann teilnehmen.</p>
+
+<div class="page-break"></div>
+
+<h2>Häufige Fragen</h2>
+
+<h3>Wer eröffnet die Erhebung, wir oder die Schulleitungen?</h3>
+<p>Beides ist möglich. Sie können eine Erhebung für alle oder ausgewählte Schulhäuser eröffnen und die Links selbst verteilen oder den Schulleitungen überlassen. Schulleitungen mit Zugang können auch selbst eine Erhebung für ihr Schulhaus eröffnen; Sie sehen diese ebenfalls.</p>
+
+<h3>Was ist die «Vorgabe AVS»?</h3>
+<p>Das Amt für Volksschulen und Sport gibt allen Schulträgern eine Erhebung vor: «Erhebung ICT Kompetenzen Lehrpersonen Schwyz». Sie ist beim Eröffnen bereits ausgewählt, und jedes Schulhaus nimmt einmal daran teil, damit niemand doppelt gezählt wird. Zusätzliche eigene Erhebungen, zum Beispiel ein Jahr später zum Vergleich, legen Sie frei fest.</p>
+
+<h3>Eine Lehrperson hat ihren Code verloren.</h3>
+<p>Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Ist ein Browser noch angemeldet, lässt er sich dort unter «Meinen Code anzeigen» abrufen. Sonst beginnt die Lehrperson über den Link neu; das frühere Profil ist dann nicht mehr erreichbar, und die Teilnahme zählt doppelt. Bitte weisen Sie in der Einladung darauf hin, den Code gleich zu sichern.</p>
+
+<h3>Wir haben unser Passwort vergessen.</h3>
+<p>Wenden Sie sich an das Amt für Volksschulen und Sport. Für Ihre Schulleitungen erstellen Sie den Link für ein neues Passwort selbst, unter «Schulen und Zugänge». Der Link gilt 24 Stunden und beendet alle bestehenden Anmeldungen dieser Person.</p>
+
+<h3>Muss jemand ohne Internetzugang aussen vor bleiben?</h3>
+<p>Nein. Es gibt eine Offline-Version als einzelne Datei für den Browser. Sie dient nur der persönlichen Selbsteinschätzung; die Antworten bleiben auf dem eigenen Gerät und fliessen nicht in die Schulauswertung ein.</p>
+
+<h3>Wie lange dauert das Ausfüllen, und muss es in einem Zug gehen?</h3>
+<p>Rund 20 Minuten. Die Selbsteinschätzung lässt sich jederzeit unterbrechen und mit dem persönlichen Code fortsetzen, auch auf einem anderen Gerät.</p>
+
+<div class="box avoid">
+  <b>Empfohlenes Vorgehen für den Start</b>
+  <ol style="margin-top:4px;margin-bottom:0">
+    <li>Zugang einrichten und die Schulhäuser erfassen.</li>
+    <li>Schulleitungen einladen und im Leitungsteam kurz über Zweck und Ablauf informieren.</li>
+    <li>Erhebung mit Zieldatum eröffnen, Links über die Schulleitungen ans Kollegium.</li>
+    <li>Nach etwa zwei Wochen den Rücklauf prüfen und bei Bedarf erinnern.</li>
+    <li>Erhebung schliessen, Auswertung in der Schulkonferenz besprechen und die Weiterbildung daraus ableiten.</li>
+  </ol>
+</div>
+
+<h2>Hilfe und Kontakt</h2>
+<div class="cols">
+  <div>
+    <p><b>Hilfe in der Anwendung</b><br>
+    Der Menüpunkt «Hilfe» beantwortet die häufigsten Fragen, für Lehrpersonen wie für Schulleitungen, und ist immer auf dem aktuellen Stand.</p>
+  </div>
+  <div>
+    <p><b>Amt für Volksschulen und Sport</b><br>
+    Kollegiumstrasse 28, Postfach 2191, 6431 Schwyz<br>
+    Telefon +41 41 819 19 11 · avs@sz.ch</p>
+  </div>
+</div>
+
+<footer>
+  <span>Kanton Schwyz · Amt für Volksschulen und Sport · Digitale Kompetenzen von Lehrpersonen</span>
+  <span style="white-space:nowrap">STAND</span>
+</footer>
+
+</body>
+</html>

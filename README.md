@@ -48,6 +48,8 @@ Aufbau: **Schulträger** (Primarstufe, Sekundarstufe oder beides, z. B. Einsiede
 
 ```
 data/items_master.xlsx     Masterdatei der Items (einzige Quelle)
+docs/handout-rektorate.html  Kurzanleitung für Rektorate (Quelle)
+docs/build_handout.py      erzeugt daraus docs/Handout_Rektorate_DigKomp_SZ.pdf
 data/excel_to_json.py      Excel → data/items.json (Kapitelreiter: Spalte D Original, Spalte E Kurzfassung mit Fettdruck bzw. Einleitung in der Kopfzeile)
 src/core.js                Auswertungslogik (Offline und Server gemeinsam)
 src/template.html          Offline-Version
