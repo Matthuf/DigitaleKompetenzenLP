@@ -182,13 +182,21 @@
       $('#code-out').textContent = r.code;
       codeActions($('#code-actions'), r.code);
       $('#code-ack').checked = false;
-      $('#btn-code-continue').disabled = true;
+      ackError(false);
       show('v-code');
       setHash('code');
     } catch (err) { $('#start-msg').textContent = err.message; }
   });
-  $('#code-ack').addEventListener('change', (e) => { $('#btn-code-continue').disabled = !e.target.checked; });
-  $('#btn-code-continue').addEventListener('click', () => startSurvey());
+  function ackError(on) {
+    $('#code-ack-label').classList.toggle('is-invalid', on);
+    $('#code-ack').setAttribute('aria-invalid', on ? 'true' : 'false');
+    $('#code-ack-msg').textContent = on ? 'Bitte zuerst bestätigen, dass der Code notiert oder gespeichert ist.' : '';
+  }
+  $('#code-ack').addEventListener('change', (e) => { if (e.target.checked) ackError(false); });
+  $('#btn-code-continue').addEventListener('click', () => {
+    if (!$('#code-ack').checked) { ackError(true); $('#code-ack').focus(); return; }
+    startSurvey();
+  });
 
   async function codeLogin(input, msgEl, withToken, remember) {
     msgEl.textContent = '';

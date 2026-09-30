@@ -92,8 +92,11 @@
       <p>Mit diesem Code lässt sich die Selbsteinschätzung fortsetzen und das Profil später wieder öffnen. Die Schulleitung kennt ihn nicht. Ohne Code lässt sich das Profil nicht wiederherstellen. Darum jetzt sicher aufbewahren.</p>
       <div><span class="code-display" id="code-out"></span></div>
       <div class="row" id="code-actions"></div>
-      <label class="check"><input type="checkbox" id="code-ack"><span>Ich habe den Code notiert oder sicher gespeichert.</span></label>
-      <div><button class="btn" type="button" id="btn-code-continue" disabled>Weiter zu den Fragen</button></div>
+      <div class="stack" style="gap:6px">
+        <label class="check" id="code-ack-label"><input type="checkbox" id="code-ack" aria-describedby="code-ack-msg"><span>Ich habe den Code notiert oder sicher gespeichert.</span></label>
+        <p class="field-error" id="code-ack-msg" role="alert"></p>
+      </div>
+      <div><button class="btn" type="button" id="btn-code-continue">Weiter zu den Fragen</button></div>
     </div>
   </section>
 
