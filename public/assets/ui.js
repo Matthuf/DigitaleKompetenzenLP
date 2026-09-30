@@ -161,5 +161,46 @@
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  window.UI = { ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
+  /* Status einer Einladung bzw. eines Zugangs als Farb-Chip mit Text (Farbe nie allein).
+   * Details erscheinen beim Überfahren (title) und beim Anklicken bzw. per Tastatur (aufklappbarer Text). */
+  function statusChip(cls, label, tip) {
+    return `<button type="button" class="chip-status ${cls}" title="${esc(tip)}" aria-expanded="false" data-chip>${esc(label)}</button><span class="chip-detail small" hidden>${esc(tip)}</span>`;
+  }
+  function inviteChip(i) {
+    if (i.expired) return statusChip('chip-grey', 'Einladung abgelaufen', `Der Link ist am ${date(i.expires_at)} abgelaufen. Mit «Erneut senden» bzw. «Neuer Link» einen neuen Link erstellen.`);
+    if (i.mail_status === 'sent') return statusChip('chip-orange', 'Einladung verschickt', `Per E-Mail verschickt am ${dateTime(i.mail_sent_at)} an ${i.email}. Noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}.`);
+    if (i.mail_status === 'failed') return statusChip('chip-red', 'Versand fehlgeschlagen', `${i.mail_error || 'Die E-Mail konnte nicht verschickt werden.'} Erneut senden oder einen neuen Link erstellen und selbst weitergeben.`);
+    return statusChip('chip-grey', 'Link erstellt', `Nicht per E-Mail verschickt${i.email ? '' : ' (keine E-Mail-Adresse angegeben)'}. Der Link muss selbst weitergegeben werden. Gültig bis ${date(i.expires_at)}.`);
+  }
+  function userChip(u) {
+    return statusChip('chip-green', 'Zugang aktiv', `Zugang eingerichtet am ${date(u.created_at)}. Letzte Anmeldung: ${u.last_login ? dateTime(u.last_login) : 'noch keine'}.`);
+  }
+  function bindChips(root) {
+    (root || document).querySelectorAll('[data-chip]').forEach((b) => b.addEventListener('click', () => {
+      const d = b.nextElementSibling; const open = d.hidden;
+      d.hidden = !open; b.setAttribute('aria-expanded', String(open));
+    }));
+  }
+  // Rückmeldung nach dem Erstellen oder Erneuern einer Einladung: verschickt, sonst Link zum Weitergeben
+  function inviteResult(el, r, o) {
+    const m = r.mail || {};
+    el.classList.toggle('box--warning', m.status === 'failed');
+    el.classList.toggle('box--success', m.status !== 'failed');
+    if (m.status === 'sent') {
+      el.hidden = false;
+      el.innerHTML = `<div class="stack" style="gap:8px"><p><b>Einladung an ${esc(m.to)} verschickt.</b></p>
+        <p class="small">Der Status zeigt «Einladung verschickt» (orange). Sobald der Zugang eingerichtet ist, wechselt er auf «Zugang aktiv» (grün).</p>
+        <details class="small"><summary style="cursor:pointer">Link zusätzlich anzeigen</summary><p style="margin-top:6px"><code style="word-break:break-all">${esc(inviteLink(r.token))}</code></p>
+          <button class="btn secondary small" type="button" data-inv-copy>Link kopieren</button></details>
+        <div><button class="btn quiet small" type="button" data-inv-close>Ausblenden</button></div></div>`;
+      el.querySelector('[data-inv-copy]').addEventListener('click', (e) => copyText(inviteLink(r.token), e.currentTarget));
+      el.querySelector('[data-inv-close]').addEventListener('click', () => { el.hidden = true; });
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+    invitePanel(el, { ...o, ...r });
+    if (m.status === 'failed') el.insertAdjacentHTML('afterbegin', `<p class="small" style="margin-bottom:10px"><b>Die E-Mail an ${esc(m.to || o.email || '')} konnte nicht verschickt werden.</b> ${esc(m.error || '')} Bitte den Link selbst weitergeben oder später «Erneut senden».</p>`);
+  }
+
+  window.UI = { inviteChip, userChip, bindChips, inviteResult, ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
 })();

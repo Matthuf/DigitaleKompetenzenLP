@@ -524,12 +524,15 @@ ${signature()}`;
   const ROLE_LABEL = (u) => (u.role === 'traeger' ? 'Alle Schulhäuser (Ebene Schulträger)' : 'Schulleitung ' + (u.school_name || ''));
   const personName = (x) => x.display_name || x.name || x.email || x.username || 'ohne Namen';
 
+  // «Erneut senden» verschickt einen neuen Link per E-Mail; ohne Versand (oder ohne Adresse) gibt es einen neuen Link zum Weitergeben
+  const canMail = (i) => ctx.mail && i.email;
+  const inviteActions = (i) => `<button class="btn quiet small" type="button" data-irenew="${i.id}">${canMail(i) ? 'Erneut senden' : 'Neuer Link'}</button><span class="confirm" data-idel="${i.id}"></span>`;
   function schoolLead(s, t) {
     const leads = t.users.filter((u) => u.role === 'leitung' && u.school_id === s.id);
     const inv = t.invites.filter((i) => i.role === 'leitung' && i.school_id === s.id);
     const lines = [];
-    if (leads.length) lines.push(`<span>Schulleitung: <b>${leads.map((u) => esc(personName(u))).join(', ')}</b></span>`);
-    inv.forEach((i) => lines.push(`<span>Einladung an ${esc(i.name || i.email || 'ohne Namen')} ${i.expired ? '<b>abgelaufen</b>' : 'offen bis ' + date(i.expires_at)}</span><button class="btn quiet small" type="button" data-irenew="${i.id}">Neuer Link</button><span class="confirm" data-idel="${i.id}"></span>`));
+    leads.forEach((u) => lines.push(`<span>Schulleitung: <b>${esc(personName(u))}</b></span>${UI.userChip(u)}`));
+    inv.forEach((i) => lines.push(`<span>Einladung an ${esc(i.name || i.email || 'ohne Namen')}</span>${UI.inviteChip(i)}${inviteActions(i)}`));
     if (!leads.length && !inv.length) lines.push('<span class="warn">Noch keine Schulleitung</span>');
     const any = leads.length || inv.length;
     return `<div class="school-lead small">${lines.map((l) => `<div>${l}</div>`).join('')}
@@ -537,7 +540,7 @@ ${signature()}`;
       <form class="school-inv inline-edit" data-slform="${s.id}" hidden>
         <div class="field"><label for="sl-name-${s.id}" class="small">Name</label><input type="text" id="sl-name-${s.id}" style="width:220px"></div>
         <div class="field"><label for="sl-mail-${s.id}" class="small">E-Mail</label><input type="text" id="sl-mail-${s.id}" inputmode="email" autocomplete="off" style="width:260px"></div>
-        <button class="btn small" type="submit">Einladung erstellen</button><button class="btn quiet small" type="button" data-slcancel="${s.id}">Abbrechen</button><span class="error small" role="alert"></span>
+        <button class="btn small" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><button class="btn quiet small" type="button" data-slcancel="${s.id}">Abbrechen</button><span class="error small" role="alert"></span>
       </form>
       <div class="box box--success" data-sinv="${s.id}" hidden></div>`;
   }
@@ -556,7 +559,7 @@ ${signature()}`;
 
       ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
         <h3 id="h-schools">Schulhäuser</h3>
-        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link ans Kollegium selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
+        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen${ctx.mail ? ' (die Einladung geht direkt per E-Mail)' : ''}. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link ans Kollegium selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
         <ul class="list-plain team-list school-list">${t.schools.map((s) => `<li data-school="${s.id}">
           <div class="school-main"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}${s.links ? ' · an Erhebungen beteiligt' : ''}</span></span>
             <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen ändern</button><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></div>
@@ -588,16 +591,18 @@ ${signature()}`;
             <div class="field"><label for="inv-name" class="small">Name</label><input type="text" id="inv-name" style="width:240px"></div>
             <div class="field"><label for="inv-email" class="small">E-Mail</label><input type="text" id="inv-email" inputmode="email" autocomplete="off" style="width:280px"></div>
           </div>
-          <div class="row"><button class="btn" type="submit">Einladung erstellen</button><span class="error small" id="inv-msg" role="alert"></span></div>
+          <div class="row"><button class="btn" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><span class="error small" id="inv-msg" role="alert"></span></div>
+          ${ctx.mail ? '<p class="small muted">Die Einladung geht direkt per E-Mail an die angegebene Adresse. Ohne Adresse erscheint ein Link zum Weitergeben.</p>' : ''}
         </form>
       </section>
 
       ${traegerInvites.length ? `<section class="stack" style="gap:12px" aria-labelledby="h-open">
         <h3 id="h-open">Offene Einladungen${R ? ' für alle Schulhäuser' : ''}</h3>
-        <ul class="list-plain team-list">${traegerInvites.map((i) => `<li><span class="team-name">${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.role === 'traeger' ? 'Alle Schulhäuser' : 'Schulleitung ' + (i.school_name || ''))} · ${i.expired ? '<b>abgelaufen</b>' : 'gültig bis ' + date(i.expires_at)}</span></span>
-          <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">Neuer Link</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>
+        <ul class="list-plain team-list">${traegerInvites.map((i) => `<li><span class="row" style="gap:6px 10px"><span class="team-name">${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.role === 'traeger' ? 'Alle Schulhäuser' : 'Schulleitung ' + (i.school_name || ''))}</span></span>${UI.inviteChip(i)}</span>
+          <span class="row" style="gap:6px">${inviteActions(i)}</span></li>`).join('')}</ul>
       </section>` : ''}`;
 
+    UI.bindChips(box);
     const out = $('#team-inv-out');
     const from = () => signature();
     const roleText = (i) => (i.role === 'traeger' ? 'Person mit Zugang für alle Schulhäuser von ' + ctx.traeger.name : 'Schulleitung ' + (i.school_name || ''));
@@ -648,7 +653,7 @@ ${signature()}`;
         try {
           const r = await api('POST', 'leitung/invitations', body);
           await loadTeam();
-          UI.invitePanel($(`[data-sinv="${sid}"]`), { ...r, email: body.email.trim(), name: body.name.trim(), roleText: 'Schulleitung ' + school.name, from: from() });
+          UI.inviteResult($(`[data-sinv="${sid}"]`), r, { email: body.email.trim(), name: body.name.trim(), roleText: 'Schulleitung ' + school.name, from: from() });
         } catch (err) { msg.textContent = err.message; }
       }));
     }
@@ -662,7 +667,7 @@ ${signature()}`;
       const i = t.invites.find((x) => x.id === b.dataset.irenew);
       const r = await api('POST', `leitung/invitations/${i.id}/renew`);
       await loadTeam();
-      UI.invitePanel(panelFor(i), { ...r, email: i.email, name: i.name, roleText: roleText(i), from: from() });
+      UI.inviteResult(panelFor(i), r, { email: i.email, name: i.name, roleText: roleText(i), from: from() });
     }));
     $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', 'leitung/invitations/' + el.dataset.idel); loadTeam(); }, 'btn quiet small'));
     $('#form-invite').addEventListener('submit', async (e) => {
@@ -673,7 +678,7 @@ ${signature()}`;
       try {
         const r = await api('POST', 'leitung/invitations', body);
         await loadTeam();
-        UI.invitePanel($('#team-inv-out'), { ...r, email: body.email.trim(), name: body.name.trim(), roleText: roleText({ role: body.role, school_name: R ? '' : orgName() }), from: from() });
+        UI.inviteResult($('#team-inv-out'), r, { email: body.email.trim(), name: body.name.trim(), roleText: roleText({ role: body.role, school_name: R ? '' : orgName() }), from: from() });
       } catch (err) { $('#inv-msg').textContent = err.message; }
     });
   }

@@ -72,11 +72,12 @@
     const [users, invs] = await Promise.all([api('GET', `admin/traeger/${t.id}/users`), api('GET', `admin/traeger/${t.id}/invitations`)]);
     $('#user-table').innerHTML = users.length ? `<thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b><br><span class="small muted">${esc(u.username)}</span></td>
-        <td>${u.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + esc(u.school_name || '')}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
+        <td>${u.role === 'traeger' ? 'Rektorat/Hauptschulleitung' : 'Schulleitung ' + esc(u.school_name || '')}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
         <td><div class="row" style="gap:4px"><button class="btn quiet" type="button" data-reset="${u.id}">Link für neues Passwort</button><span class="confirm" data-del="${u.id}"></span></div></td></tr>`).join('')}</tbody>`
       : `<tbody><tr><td class="muted">Noch kein Zugang für diesen Schulträger.</td></tr></tbody>`;
-    $('#inv-open').innerHTML = invs.length ? `<h3>Offene Einladungen</h3><ul class="list-plain team-list">${invs.map((i) => `<li><span>${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.email || '')} · ${i.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + esc(i.school_name || '')} · ${i.expired ? '<b>abgelaufen</b>' : 'gültig bis ' + date(i.expires_at)}</span></span>
-      <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">Neuer Link</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>` : '';
+    $('#inv-open').innerHTML = invs.length ? `<h3>Offene Einladungen</h3><ul class="list-plain team-list">${invs.map((i) => `<li><span class="row" style="gap:6px 10px"><span>${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.email || '')} · ${i.role === 'traeger' ? 'Rektorat/Hauptschulleitung' : 'Schulleitung ' + esc(i.school_name || '')}</span></span>${UI.inviteChip(i)}</span>
+      <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">${i.can_mail ? 'Erneut senden' : 'Neuer Link'}</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>` : '';
+    UI.bindChips($('#inv-open'));
     const roleText = (i) => (i.role === 'traeger' || !i.school_name ? 'Rektorat/Hauptschulleitung ' + t.name : 'Schulleitung ' + i.school_name);
     $$('[data-reset]').forEach((b) => b.addEventListener('click', async () => {
       const u = users.find((x) => x.id === b.dataset.reset);
@@ -88,7 +89,7 @@
       const i = invs.find((x) => x.id === b.dataset.irenew);
       const r = await api('POST', `admin/invitations/${i.id}/renew`);
       await renderPanel();
-      UI.invitePanel($('#pw-once'), { ...r, email: i.email, name: i.name, roleText: roleText(i), from: 'Amt für Volksschulen und Sport' });
+      UI.inviteResult($('#pw-once'), r, { email: i.email, name: i.name, roleText: roleText(i), from: 'Amt für Volksschulen und Sport' });
     }));
     $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', `admin/invitations/${el.dataset.idel}`); renderPanel(); }, 'btn quiet small'));
     confirmButton($('#tr-delete'), 'Schulträger löschen', `«${t.name}» mit allen Schulen, Erhebungen und Antworten endgültig löschen?`, 'Ja, endgültig löschen', async () => {
@@ -121,7 +122,7 @@
       $('#user-new').value = ''; $('#user-new-name').value = '';
       await renderPanel();
       const school = schoolId ? t.schools.find((s) => s.id === schoolId) : null;
-      UI.invitePanel($('#pw-once'), { ...r, email: body.email, name: body.name, roleText: school ? 'Schulleitung ' + school.name : 'Rektorat/Hauptschulleitung ' + t.name, from: 'Amt für Volksschulen und Sport' });
+      UI.inviteResult($('#pw-once'), r, { email: body.email, name: body.name, roleText: school ? 'Schulleitung ' + school.name : 'Rektorat/Hauptschulleitung ' + t.name, from: 'Amt für Volksschulen und Sport' });
     } catch (err) { $('#user-msg').textContent = err.message; }
   });
 
@@ -248,7 +249,7 @@
   const ACTION = {
     anmeldung: 'Anmeldung', anmeldung_fehlgeschlagen: 'Anmeldung fehlgeschlagen', passwort_geaendert: 'Passwort geändert',
     passwort_link_erstellt: 'Passwort-Link erstellt', passwort_link_eingeloest: 'Passwort-Link eingelöst',
-    einladung_erstellt: 'Einladung erstellt', einladung_angenommen: 'Einladung angenommen', zugang_geloescht: 'Zugang gelöscht',
+    einladung_erstellt: 'Einladung erstellt', einladung_angenommen: 'Einladung angenommen', einladung_verschickt: 'Einladung per E-Mail verschickt', einladung_versand_fehlgeschlagen: 'E-Mail-Versand fehlgeschlagen', zugang_geloescht: 'Zugang gelöscht',
     schule_erfasst: 'Schule erfasst', schule_geloescht: 'Schule gelöscht', schultraeger_geloescht: 'Schulträger gelöscht', import: 'Liste importiert',
     erhebung_eroeffnet: 'Erhebung eröffnet', schule_aufgenommen: 'Schulhaus in Erhebung aufgenommen', erhebung_abgeschlossen: 'Erhebung abgeschlossen', erhebung_geoeffnet: 'Erhebung wieder geöffnet',
     auswertung_angesehen: 'Auswertung angesehen', kantonsauswertung_angesehen: 'Kantonale Auswertung angesehen',

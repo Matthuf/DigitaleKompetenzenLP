@@ -7,6 +7,7 @@ import {
   dummyVerify, checkSecrets, MAX_PASSWORD,
 } from '../lib/auth.js';
 import { validateBlock, cleanCustomAnswers, aggregateCustom } from '../lib/customblock.js';
+import { sendMail, mailConfigured, appUrl } from '../lib/mail.js';
 
 const require = createRequire(import.meta.url);
 const DKCore = require('../lib/core.cjs');
@@ -373,7 +374,7 @@ on('GET', 'leitung/context', async ({ req }) => {
     schools.forEach((x) => { x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email })); });
   }
   const rounds = await q(`select id, title, active from rounds order by created_at desc`);
-  return { role: u.role, traeger, schools, rounds, min: MIN };
+  return { role: u.role, traeger, schools, rounds, min: MIN, mail: mailConfigured() };
 });
 
 on('GET', 'leitung/campaigns', async ({ req }) => {
@@ -567,7 +568,8 @@ async function createInvite({ kind, role = null, tid = null, sid = null, userId 
 }
 async function renewInvite(id) {
   const token = newInviteToken();
-  const r = await one(`update invitations set token_hash = $1, expires_at = now() + ($2 || ' hours')::interval, created_at = now()
+  const r = await one(`update invitations set token_hash = $1, expires_at = now() + ($2 || ' hours')::interval, created_at = now(),
+                               mail_status = null, mail_sent_at = null, mail_error = null
                         where id = $3 and kind = 'invite' and used_at is null returning id, expires_at, kind`, [hashInviteToken(token), String(INVITE_HOURS), id]);
   if (!r) fail(404, 'Einladung nicht gefunden oder bereits angenommen.');
   return { id: r.id, token, expires_at: r.expires_at };
@@ -595,6 +597,50 @@ async function suggestUsername(email, name) {
 const roleText = (i) => (i.role !== 'traeger' ? `Schulleitung ${i.school_name || ''}`
   : i.creator_role === 'traeger' ? `Person mit Zugang für alle Schulhäuser von ${i.traeger_name}` : `Rektorat/Hauptschulleitung ${i.traeger_name}`);
 
+// Einladung per E-Mail verschicken (falls Adresse vorhanden und Versand eingerichtet). Wirft nur beim Missbrauchsschutz.
+async function mailInvite(id, token, actor, req) {
+  const i = await one(`select i.*, t.name as traeger_name, s.name as school_name, cb.role as creator_role, cb.display_name as creator_name,
+                              cb.username as creator_username, cb.email as creator_email, cs.name as creator_school
+                         from invitations i left join schools s on s.id = i.school_id
+                         left join traeger t on t.id = coalesce(i.traeger_id, s.traeger_id)
+                         left join users cb on cb.id = i.created_by left join schools cs on cs.id = cb.school_id
+                        where i.id = $1`, [id]);
+  if (!i || !i.email || !mailConfigured()) return { status: null };
+  await limit('mail:' + actor.uid, 60, 3600, 'Zu viele E-Mails in kurzer Zeit. Bitte später nochmals versuchen.');
+  const base = appUrl(req);
+  let r;
+  if (!base) r = { ok: false, error: 'Adresse der Anwendung (APP_URL) fehlt.' };
+  else {
+    const byAvs = !i.creator_role || i.creator_role === 'admin';
+    const person = i.creator_name && i.creator_name !== i.creator_username ? i.creator_name : '';
+    const sender = byAvs ? 'Amt für Volksschulen und Sport, Kanton Schwyz'
+      : (person ? person + '\n' : '') + (i.creator_role === 'traeger' ? `Rektorat/Hauptschulleitung ${i.traeger_name}` : `Schulleitung ${i.creator_school || ''}`);
+    const what = i.role === 'traeger'
+      ? 'Mit dem Zugang eröffnen Sie Erhebungen für alle Schulhäuser, sehen deren Rücklauf und Auswertung und verwalten Schulhäuser und Zugänge.'
+      : 'Mit dem Zugang verteilen Sie den Link zur Selbsteinschätzung an Ihr Kollegium, sehen Rücklauf und Auswertung Ihres Schulhauses und können eigene Erhebungen eröffnen.';
+    const until = new Date(i.expires_at).toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich' });
+    const text = `Guten Tag${i.name ? ' ' + i.name : ''}
+
+Sie erhalten einen Zugang zur Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» des Kantons Schwyz, als ${roleText(i)}. ${what}
+
+Über den folgenden Link legen Sie Benutzername und Passwort selbst fest:
+${base}/einladung/${token}
+
+Der Link gilt bis ${until} und nur einmal. Danach melden Sie sich unter ${base}/leitung an.
+${i.creator_email ? '\nBei Fragen antworten Sie einfach auf diese E-Mail.\n' : byAvs ? '\nBei Fragen: avs@sz.ch\n' : ''}
+Freundliche Grüsse
+${sender}
+
+--
+Automatisch verschickt über die Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen», Amt für Volksschulen und Sport, Kanton Schwyz.`;
+    r = await sendMail({ to: i.email, subject: `Einladung: Selbsteinschätzung digitale Kompetenzen (${roleText(i)})`, text, replyTo: i.creator_email });
+  }
+  await q(`update invitations set mail_status = $1, mail_sent_at = case when $1 = 'sent' then now() else mail_sent_at end, mail_error = $2 where id = $3`,
+    [r.ok ? 'sent' : 'failed', r.ok ? null : r.error, id]);
+  await audit(actor, r.ok ? 'einladung_verschickt' : 'einladung_versand_fehlgeschlagen', i.email);
+  return { status: r.ok ? 'sent' : 'failed', error: r.ok ? null : r.error, to: i.email };
+}
+
 const TOO_MANY_LINKS = 'Zu viele Versuche mit Einladungslinks. Bitte in 15 Minuten nochmals versuchen.';
 on('GET', 'invite/:token', async ({ req, params }) => {
   await limit('invite:' + clientIp(req), 30, 900, TOO_MANY_LINKS);
@@ -620,12 +666,12 @@ on('POST', 'invite/:token', async ({ req, params, body, res }) => {
   try {
     if (i.kind === 'reset') {
       // Passwort neu: alle bestehenden Sitzungen dieses Kontos enden
-      u = await one(`update users set password_hash = $1, must_change_password = false, session_version = session_version + 1 where id = $2
+      u = await one(`update users set password_hash = $1, must_change_password = false, session_version = session_version + 1, last_login = now() where id = $2
                      returning id, role, school_id, session_version`, [hash, i.user_id]);
       if (!u) fail(404, 'Konto nicht gefunden.');
       await q(`update invitations set used_at = now() where user_id = $1 and used_at is null`, [i.user_id]);
     } else {
-      u = await one(`insert into users (id, school_id, traeger_id, role, username, display_name, email, password_hash, must_change_password) values ($1,$2,$3,$4,$5,$6,$7,$8,false)
+      u = await one(`insert into users (id, school_id, traeger_id, role, username, display_name, email, password_hash, must_change_password, last_login) values ($1,$2,$3,$4,$5,$6,$7,$8,false,now())
                      returning id, role, school_id, session_version`,
         [newId(), i.role === 'leitung' ? i.school_id : null, i.role === 'traeger' ? i.traeger_id : null, i.role, username, String(body.display_name || i.name || '').trim().slice(0, 80) || null, i.email, hash]);
     }
@@ -662,11 +708,12 @@ on('GET', 'leitung/team', async ({ req }) => {
   const tk = (await one(`select kind from traeger where id = $1`, [u.tid])).kind;
   const schools = (await q(`select s.id, s.name, s.zyklen, (select count(*)::int from campaign_links l where l.school_id = s.id) as links
                              from schools s where s.traeger_id = $1 ${u.role === 'leitung' ? 'and s.id = $2' : ''} order by s.name`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid])).map((x) => ({ ...x, zyklen: schoolZyklen(x.zyklen, tk), zyklenSet: Array.isArray(x.zyklen) }));
-  const users = await q(`select u.id, u.username, u.display_name, u.email, u.role, u.last_login, u.school_id, s.name as school_name
+  const users = await q(`select u.id, u.username, u.display_name, u.email, u.role, u.last_login, u.created_at, u.school_id, s.name as school_name
                            from users u left join schools s on s.id = u.school_id
                           where (u.traeger_id = $1 or s.traeger_id = $1) ${u.role === 'leitung' ? 'and u.school_id = $2' : ''}
                           order by u.role desc, s.name nulls first, u.username`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
-  const invites = await q(`select i.id, i.role, i.name, i.email, i.school_id, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired
+  const invites = await q(`select i.id, i.role, i.name, i.email, i.school_id, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired,
+                                  i.mail_status, i.mail_sent_at, i.mail_error
                              from invitations i left join schools s on s.id = i.school_id
                             where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 ${u.role === 'leitung' ? 'and i.school_id = $2' : ''}
                             order by i.created_at desc`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
@@ -721,12 +768,14 @@ on('POST', 'leitung/invitations', async ({ req, body }) => {
   }
   const inv = await createInvite({ kind: 'invite', role, tid: role === 'traeger' ? u.tid : null, sid, name: body.name, email: body.email, by: u.uid });
   await audit(u, 'einladung_erstellt', cleanEmail(body.email) || String(body.name || '').slice(0, 80), { role, school: sid });
-  return inv;
+  return { ...inv, mail: body.send === false ? { status: null } : await mailInvite(inv.id, inv.token, u, req) };
 });
-on('POST', 'leitung/invitations/:id/renew', async ({ req, params }) => {
+// Neuer Link: der alte wird ungültig, die Einladung wird (falls möglich) erneut verschickt
+on('POST', 'leitung/invitations/:id/renew', async ({ req, params, body }) => {
   const u = await lead(req);
   await teamInvite(u, params.id);
-  return renewInvite(params.id);
+  const inv = await renewInvite(params.id);
+  return { ...inv, mail: body.send === false ? { status: null } : await mailInvite(inv.id, inv.token, u, req) };
 });
 on('DELETE', 'leitung/invitations/:id', async ({ req, params }) => {
   const u = await lead(req);
@@ -789,9 +838,11 @@ on('POST', 'admin/import', async ({ req, body }) => {
 });
 on('GET', 'admin/traeger/:id/invitations', async ({ req, params }) => {
   await staff(req, 'admin');
-  return q(`select i.id, i.role, i.name, i.email, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired
+  return q(`select i.id, i.role, i.name, i.email, s.name as school_name, i.created_at, i.expires_at, i.expires_at < now() as expired,
+                   i.mail_status, i.mail_sent_at, i.mail_error
               from invitations i left join schools s on s.id = i.school_id
-             where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 order by i.created_at desc`, [params.id]);
+             where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 order by i.created_at desc`, [params.id])
+    .then((rows) => rows.map((r) => ({ ...r, can_mail: mailConfigured() && !!r.email })));
 });
 on('POST', 'admin/traeger/:id/invitations', async ({ req, params, body }) => {
   const s = await staff(req, 'admin');
@@ -803,9 +854,13 @@ on('POST', 'admin/traeger/:id/invitations', async ({ req, params, body }) => {
   }
   const inv = await createInvite({ kind: 'invite', role: sid ? 'leitung' : 'traeger', tid: sid ? null : params.id, sid, name: body.name, email: body.email, by: s.uid });
   await audit(s, 'einladung_erstellt', cleanEmail(body.email) || String(body.name || '').slice(0, 80), { traeger: params.id, school: sid });
-  return inv;
+  return { ...inv, mail: body.send === false ? { status: null } : await mailInvite(inv.id, inv.token, s, req) };
 });
-on('POST', 'admin/invitations/:id/renew', async ({ req, params }) => { await staff(req, 'admin'); return renewInvite(params.id); });
+on('POST', 'admin/invitations/:id/renew', async ({ req, params, body }) => {
+  const s = await staff(req, 'admin');
+  const inv = await renewInvite(params.id);
+  return { ...inv, mail: body.send === false ? { status: null } : await mailInvite(inv.id, inv.token, s, req) };
+});
 on('DELETE', 'admin/invitations/:id', async ({ req, params }) => { await staff(req, 'admin'); await q(`delete from invitations where id = $1`, [params.id]); return { ok: true }; });
 
 /* ---------- AVS: Träger, Schulen, Zugänge, Runden ---------- */

@@ -3,6 +3,10 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './lib.mjs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+const OUTBOX = join(tmpdir(), `dk-outbox-${process.pid}.jsonl`);
 
 const SUITES = [
   ['roles.test.mjs', { TESTMODUS: '1' }],
@@ -10,6 +14,8 @@ const SUITES = [
   ['zyklen.test.mjs', { TESTMODUS: '1' }],
   ['erhebungen.test.mjs', { TESTMODUS: '1' }],
   ['security.test.mjs', { TESTMODUS: '0' }], // Echtbetrieb: Mindestgruppe 5
+  ['mail.test.mjs', { TESTMODUS: '1', MAIL_OUTBOX: OUTBOX }],
+  ['mail.test.mjs#failing', { TESTMODUS: '1', SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', MAIL_FROM: 'Test <t@localhost>' }],
 ];
 const only = process.argv[2];
 let pass = 0, fail = 0;
@@ -28,13 +34,14 @@ let pass = 0, fail = 0;
   good ? pass++ : fail++;
 }
 
-for (const [file, env] of SUITES) {
-  if (only && !file.includes(only)) continue;
-  console.log('\n' + file);
+for (const [name, env] of SUITES) {
+  if (only && !name.includes(only)) continue;
+  const [file, fn] = name.split('#');
+  console.log('\n' + name);
   const srv = await startServer(env);
   try {
-    const { default: run } = await import('./' + file);
-    const r = await run(srv.B);
+    const mod = await import('./' + file);
+    const r = await (fn ? mod[fn] : mod.default)(srv.B, env);
     pass += r.pass; fail += r.fail;
   } catch (e) {
     fail++;
@@ -42,5 +49,6 @@ for (const [file, env] of SUITES) {
     console.log(srv.log().split('\n').slice(-15).join('\n'));
   } finally { srv.stop(); }
 }
+try { (await import('node:fs')).unlinkSync(OUTBOX); } catch { /* keine Mails */ }
 console.log(`\n${pass} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);
