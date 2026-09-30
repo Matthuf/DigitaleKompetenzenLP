@@ -523,3 +523,13 @@ details.past .stack { gap: 16px; }
 .first-steps .options-list { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
 .first-steps .options-list > li { display: list-item; counter-increment: none; grid-template-columns: none; }
 .first-steps .options-list > li::before { content: none; display: none; }
+
+/* Startseite der Teilnahme: ein Hauptweg, Code als Nebenweg */
+.start-panel { max-width: 760px; gap: 20px; }
+.ctx-fields { border: 0; padding: 0; margin: 0; }
+.ctx-fields legend { margin-bottom: 8px; }
+.ctx-row { display: flex; flex-wrap: wrap; gap: 12px 16px; }
+.ctx-row .field { flex: 1 1 200px; }
+.btn-start { font-size: 1.1rem; padding: 14px 28px; }
+.code-entry { border-top: 1px solid var(--line); padding-top: 14px; }
+.code-entry > summary { cursor: pointer; font-weight: 700; }

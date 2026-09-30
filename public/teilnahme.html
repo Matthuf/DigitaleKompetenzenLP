@@ -52,34 +52,35 @@
         <p class="lead">Die Selbsteinschätzung zeigt das eigene Kompetenzprofil in sechs Bereichen. Sie dauert etwa 20 Minuten und lässt sich jederzeit unterbrechen.</p>
         <p class="due-note" id="due-note" hidden></p>
       </div>
-      <div class="two-col">
-        <form class="panel stack" id="form-start">
-          <h3>Zum ersten Mal hier</h3>
-          <p class="small muted">Nach dem Start gibt es einen persönlichen Code. Damit lässt sich die Selbsteinschätzung später fortsetzen, das Profil wieder ansehen und bei einer nächsten Erhebung vergleichen. Der Code ist nicht mit dem Namen verknüpft.</p>
-          <div class="field" data-zyklus-field><label for="ctx-zyklus">Zyklus <span class="muted small">(freiwillig)</span></label><select id="ctx-zyklus"></select></div>
-          <div class="field"><label for="ctx-funktion">Funktion <span class="muted small">(freiwillig)</span></label><select id="ctx-funktion"></select></div>
-          <div class="field"><label for="ctx-erfahrung">Berufserfahrung <span class="muted small">(freiwillig)</span></label><select id="ctx-erfahrung"></select></div>
+      <div class="panel stack start-panel">
+        <form class="stack" id="form-start" style="gap:16px">
+          <fieldset class="ctx-fields">
+            <legend><b>Angaben zum Arbeitsumfeld</b> <span class="muted small">(freiwillig)</span></legend>
+            <div class="ctx-row">
+              <div class="field" data-zyklus-field><label for="ctx-zyklus" class="small">Zyklus</label><select id="ctx-zyklus"></select></div>
+              <div class="field"><label for="ctx-funktion" class="small">Funktion</label><select id="ctx-funktion"></select></div>
+              <div class="field"><label for="ctx-erfahrung" class="small">Berufserfahrung</label><select id="ctx-erfahrung"></select></div>
+            </div>
+          </fieldset>
           <label class="check small"><input type="checkbox" id="remember-start"><span>Auf diesem Gerät angemeldet bleiben (90 Tage). Nur auf dem eigenen Gerät wählen.</span></label>
-          <button class="btn" type="submit">Selbsteinschätzung starten</button>
+          <div><button class="btn btn-start" type="submit">Selbsteinschätzung starten</button></div>
           <p class="error small" id="start-msg" role="alert"></p>
+          <p class="small muted">Nach dem Start gibt es einen persönlichen Code. Damit lässt sich die Selbsteinschätzung später fortsetzen, das Profil wieder ansehen und bei einer nächsten Erhebung vergleichen. Der Code ist nicht mit dem Namen verknüpft.</p>
         </form>
-        <div class="stack">
-          <form class="panel stack" id="form-code">
-            <h3>Ich habe bereits einen persönlichen Code</h3>
+        <details class="code-entry" id="code-entry">
+          <summary>Schon einmal teilgenommen? Mit persönlichem Code weiterfahren</summary>
+          <form class="stack" id="form-code" style="gap:12px;margin-top:14px">
             <div class="field"><label for="code-in">Persönlicher Code</label>
-              <input type="text" id="code-in" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+              <input type="text" id="code-in" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" style="max-width:320px"></div>
             <label class="check small"><input type="checkbox" id="remember-code"><span>Auf diesem Gerät angemeldet bleiben (90 Tage)</span></label>
-            <button class="btn secondary" type="submit">Weiter mit Code</button>
+            <div><button class="btn secondary" type="submit">Weiter mit Code</button></div>
             <p class="error small" id="code-msg" role="alert"></p>
             <details class="small"><summary style="cursor:pointer">Code verloren?</summary>
-              <p style="margin-top:8px">Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Solange ein Browser noch angemeldet ist, kann der Code dort unter «Meinen Code anzeigen» abgerufen werden. Sonst über den Link der Schulleitung mit «Zum ersten Mal hier» neu beginnen. Frühere Profile und der Vergleich mit früheren Erhebungen sind dann nicht mehr erreichbar.</p></details>
+              <p style="margin-top:8px">Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Solange ein Browser noch angemeldet ist, kann der Code dort unter «Meinen Code anzeigen» abgerufen werden. Sonst oben mit «Selbsteinschätzung starten» neu beginnen. Frühere Profile und der Vergleich mit früheren Erhebungen sind dann nicht mehr erreichbar.</p></details>
           </form>
-          <div class="box">
-            <h3>Datenschutz</h3>
-            <p class="small">Die Schulleitung sieht keine einzelnen Profile, sondern nur zusammengefasste Werte der ganzen Schule, und dies erst ab fünf abgeschlossenen Teilnahmen. Das eigene Profil lässt sich mit dem Code jederzeit vollständig löschen.</p>
-          </div>
-        </div>
+        </details>
       </div>
+      <p class="small muted" style="max-width:72ch"><b>Datenschutz:</b> Die Schulleitung sieht keine einzelnen Profile, sondern nur zusammengefasste Werte der ganzen Schule, und dies erst ab fünf abgeschlossenen Teilnahmen. Das eigene Profil lässt sich mit dem Code jederzeit vollständig löschen.</p>
     </div>
   </section>
 
@@ -194,7 +195,7 @@
         <button class="btn" type="submit">Anmelden</button>
         <p class="error small" id="code-msg-home" role="alert"></p>
         <details class="small"><summary style="cursor:pointer">Code verloren?</summary>
-              <p style="margin-top:8px">Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Solange ein Browser noch angemeldet ist, kann der Code dort unter «Meinen Code anzeigen» abgerufen werden. Sonst über den Link der Schulleitung mit «Zum ersten Mal hier» neu beginnen. Frühere Profile und der Vergleich mit früheren Erhebungen sind dann nicht mehr erreichbar.</p></details>
+              <p style="margin-top:8px">Der Code lässt sich nicht wiederherstellen, weil nirgends gespeichert ist, wem er gehört. Solange ein Browser noch angemeldet ist, kann der Code dort unter «Meinen Code anzeigen» abgerufen werden. Sonst über den Link der Schulleitung mit «Selbsteinschätzung starten» neu beginnen. Frühere Profile und der Vergleich mit früheren Erhebungen sind dann nicht mehr erreichbar.</p></details>
       </form>
       <div id="home-list" hidden class="stack"></div>
     </div>
