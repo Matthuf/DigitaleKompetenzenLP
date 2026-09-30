@@ -99,6 +99,10 @@
       $('#school-name').textContent = camp.school.name;
       setZyklen(camp.school && camp.school.zyklen);
       $('#campaign-name').textContent = 'Selbsteinschätzung · ' + camp.campaign.title;
+      if (camp.campaign.due_date && !UI.duePast(camp.campaign.due_date)) {
+        $('#due-note').hidden = false;
+        $('#due-note').innerHTML = `Bitte bis <b>${esc(UI.dueLong(camp.campaign.due_date))}</b> ausfüllen.`;
+      }
       await loadMe();
       if (me) {
         try { return await openCampaignResponse(); }
@@ -580,7 +584,7 @@
         const canEdit = x.campaign_status === 'open';
         return `<div class="part-row">
           <div><b>${esc(x.campaign_title)}</b> <span class="status ${done ? 'open' : 'draft'}">${done ? 'abgeschlossen' : 'in Bearbeitung'}</span>
-            <div class="meta">${done ? 'Abgeschlossen am ' + date(x.submitted_at) : p.done + ' von ' + p.total + ' Fragen beantwortet'} · zuletzt bearbeitet am ${date(x.updated_at)}${canEdit ? '' : ' · Erhebung geschlossen'}</div></div>
+            <div class="meta">${done ? 'Abgeschlossen am ' + date(x.submitted_at) : p.done + ' von ' + p.total + ' Fragen beantwortet'} · zuletzt bearbeitet am ${date(x.updated_at)}${canEdit ? (!done && x.due_date && !UI.duePast(x.due_date) ? ' · <b>bitte bis ' + esc(UI.dueShort(x.due_date)) + ' abschliessen</b>' : '') : ' · Erhebung geschlossen'}</div></div>
           <div class="acts">
             ${p.done ? `<button class="btn ${done ? '' : 'secondary'}" type="button" data-view="${x.id}">Profil ansehen</button>` : ''}
             ${canEdit ? `<button class="btn ${done ? 'secondary' : ''}" type="button" data-edit="${x.id}">${done ? 'Antworten bearbeiten' : 'Fortsetzen'}</button>` : ''}

@@ -109,6 +109,14 @@ function cleanContext(c, zyklen) {
   return out;
 }
 const parseKind = (k) => (KINDS.includes(k) ? k : 'primar');
+// Zieldatum als Text JJJJ-MM-TT (kein Datumsobjekt: sonst verschiebt die Zeitzone den Tag)
+function cleanDue(v) {
+  if (v === null || v === '' || v === undefined) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v));
+  const d = m && new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  if (!d || d.getUTCDate() !== +m[3] || +m[1] < 2020 || +m[1] > 2100) fail(400, 'Bitte ein gültiges Datum wählen.');
+  return String(v);
+}
 function cleanAnswers(a) {
   const out = {};
   if (!a || typeof a !== 'object') return out;
@@ -119,7 +127,7 @@ function cleanAnswers(a) {
 }
 async function campaignByToken(token, req = null) {
   const c = await one(
-    `select c.id, c.title, c.status, c.custom_block, c.traeger_id, l.id as link_id, l.school_id,
+    `select c.id, c.title, c.status, c.custom_block, c.traeger_id, to_char(c.due_date, 'YYYY-MM-DD') as due_date, l.id as link_id, l.school_id,
             s.name as school_name, s.zyklen as school_zyklen, t.name as traeger_name, t.kind
        from campaign_links l join campaigns c on c.id = l.campaign_id
        join schools s on s.id = l.school_id join traeger t on t.id = c.traeger_id
@@ -140,6 +148,7 @@ async function participantTraeger(p) {
 async function myResponses(pid) {
   return q(`select r.id, r.campaign_id, r.status, r.context, r.answers, r.custom_answers, r.created_at, r.updated_at, r.submitted_at,
                    c.title as campaign_title, c.status as campaign_status, l.token as campaign_token, c.custom_block,
+                   to_char(c.due_date, 'YYYY-MM-DD') as due_date,
                    t.kind as traeger_kind, s.name as school_name, s.zyklen as school_zyklen
               from responses r join campaigns c on c.id = r.campaign_id
               left join campaign_links l on l.id = r.link_id
@@ -199,7 +208,7 @@ const on = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + p
 // Öffentlich: Erhebung über Link
 on('GET', 'c/:token', async ({ req, params }) => {
   const c = await campaignByToken(params.token, req);
-  return { campaign: { title: c.title, status: c.status }, school: { name: c.school_name, zyklen: zyklusChoices(c.zyklen) }, traeger: { name: c.traeger_name, kind: c.kind } };
+  return { campaign: { title: c.title, status: c.status, due_date: c.due_date }, school: { name: c.school_name, zyklen: zyklusChoices(c.zyklen) }, traeger: { name: c.traeger_name, kind: c.kind } };
 });
 
 // Lehrperson: erstmals teilnehmen → Code erzeugen
@@ -364,6 +373,7 @@ on('GET', 'leitung/context', async ({ req }) => {
 on('GET', 'leitung/campaigns', async ({ req }) => {
   const u = await lead(req);
   const camps = await q(`select c.id, c.title, c.status, c.created_at, c.closed_at, c.custom_block, c.round_id, r.title as round_title,
+                                to_char(c.due_date, 'YYYY-MM-DD') as due_date,
                                 c.owner_school_id, os.name as owner_school_name
                            from campaigns c left join rounds r on r.id = c.round_id left join schools os on os.id = c.owner_school_id
                           where c.traeger_id = $1 ${u.role === 'leitung' ? 'and exists (select 1 from campaign_links l where l.campaign_id = c.id and l.school_id = $2)' : ''}
@@ -411,9 +421,10 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
     const src = await one(`select custom_block from campaigns where id = $1 and traeger_id = $2`, [body.copyBlockFrom, u.tid]);
     block = src ? src.custom_block : null; // gleiche Fragen-IDs: Vergleich zwischen Erhebungen bleibt möglich
   }
+  const due = cleanDue(body.dueDate);
   const id = newId();
-  await q(`insert into campaigns (id, traeger_id, owner_school_id, school_id, round_id, title, token, custom_block) values ($1,$2,$3,$4,$5,$6,$7,$8)`,
-    [id, u.tid, u.role === 'leitung' ? u.sid : null, u.role === 'leitung' ? u.sid : null, round ? round.id : null, title, newToken(), block ? JSON.stringify(block) : null]);
+  await q(`insert into campaigns (id, traeger_id, owner_school_id, school_id, round_id, title, token, custom_block, due_date) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    [id, u.tid, u.role === 'leitung' ? u.sid : null, u.role === 'leitung' ? u.sid : null, round ? round.id : null, title, newToken(), block ? JSON.stringify(block) : null, due]);
   for (const sid of schoolIds) await q(`insert into campaign_links (id, campaign_id, school_id, token) values ($1,$2,$3,$4)`, [newId(), id, sid, newToken()]);
   await audit(u, 'erhebung_eroeffnet', id, { title, schools: schoolIds.length });
   return { id };
@@ -427,6 +438,26 @@ on('PATCH', 'leitung/campaigns/:id', async ({ req, params, body }) => {
     await audit(u, body.status === 'closed' ? 'erhebung_abgeschlossen' : 'erhebung_geoeffnet', c.id);
   }
   if (typeof body.title === 'string' && body.title.trim()) await q(`update campaigns set title = $1 where id = $2`, [body.title.trim().slice(0, 80), c.id]);
+  if ('dueDate' in body) await q(`update campaigns set due_date = $1 where id = $2`, [cleanDue(body.dueDate), c.id]);
+  return { ok: true };
+});
+
+// Rektorat: Schulhaus nachträglich in eine laufende Erhebung aufnehmen (z. B. später erfasstes Schulhaus)
+on('POST', 'leitung/campaigns/:id/links', async ({ req, params, body }) => {
+  const u = await lead(req);
+  if (u.role !== 'traeger') fail(403, 'Schulhäuser nimmt das Rektorat in eine Erhebung auf.');
+  const c = await manageableCampaign(u, params.id);
+  if (c.status !== 'open') fail(409, 'Die Erhebung ist abgeschlossen.');
+  if (c.owner_school_id) fail(409, 'Diese Erhebung hat eine Schulleitung für ihre Schule eröffnet. Weitere Schulhäuser lassen sich nur in Erhebungen des Rektorats aufnehmen.');
+  const s = await one(`select id, name from schools where id = $1 and traeger_id = $2`, [String(body.schoolId || ''), u.tid]);
+  if (!s) fail(404, 'Schule nicht gefunden.');
+  if (await one(`select 1 from campaign_links where campaign_id = $1 and school_id = $2`, [c.id, s.id])) fail(409, `${s.name} ist bereits dabei.`);
+  if (c.round_id) {
+    const dup = await one(`select 1 from campaign_links l join campaigns x on x.id = l.campaign_id where x.round_id = $1 and l.school_id = $2`, [c.round_id, s.id]);
+    if (dup) fail(409, `${s.name} nimmt in dieser Runde bereits mit einer anderen Erhebung teil.`);
+  }
+  await q(`insert into campaign_links (id, campaign_id, school_id, token) values ($1,$2,$3,$4)`, [newId(), c.id, s.id, newToken()]);
+  await audit(u, 'schule_aufgenommen', c.id, { school: s.name });
   return { ok: true };
 });
 
@@ -476,9 +507,11 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
   const allRows = await q(`select r.school_id, r.context, r.answers, r.custom_answers from responses r
                          where r.campaign_id = any($1) and r.status = 'submitted' ${u.role === 'leitung' ? 'and r.school_id = $2' : ''}`, u.role === 'leitung' ? [ids, u.sid] : [ids]);
   const rows = school ? allRows.filter((r) => r.school_id === school) : allRows;
-  const links = await q(`select l.school_id, l.expected, s.name from campaign_links l join schools s on s.id = l.school_id
-                          where l.campaign_id = any($1) ${school ? 'and l.school_id = $2' : ''}`, school ? [ids, school] : [ids]);
-  const names = Object.fromEntries(links.map((l) => [l.school_id, l.name]));
+  // Alle Links der Auswahl: Namen und «mehrere Schulen» hängen nicht vom Schulfilter ab (sonst verschwindet der Filter nach dem Filtern)
+  const allLinks = await q(`select l.school_id, l.expected, s.name from campaign_links l join schools s on s.id = l.school_id
+                          where l.campaign_id = any($1) ${u.role === 'leitung' ? 'and l.school_id = $2' : ''}`, u.role === 'leitung' ? [ids, u.sid] : [ids]);
+  const links = school ? allLinks.filter((l) => l.school_id === school) : allLinks;
+  const names = Object.fromEntries(allLinks.map((l) => [l.school_id, l.name]));
   const expected = links.length && links.every((l) => l.expected) ? links.reduce((a, l) => a + l.expected, 0) : null;
   // Filter nur für Gruppen ab Mindestgrösse anbieten
   let schools = [];
@@ -491,7 +524,7 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
   if (zyklus && !zyklen.some((x) => x.zyklus === zyklus)) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
   const recs = zyklus ? rows.filter((r) => zyk(r) === zyklus) : rows;
   const base = { source: { kind, id, title }, total: rows.length, min: MIN, testMode: TEST_MODE && MIN < DKCore.MIN_GROUP, schools, zyklen, expected,
-    open: camps.some((c) => c.status === 'open'), multiSchool: u.role === 'traeger' && links.length > 1 };
+    open: camps.some((c) => c.status === 'open'), multiSchool: u.role === 'traeger' && new Set(allLinks.map((l) => l.school_id)).size > 1 };
   await audit(u, 'auswertung_angesehen', query.source, { school: school || null, zyklus: zyklus || null });
   if (recs.length < MIN) return { ...base, n: recs.length, tooFew: true };
   // Runde über mehrere Erhebungen: Die Differenz zwischen Runde und einzelner Erhebung ergäbe die übrigen Schulen.

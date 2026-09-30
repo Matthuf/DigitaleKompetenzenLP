@@ -1,5 +1,5 @@
 // Dashboard für Rektorat (ganzer Schulträger) und Schulleitung (eigene Schule):
-// Reiter Erhebungen, Auswertung und Eigene Fragen.
+// Reiter Erhebungen (mit eigenen Fragen pro Erhebung), Auswertung und Schulen/Zugänge.
 (function () {
   'use strict';
   const { $, $$, esc, date, api, download, copyText, confirmButton } = UI;
@@ -13,28 +13,55 @@
   const linkById = (id) => campaigns.flatMap((c) => c.links.map((l) => ({ ...l, campaign: c }))).find((l) => l.id === id);
   const orgName = () => (isRektorat() ? ctx.traeger.name : (ctx.schools[0] ? ctx.schools[0].name : ''));
 
-  /* ---------- Reiter mit eigener Adresse (Zurück-Knopf funktioniert) ---------- */
+  /* ---------- Reiter mit eigener Adresse (Zurück-Knopf funktioniert) ----------
+   * #erhebungen[/id] · #auswertung[/quelle] · #team. Alte Adresse #fragen/id führt zur Karte der Erhebung. */
+  const TABS = ['erhebungen', 'auswertung', 'team'];
+  let currentHash = location.hash, skipGuard = false;
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
-    const [tab, ...rest] = h.split('/');
-    const id = rest.join('/');
-    const name = ['erhebungen', 'auswertung', 'fragen', 'team'].includes(tab) ? tab : 'erhebungen';
+    let [tab, ...rest] = h.split('/');
+    let id = rest.join('/');
+    if (tab === 'fragen') { tab = 'erhebungen'; if (byId(id)) openQ = id; history.replaceState(null, '', '#erhebungen' + (id ? '/' + id : '')); }
+    const name = TABS.includes(tab) ? tab : 'erhebungen';
     $$('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.tab === name ? 'page' : 'false'));
-    ['erhebungen', 'auswertung', 'fragen', 'team'].forEach((t) => { $('#tab-' + t).hidden = t !== name; });
+    TABS.forEach((t) => { $('#tab-' + t).hidden = t !== name; });
+    currentHash = location.hash;
+    if (name === 'erhebungen') {
+      if (openQ && byId(id)) renderCampaigns();
+      const card = id && document.getElementById('camp-' + id);
+      if (card) { card.scrollIntoView({ block: 'start' }); return; }
+    }
     if (name === 'auswertung') openAnalysis(id);
-    if (name === 'fragen') openQuestions(id);
     if (name === 'team') loadTeam();
     window.scrollTo({ top: 0 });
   }
-  window.addEventListener('hashchange', route);
+  // Ungespeicherte eigene Fragen: vor dem Verlassen nachfragen
+  const leaveOk = () => !Block.isDirty() || confirm('Die eigenen Fragen haben ungespeicherte Änderungen. Ohne Speichern verlassen?');
+  window.addEventListener('hashchange', () => {
+    if (skipGuard) { skipGuard = false; return; }
+    const stay = Block.isDirty() && !location.hash.startsWith('#erhebungen') && !leaveOk();
+    if (stay) { skipGuard = true; location.hash = currentHash; return; }
+    if (Block.isDirty() && !location.hash.startsWith('#erhebungen')) { Block.discard(); openQ = null; }
+    route();
+  });
+  window.addEventListener('beforeunload', (e) => { if (Block.isDirty()) { e.preventDefault(); e.returnValue = ''; } });
 
+  // Reihenfolge: offene vor geschlossenen, kantonale Runde zuerst, dann neueste
+  function sortCampaigns(list) {
+    return list.slice().sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1)
+      || (a.round_id ? 0 : 1) - (b.round_id ? 0 : 1) || String(b.created_at).localeCompare(String(a.created_at)));
+  }
   async function loadCampaigns() {
-    campaigns = await api('GET', 'leitung/campaigns');
+    campaigns = sortCampaigns(await api('GET', 'leitung/campaigns'));
     renderCampaigns();
     fillSelects();
+    fillCreateForm();
   }
 
   /* ---------- Erhebungen ---------- */
+  let openQ = null;       // Erhebung, deren eigene Fragen aufgeklappt sind
+  let pastOpen = false;   // Bereich «Frühere Erhebungen» aufgeklappt
+
   function linkRow(c, l) {
     const quote = l.expected ? Math.min(100, Math.round(100 * l.submitted / l.expected)) : null;
     return `<div class="link-row" data-link="${l.id}">
@@ -46,7 +73,7 @@
           : `<button class="btn quiet small" type="button" data-expected="${l.id}">Anzahl Lehrpersonen eintragen</button>`}</span>
       </div>
       ${l.expected && l.submitted + l.drafts > l.expected ? `<p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über das Kollegium hinaus weitergegeben. Bei Bedarf die Erhebung abschliessen und eine neue eröffnen.</p>` : ''}
-      ${c.status === 'open' ? `<div class="camp-link"><code>${esc(linkFor(l))}</code>
+      ${c.status === 'open' ? `<div class="camp-link"><code title="${esc(linkFor(l))}">${esc(linkFor(l))}</code>
         <button class="btn secondary small" type="button" data-copy="${l.id}">Link kopieren</button>
         <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail-Vorlage</button>
         <button class="btn secondary small" type="button" data-qr="${l.id}">QR-Code</button></div>
@@ -54,34 +81,89 @@
     </div>`;
   }
 
+  // Schulhäuser des Trägers, die noch in eine laufende Erhebung aufgenommen werden können
+  function missingSchools(c) {
+    if (!isRektorat() || c.status !== 'open' || !c.manageable || !c.byTraeger) return []; // Erhebungen einer Schulleitung bleiben bei ihrer Schule
+    const inCamp = new Set(c.links.map((l) => l.school_id));
+    const inRound = c.round_id ? schoolsInRound(c.round_id) : new Set();
+    return ctx.schools.filter((s) => !inCamp.has(s.id) && !inRound.has(s.id));
+  }
+  const schoolsInRound = (rid) => new Set(campaigns.filter((c) => c.round_id === rid).flatMap((c) => c.links.map((l) => l.school_id)));
+
+  function dueHTML(c) {
+    if (c.status !== 'open') return '';
+    if (!c.due_date) return c.manageable ? ` · <button class="btn quiet small" type="button" data-due="${c.id}">Zieldatum setzen</button>` : '';
+    const past = UI.duePast(c.due_date);
+    return ` · <span class="due ${past ? 'past' : ''}">Ausfüllen bis ${esc(UI.dueShort(c.due_date))}${past ? ' (vorbei)' : ''}</span>${c.manageable ? ` <button class="btn quiet small" type="button" data-due="${c.id}">ändern</button>` : ''}`;
+  }
+
+  function cardHTML(c) {
+    const n = Block.count(c);
+    const who = c.byTraeger ? 'vom Rektorat' : isRektorat() ? `von der Schulleitung ${esc(c.owner_school_name || '')}` : 'von der Schulleitung';
+    const missing = missingSchools(c);
+    const qState = !c.manageable ? 'legt das Rektorat fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
+    return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
+      <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Kantonale Runde</span>` : ''}</span>
+        <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
+      <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)} ${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
+      ${isRektorat() && c.links.length > 1 ? `<p class="small"><b>Total ${c.submitted}</b> abgeschlossen, ${c.drafts} in Bearbeitung · ${c.links.length} Schulen</p>` : ''}
+      <div class="links">${c.links.map((l) => linkRow(c, l)).join('')}</div>
+      ${missing.length ? `<div class="add-school" data-addschool="${c.id}"><button class="btn quiet small" type="button" data-addopen="${c.id}">Schulhaus aufnehmen</button>
+        <span class="small muted">${missing.length === 1 ? esc(missing[0].name) + ' ist' : missing.length + ' Schulhäuser sind'} noch nicht dabei.</span></div>` : ''}
+      <div class="camp-actions">
+        <a class="btn" href="#auswertung/c:${c.id}">Auswertung ansehen</a>
+        ${c.manageable ? `<span class="confirm" data-toggle="${c.id}"></span>` : ''}
+      </div>
+      <details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
+        <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}</span></summary>
+        <div class="q-box" id="q-box-${c.id}"></div>
+      </details>
+    </article>`;
+  }
+
+  async function renderSteps() {
+    const box = $('#start-steps');
+    if (campaigns.length || !isRektorat()) { box.innerHTML = ''; return; }
+    let t = null;
+    try { t = await api('GET', 'leitung/team'); } catch { /* ohne Zahlen weiter */ }
+    const others = t ? t.users.filter((u) => !u.self).length : 0;
+    const inv = t ? t.invites.length : 0;
+    box.innerHTML = `<section class="panel first-steps stack" style="gap:14px" aria-labelledby="h-steps">
+      <h3 id="h-steps">Erste Schritte</h3>
+      <ol class="steps">
+        <li><div><b>Schulhäuser und Zyklen prüfen</b>
+          <span class="st">${ctx.schools.length} Schulhaus${ctx.schools.length === 1 ? '' : 'häuser'} erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}. Jedes Schulhaus erhält einen eigenen Link; die Zyklen bestimmen, was Lehrpersonen auswählen können. <a href="#team">Schulen und Zugänge</a></span></div></li>
+        <li><div><b>Schulleitungen einladen</b> <span class="small muted">(freiwillig)</span>
+          <span class="st">Schulleitungen sehen die Auswertung ihres Schulhauses und können den Link selbst verteilen. ${t ? `Bisher: ${others ? others + ' weitere' + (others === 1 ? 'r Zugang' : ' Zugänge') : 'noch keine weiteren Zugänge'}${inv ? `, ${inv} offene Einladung${inv === 1 ? '' : 'en'}` : ''}.` : ''} <a href="#team">Person einladen</a></span></div></li>
+        <li><div><b>Erhebung eröffnen</b>
+          <span class="st">Im Formular unten die kantonale Runde wählen und die Links ans Kollegium weitergeben.</span></div></li>
+      </ol></section>`;
+  }
+
   function renderCampaigns() {
     const list = $('#camp-list');
-    $('#create-box').open = !campaigns.length;
+    renderSteps();
     if (!campaigns.length) {
-      list.innerHTML = `<p class="muted">Noch keine Erhebung. Mit «Neue Erhebung eröffnen» beginnen und den Link ans Kollegium weitergeben.</p>`;
+      $('#create-box').open = true;
+      list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Mit «Neue Erhebung eröffnen» beginnen und den Link ans Kollegium weitergeben.</p>`;
       return;
     }
-    list.innerHTML = campaigns.map((c) => {
-      const n = Block.count(c);
-      const who = c.byTraeger ? 'vom Rektorat eröffnet' : isRektorat() ? `von der Schulleitung ${esc(c.owner_school_name || '')} eröffnet` : 'von der Schulleitung eröffnet';
-      return `<article class="camp-card ${c.status}" data-id="${c.id}">
-        <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Kantonale Runde</span>` : ''}</span>
-          <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
-        <div class="camp-meta">Eröffnet am ${date(c.created_at)}, ${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''} · Eigene Fragen: ${n ? n : 'keine'}</div>
-        ${isRektorat() && c.links.length > 1 ? `<p class="small"><b>Total ${c.submitted}</b> abgeschlossen, ${c.drafts} in Bearbeitung · ${c.links.length} Schulen</p>` : ''}
-        <div class="links">${c.links.map((l) => linkRow(c, l)).join('')}</div>
-        <div class="camp-actions">
-          <a class="btn" href="#auswertung/c:${c.id}">Auswertung ansehen</a>
-          <a class="btn secondary" href="#fragen/${c.id}">${!c.manageable || c.submitted > 0 ? 'Eigene Fragen ansehen' : n ? 'Eigene Fragen bearbeiten' : 'Eigene Fragen ergänzen'}</a>
-          ${c.manageable ? `<span class="confirm" data-toggle="${c.id}"></span>` : ''}
-        </div>
-      </article>`;
-    }).join('');
+    const open = campaigns.filter((c) => c.status === 'open');
+    const past = campaigns.filter((c) => c.status !== 'open');
+    if (openQ && !byId(openQ)) openQ = null;
+    if (openQ && past.some((c) => c.id === openQ)) pastOpen = true;
+    list.innerHTML = (open.length ? open.map(cardHTML).join('') : `<p class="muted">Zurzeit ist keine Erhebung offen. Mit «Neue Erhebung eröffnen» eine neue beginnen.</p>`) +
+      (past.length ? `<details class="past" id="past-box" ${pastOpen || !open.length ? 'open' : ''}><summary>Frühere Erhebungen (${past.length})</summary>
+        <div class="stack">${past.map(cardHTML).join('')}</div></details>` : '');
+    const pb = $('#past-box');
+    if (pb) pb.addEventListener('toggle', () => { pastOpen = pb.open; });
 
     $$('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(linkFor(linkById(b.dataset.copy)), b)));
     $$('[data-mail]').forEach((b) => b.addEventListener('click', () => showMail(linkById(b.dataset.mail))));
     $$('[data-qr]').forEach((b) => b.addEventListener('click', () => showQR(linkById(b.dataset.qr))));
     $$('[data-expected]').forEach((b) => b.addEventListener('click', () => editExpected(linkById(b.dataset.expected))));
+    $$('[data-due]').forEach((b) => b.addEventListener('click', () => editDue(byId(b.dataset.due))));
+    $$('[data-addopen]').forEach((b) => b.addEventListener('click', () => addSchool(byId(b.dataset.addopen))));
     $$('[data-toggle]').forEach((el) => {
       const c = byId(el.dataset.toggle);
       if (c.status === 'open') {
@@ -94,6 +176,30 @@
         el.firstChild.addEventListener('click', () => toggle(c, 'open'));
       }
     });
+    // Eigene Fragen: immer nur ein Editor offen; ungespeicherte Änderungen nur nach Rückfrage verwerfen
+    $$('details.camp-questions > summary').forEach((sm) => sm.addEventListener('click', (e) => {
+      e.preventDefault();
+      const d = sm.parentElement, id = d.dataset.q;
+      if (d.open) {
+        if (Block.currentId() === id && !leaveOk()) return;
+        if (Block.currentId() === id) Block.discard();
+        d.open = false; openQ = null;
+        return;
+      }
+      if (Block.currentId() && Block.currentId() !== id && !leaveOk()) return;
+      if (Block.currentId() !== id) Block.discard();
+      $$('details.camp-questions[open]').forEach((x) => { x.open = false; });
+      openQ = id; d.open = true;
+      mountQuestions(id);
+    }));
+    if (openQ) mountQuestions(openQ);
+  }
+  function mountQuestions(id, msg) {
+    const box = $('#q-box-' + id);
+    if (!box) return;
+    Block.open(id, { box, campaigns: () => campaigns, min: ctx.min,
+      reload: async (cid, m) => { openQ = cid; await loadCampaigns(); const b = $(`#q-box-${cid} #ed-msg`); if (b) { b.className = 'small ok'; b.textContent = m; } } });
+    if (msg) { const b = box.querySelector('#ed-msg'); if (b) { b.className = 'small ok'; b.textContent = msg; } }
   }
   async function toggle(c, status) { await api('PATCH', 'leitung/campaigns/' + c.id, { status }); loadCampaigns(); }
 
@@ -112,7 +218,41 @@
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveIt(); } });
   }
 
+  function editDue(c) {
+    const meta = $(`[data-meta="${c.id}"]`);
+    meta.innerHTML = `<span class="inline-edit"><label class="small" for="due-${c.id}">Ausfüllen bis</label>
+      <input type="date" id="due-${c.id}" value="${esc(c.due_date || '')}" style="width:auto">
+      <button class="btn secondary small" type="button" data-s>Speichern</button>
+      ${c.due_date ? '<button class="btn quiet small" type="button" data-r>Kein Zieldatum</button>' : ''}
+      <button class="btn quiet small" type="button" data-c>Abbrechen</button><span class="error small"></span></span>`;
+    const inp = meta.querySelector('input');
+    inp.focus();
+    const put = async (v) => {
+      try { await api('PATCH', 'leitung/campaigns/' + c.id, { dueDate: v }); loadCampaigns(); }
+      catch (err) { meta.querySelector('.error').textContent = err.message; }
+    };
+    meta.querySelector('[data-s]').addEventListener('click', () => put(inp.value || null));
+    const r = meta.querySelector('[data-r]'); if (r) r.addEventListener('click', () => put(null));
+    meta.querySelector('[data-c]').addEventListener('click', renderCampaigns);
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); put(inp.value || null); } });
+  }
+
+  function addSchool(c) {
+    const box = $(`[data-addschool="${c.id}"]`);
+    const miss = missingSchools(c);
+    box.innerHTML = `<label class="small" for="add-${c.id}"><b>Schulhaus aufnehmen</b></label>
+      <select id="add-${c.id}" style="width:auto">${miss.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
+      <button class="btn secondary small" type="button" data-s>Aufnehmen</button><button class="btn quiet small" type="button" data-c>Abbrechen</button>
+      <span class="small muted">Das Schulhaus erhält einen eigenen Link für diese Erhebung.</span><span class="error small"></span>`;
+    box.querySelector('[data-s]').addEventListener('click', async () => {
+      try { await api('POST', `leitung/campaigns/${c.id}/links`, { schoolId: box.querySelector('select').value }); loadCampaigns(); }
+      catch (err) { box.querySelector('.error').textContent = err.message; }
+    });
+    box.querySelector('[data-c]').addEventListener('click', renderCampaigns);
+  }
+
   function mailText(l) {
+    const due = l.campaign.due_date ? UI.dueLong(l.campaign.due_date) : '[Datum]';
     return `Liebe Kolleginnen und Kollegen
 
 Im Rahmen der Erhebung «${l.campaign.title}» laden wir Sie ein, die Selbsteinschätzung zu Ihren digitalen Kompetenzen auszufüllen. Sie dauert etwa 20 Minuten und lässt sich jederzeit unterbrechen.
@@ -122,7 +262,7 @@ ${linkFor(l)}
 
 Die Teilnahme erfolgt ohne Namen. Nach dem Start erhalten Sie einen persönlichen Code. Bitte bewahren Sie ihn gut auf: Damit können Sie später weiterfahren und Ihr Profil wieder öffnen. Schulleitung und Rektorat sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.
 
-Bitte schliessen Sie die Selbsteinschätzung bis [Datum] ab.
+Bitte schliessen Sie die Selbsteinschätzung bis ${due} ab.
 
 Freundliche Grüsse
 ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
@@ -137,7 +277,7 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
     const p = sharePanel(l);
     const subject = `Selbsteinschätzung digitale Kompetenzen: ${l.campaign.title}`;
     p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail an das Kollegium${isRektorat() ? ' von ' + esc(l.school_name) : ''}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
-      <p class="small muted">Text anpassen (zum Beispiel das Datum), dann kopieren oder im E-Mail-Programm öffnen.</p>
+      <p class="small muted">${l.campaign.due_date ? 'Text bei Bedarf anpassen' : 'Text anpassen (zum Beispiel das Datum)'}, dann kopieren oder im E-Mail-Programm öffnen.</p>
       <div class="field"><label for="mail-subj-${l.id}" class="small">Betreff</label><input type="text" id="mail-subj-${l.id}" value="${esc(subject)}"></div>
       <div class="field"><label for="mail-body-${l.id}" class="small">Text</label><textarea id="mail-body-${l.id}">${esc(mailText(l))}</textarea></div>
       <div class="row"><button class="btn secondary" type="button" data-copytext>Text kopieren</button><a class="btn secondary" data-mailto href="#">Im E-Mail-Programm öffnen</a></div>`;
@@ -181,26 +321,47 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
     });
   }
 
-  /* Formular «Neue Erhebung» */
+  /* Formular «Neue Erhebung»
+   * Runden, an denen alle Schulen schon teilnehmen, werden nicht vorgewählt; Schulen, die in der gewählten
+   * Runde schon teilnehmen, sind ausgegraut. So entsteht der Fehler «bereits vorhanden» gar nicht erst. */
+  let formBuilt = false;
   function fillCreateForm() {
+    if (formBuilt && $('#create-box').open) return; // offenes Formular nicht unter den Händen neu aufbauen
+    formBuilt = true;
     const active = ctx.rounds.filter((r) => r.active);
+    const mine = isRektorat() ? ctx.schools.map((s) => s.id) : [ctx.schools[0] && ctx.schools[0].id];
+    const free = (r) => { const used = schoolsInRound(r.id); return mine.filter((id) => !used.has(id)).length; };
     $('#camp-round-field').hidden = !active.length;
-    $('#camp-round').innerHTML = active.map((r) => `<option value="${r.id}">Kantonale Runde: ${esc(r.title)}</option>`).join('') + `<option value="">Eigene Erhebung der Schule (ohne Runde)</option>`;
+    $('#camp-round').innerHTML = active.map((r) => {
+      const f = free(r);
+      return `<option value="${r.id}" ${f ? '' : 'disabled'}>Kantonale Runde: ${esc(r.title)}${f ? '' : isRektorat() ? ' (alle Schulhäuser nehmen bereits teil)' : ' (Ihre Schule nimmt bereits teil)'}</option>`;
+    }).join('') + `<option value="">Eigene Erhebung ${isRektorat() ? 'des Schulträgers' : 'der Schule'} (ohne Runde)</option>`;
+    const first = active.find((r) => free(r));
+    $('#camp-round').value = first ? first.id : '';
+    if (isRektorat()) {
+      $('#camp-schools').innerHTML = ctx.schools.map((s) => `<label class="check small"><input type="checkbox" value="${s.id}" checked><span>${esc(s.name)}<span class="muted" data-inround hidden> · nimmt bereits teil</span></span></label>`).join('');
+    }
     const syncRound = () => {
       const r = active.find((x) => x.id === $('#camp-round').value);
       $('#camp-title').placeholder = r ? r.title : 'z. B. Herbst 2026';
       $('#camp-round-hint').textContent = r ? 'Vom AVS vorgegeben. Pro Runde nimmt jede Schule einmal teil. Der Titel ist freiwillig.' : 'Weitere Erhebungen legt die Schule selbst fest, zum Beispiel ein Jahr später zum Vergleich.';
+      const used = r ? schoolsInRound(r.id) : new Set();
+      $$('#camp-schools input').forEach((i) => {
+        const u = used.has(i.value);
+        i.disabled = u; if (u) i.checked = false; else if (!i.dataset.touched) i.checked = true;
+        i.closest('label').querySelector('[data-inround]').hidden = !u;
+      });
     };
     $('#camp-round').onchange = syncRound;
+    $$('#camp-schools input').forEach((i) => i.addEventListener('change', () => { i.dataset.touched = '1'; }));
     syncRound();
     $('#camp-schools-field').hidden = !isRektorat();
-    if (isRektorat()) {
-      $('#camp-schools').innerHTML = ctx.schools.map((s) => `<label class="check small"><input type="checkbox" value="${s.id}" checked><span>${esc(s.name)}</span></label>`).join('');
-    }
+    $('#camp-due').min = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     $('#camp-intro').textContent = isRektorat()
       ? 'Eine Erhebung ist ein Zeitraum, in dem die Kollegien die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Das Rektorat sieht die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
       : 'Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt. Erhebungen des Rektorats erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
   }
+  $('#create-box').addEventListener('toggle', () => { if (!$('#create-box').open) { formBuilt = false; fillCreateForm(); } });
 
   function sourcesList() {
     const list = campaigns.map((c) => ({ value: 'c:' + c.id, label: c.title + (c.status === 'closed' ? ' (geschlossen)' : '') }));
@@ -214,33 +375,42 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
     return list;
   }
   const sourceTitle = (v) => (sourcesList().find((x) => x.value === v) || { label: '' }).label.replace(/ \(geschlossen\)$/, '');
+  // Standard in der Auswertung: die Erhebung mit Ergebnissen, offene und kantonale zuerst, sonst die mit den meisten Teilnahmen
+  function defaultSource() {
+    const best = campaigns.slice().sort((a, b) => (b.submitted > 0) - (a.submitted > 0)
+      || (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1)
+      || (a.round_id ? 0 : 1) - (b.round_id ? 0 : 1) || b.submitted - a.submitted)[0];
+    return 'c:' + best.id;
+  }
 
   function fillSelects() {
     const withBlock = campaigns.filter((c) => Block.count(c));
     $('#camp-copy-field').hidden = !withBlock.length;
     $('#camp-copy').innerHTML = `<option value="">Ohne eigene Fragen beginnen</option>` + withBlock.map((c) => `<option value="${c.id}">Eigene Fragen von «${esc(c.title)}» übernehmen</option>`).join('');
     $('#an-campaign').innerHTML = sourcesList().map((x) => `<option value="${x.value}">${esc(x.label)}</option>`).join('');
-    $('#fq-campaign').innerHTML = campaigns.map((c) => `<option value="${c.id}">${esc(c.title)}${c.status === 'closed' ? ' (geschlossen)' : ''}</option>`).join('');
   }
 
   $('#form-campaign').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#camp-msg').textContent = '';
     try {
-      const body = { title: $('#camp-title').value, roundId: $('#camp-round-field').hidden ? undefined : ($('#camp-round').value || undefined), copyBlockFrom: $('#camp-copy').value || undefined };
+      const body = { title: $('#camp-title').value, roundId: $('#camp-round-field').hidden ? undefined : ($('#camp-round').value || undefined),
+        copyBlockFrom: $('#camp-copy').value || undefined, dueDate: $('#camp-due').value || undefined };
       if (isRektorat()) body.schoolIds = $$('#camp-schools input:checked').map((i) => i.value);
+      if (isRektorat() && !body.schoolIds.length) { $('#camp-msg').textContent = 'Bitte mindestens ein Schulhaus auswählen.'; return; }
       await api('POST', 'leitung/campaigns', body);
-      $('#camp-title').value = '';
-      await loadCampaigns();
+      $('#camp-title').value = ''; $('#camp-due').value = '';
       $('#create-box').open = false;
+      await loadCampaigns();
     } catch (err) { $('#camp-msg').textContent = err.message; }
   });
 
   /* ---------- Auswertung ---------- */
   function openAnalysis(src) {
-    if (!campaigns.length) { $('#an-out').innerHTML = '<p class="muted">Noch keine Erhebung vorhanden.</p>'; return; }
+    $('#an-filters').hidden = !campaigns.length;
+    if (!campaigns.length) { $('#an-out').innerHTML = '<p class="muted">Noch keine Erhebung vorhanden. Unter <a href="#erhebungen">Erhebungen</a> eine eröffnen.</p>'; return; }
     const list = sourcesList();
-    const pick = list.find((x) => x.value === src) || list.find((x) => x.value === an.src) || list.find((x) => x.value.startsWith('c:'));
+    const pick = list.find((x) => x.value === src) || list.find((x) => x.value === an.src) || list.find((x) => x.value === defaultSource());
     if (an.src !== pick.value) an = { src: pick.value, compare: '', school: '', zyklus: '' };
     $('#an-campaign').value = pick.value;
     loadAnalysis();
@@ -275,28 +445,16 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
       cmpTitle: an.compare ? sourceTitle(an.compare) : '',
       org: isRektorat() ? (schoolName ? `${schoolName} · ${ctx.traeger.name}` : ctx.traeger.name) : orgName(),
       filterText,
-      profileTitle: isRektorat() && !an.school ? 'Profil des Schulträgers' : 'Profil der Schule',
+      profileTitle: isRektorat() && !an.school && data.multiSchool ? 'Profil des Schulträgers' : 'Profil der Schule',
       groups: [['zyklen', 'Zyklen im Vergleich', ''], ['schulen', 'Schulen im Vergleich', 'Dient der Planung der Weiterbildung, nicht als Rangliste.']],
       showCustom: true,
-      tooFewHint: c && c.status === 'open' ? `<p class="small">Den Link unter <a href="#erhebungen">Erhebungen</a> ans Kollegium weitergeben.</p>` : '',
+      tooFewHint: c && c.status === 'open' ? `<p class="small">Den Link unter <a href="#erhebungen/${c.id}">Erhebungen</a> ans Kollegium weitergeben.</p>` : '',
       footNote: isRektorat() && data.multiSchool && !(data.schools || []).length ? `Einzelne Schulen lassen sich filtern, sobald jede beteiligte Schule mindestens ${data.min} abgeschlossene Teilnahmen hat.` : '',
     });
   }
   $('#an-compare').addEventListener('change', (e) => { an.compare = e.target.value; loadAnalysis(); });
   $('#an-school').addEventListener('change', (e) => { an.school = e.target.value; an.zyklus = ''; loadAnalysis(); });
   $('#an-zyklus').addEventListener('change', (e) => { an.zyklus = e.target.value; loadAnalysis(); });
-
-  /* ---------- Eigene Fragen ---------- */
-  let fqId = null;
-  function openQuestions(id) {
-    if (!campaigns.length) { $('#block-editor').innerHTML = '<p class="muted">Zuerst unter «Erhebungen» eine Erhebung eröffnen.</p>'; return; }
-    const c = byId(id) || byId(fqId) || campaigns.find((x) => x.status === 'open' && x.manageable) || campaigns[0];
-    fqId = c.id;
-    $('#fq-campaign').value = c.id;
-    Block.open(c.id, { campaigns: () => campaigns, reload: loadCampaigns, embedded: true });
-  }
-  $('#fq-campaign').addEventListener('change', (e) => { location.hash = 'fragen/' + e.target.value; });
-
 
   /* ---------- Schulen und Zugänge (Selbstverwaltung) ---------- */
   const zyklenText = (z) => (z.length === 3 ? 'Zyklus 1–3' : z.length === 1 ? z[0] + ' (fest)' : z.join(', ').replace(/, Zyklus /g, ', '));
@@ -315,8 +473,9 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
       ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
         <h3 id="h-schools">Schulhäuser</h3>
         <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
-        <ul class="list-plain team-list">${t.schools.map((s) => `<li data-school="${s.id}"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}</span></span>
+        <ul class="list-plain team-list">${t.schools.map((s) => `<li data-school="${s.id}"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}${s.links ? ' · an Erhebungen beteiligt' : ''}</span></span>
           <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen</button><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></li>`).join('')}</ul>
+        ${t.schools.some((s) => s.links) ? '<p class="small muted">Schulhäuser, die an einer Erhebung beteiligt sind, lassen sich hier nicht entfernen, damit keine Ergebnisse verloren gehen. Bei Bedarf entfernt sie das AVS.</p>' : ''}
         <form class="row" id="form-team-school" style="align-items:flex-end">
           <div class="field"><label for="team-school-new" class="small">Weiteres Schulhaus</label><input type="text" id="team-school-new" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
           <button class="btn secondary" type="submit">Hinzufügen</button><span class="error small" id="team-school-msg" role="alert"></span>
@@ -324,10 +483,10 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
       </section>` : ''}
 
       <section class="stack" style="gap:12px" aria-labelledby="h-users">
-        <h3 id="h-users">Zugänge</h3>
+        <h3 id="h-users">Personen mit Zugang</h3>
         <div class="table-scroll" tabindex="0" role="region" aria-label="Zugänge"><table class="list">
-          <thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"></th></tr></thead>
-          <tbody>${t.users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b><br><span class="small muted">${esc(u.username)}</span>${u.self ? ' <span class="status open">Sie</span>' : ''}</td>
+          <thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
+          <tbody>${t.users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b>${u.display_name && u.display_name !== u.username ? `<br><span class="small muted">${esc(u.username)}</span>` : ''}${u.self ? ' <span class="status open">Sie</span>' : ''}</td>
             <td>${esc(ROLE_LABEL(u))}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
             <td>${u.self || (!R && u.role !== 'leitung') ? '' : `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-ureset="${u.id}">Link für neues Passwort</button><span class="confirm" data-udel="${u.id}"></span></div>`}</td></tr>`).join('')}</tbody></table></div>
         <div class="box box--success" id="team-inv-out" hidden></div>
@@ -410,13 +569,12 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
       } catch (err) { $('#inv-msg').textContent = err.message; }
     });
   }
-  async function refreshCtx() { ctx = await api('GET', 'leitung/context'); fillCreateForm(); }
+  async function refreshCtx() { ctx = await api('GET', 'leitung/context'); formBuilt = false; fillCreateForm(); renderCampaigns(); }
 
   Staff.start(['traeger', 'leitung'], async () => {
     try {
       ctx = await api('GET', 'leitung/context');
       $('#school-name').textContent = isRektorat() ? `Rektorat · ${ctx.traeger.name}` : `${orgName()} · ${ctx.traeger.name}`;
-      fillCreateForm();
       $('#tab-team-link').textContent = isRektorat() ? 'Schulen und Zugänge' : 'Zugänge';
       await loadCampaigns();
     } catch (err) { $('#camp-list').innerHTML = `<p class="error">${esc(err.message)}</p>`; }

@@ -8,6 +8,7 @@ const SUITES = [
   ['roles.test.mjs', { TESTMODUS: '1' }],
   ['invitations.test.mjs', { TESTMODUS: '1' }],
   ['zyklen.test.mjs', { TESTMODUS: '1' }],
+  ['erhebungen.test.mjs', { TESTMODUS: '1' }],
   ['security.test.mjs', { TESTMODUS: '0' }], // Echtbetrieb: Mindestgruppe 5
 ];
 const only = process.argv[2];

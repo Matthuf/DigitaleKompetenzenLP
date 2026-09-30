@@ -8,6 +8,11 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = (n) => (n === null || n === undefined ? '–' : n.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
   const date = (d) => (d ? new Date(d).toLocaleDateString('de-CH') : '–');
+  // Zieldatum (JJJJ-MM-TT) als Tag ohne Zeitzonenverschiebung
+  const dayOf = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+  const dueShort = (s) => { const d = dayOf(s); return d ? d.toLocaleDateString('de-CH') : ''; };
+  const dueLong = (s) => { const d = dayOf(s); return d ? d.toLocaleDateString('de-CH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ''; };
+  const duePast = (s) => { const d = dayOf(s); if (!d) return false; const t = new Date(); t.setHours(0, 0, 0, 0); return d < t; };
   const dateTime = (d) => (d ? new Date(d).toLocaleDateString('de-CH') + ', ' + new Date(d).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : '–');
 
   async function api(method, path, body) {
@@ -156,5 +161,5 @@
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  window.UI = { ITEMS, LV, $, $$, esc, fmt, date, api, levelsStrip, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
+  window.UI = { ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
 })();

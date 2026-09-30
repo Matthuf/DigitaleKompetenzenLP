@@ -94,50 +94,53 @@ window.Block = (function () {
       <p class="muted">${esc(b.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten fliessen nur in die Schulauswertung ein.')}</p>${qs}`;
   }
 
-  /* ---------- Editor ---------- */
-  let ed = null;       // { id, title, locked, block }
-  let ctx = null;      // { campaigns: () => [], reload: async () => {} }
+  /* ---------- Editor (in der Erhebungskarte) ----------
+   * Es ist immer höchstens ein Editor offen. Ungespeicherte Änderungen bleiben erhalten, wenn die Liste
+   * neu gezeichnet wird (remount), und gehen nur nach Rückfrage verloren (isDirty / discard). */
+  let ed = null;       // { id, title, locked, byOther, block, preview, dirty }
+  let ctx = null;      // { box, campaigns: () => [], reload: async () => {}, min }
   const emptyQ = (type) => ({ type, text: '', options: type === 'levels' ? ['', '', ''] : type === 'choice' ? ['', ''] : undefined, multiple: false });
+  const box = () => ctx && ctx.box;
 
   function open(id, context) {
+    const keep = ed && ed.id === id && ed.dirty;
     ctx = context;
-    const c = ctx.campaigns().find((x) => x.id === id);
-    const b = c.custom_block ? JSON.parse(JSON.stringify(c.custom_block)) : { title: 'Fragen unserer Schule', intro: '', questions: [] };
-    ed = { id, title: c.title, locked: c.submitted > 0 || c.manageable === false, byOther: c.manageable === false, block: b, preview: false };
+    if (!keep) {
+      const c = ctx.campaigns().find((x) => x.id === id);
+      const b = c.custom_block ? JSON.parse(JSON.stringify(c.custom_block)) : { title: 'Fragen unserer Schule', intro: '', questions: [] };
+      ed = { id, title: c.title, locked: c.submitted > 0 || c.manageable === false, byOther: c.manageable === false, block: b, preview: false, dirty: false };
+    }
     render();
-    if (!ctx.embedded) $('#block-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  function close() {
-    if (ctx && ctx.embedded && ed) { const id = ed.id; ed = null; return open(id, ctx); }
-    ed = null; render();
+  const isDirty = () => !!(ed && ed.dirty);
+  const currentId = () => (ed ? ed.id : null);
+  function discard() { ed = null; }
+  function markDirty() {
+    if (!ed.dirty) { ed.dirty = true; if (ctx.onDirty) ctx.onDirty(true); }
+    const m = box() && box().querySelector('#ed-msg');
+    if (m) { m.className = 'small warn'; m.textContent = 'Ungespeicherte Änderungen'; }
   }
 
   function render() {
-    const box = $('#block-editor');
-    if (!ed) { box.hidden = true; box.innerHTML = ''; return; }
-    box.hidden = false;
+    const el = box();
+    if (!el || !ed) return;
     const b = ed.block;
-    const head = ctx.embedded
-      ? `<p class="small muted" style="max-width:75ch">Sobald die erste Lehrperson die Erhebung abgeschlossen hat, lassen sich die Fragen nicht mehr ändern. Die Auswertung erscheint wie beim Kompetenzteil erst ab der Mindestanzahl abgeschlossener Teilnahmen.</p><span id="ed-close" hidden></span>`
-      : `<div class="row" style="justify-content:space-between;align-items:flex-end">
-        <div class="stack" style="gap:6px"><div class="eyebrow">Eigene Fragen</div><h2>Eigene Fragen · ${esc(ed.title)}</h2></div>
-        <button class="btn quiet" type="button" id="ed-close">Schliessen</button></div>
-      <p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen im Fragebogen als zusätzlicher Schritt nach den sechs Kompetenzbereichen. Sie fliessen nicht ins Kompetenzprofil ein. Die Auswertung erscheint wie beim Kern erst ab fünf abgeschlossenen Teilnahmen. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
+    const textMin = (ctx.min || 5) >= 5 ? Math.max(10, ctx.min || 5) : ctx.min;
+    const head = `<p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen am Schluss des Fragebogens und fliessen nicht ins Kompetenzprofil ein. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
     if (ed.locked) {
-      box.innerHTML = head + (ed.byOther
-        ? `<div class="box box--info">Diese Erhebung hat das Rektorat eröffnet. Eigene Fragen legt darum das Rektorat fest.</div>`
-        : `<div class="box box--info">Für diese Erhebung gibt es bereits abgeschlossene Teilnahmen. Die Fragen sind darum gesperrt. Für geänderte Fragen eine neue Erhebung eröffnen und den Schulblock dort übernehmen.</div>`) +
-        (b.questions.length ? `<ol class="stack" style="gap:10px;padding-left:20px">${b.questions.map((q) => `<li><b>${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}</span>${q.options ? `<ul class="small">${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol>` : '<p class="muted">Kein Schulblock.</p>');
-      $('#ed-close').addEventListener('click', close);
+      el.innerHTML = head + (ed.byOther
+        ? `<div class="box box--info small">Diese Erhebung hat das Rektorat eröffnet. Eigene Fragen legt darum das Rektorat fest.</div>`
+        : `<div class="box box--info small">Es gibt bereits abgeschlossene Teilnahmen. Die Fragen sind darum gesperrt. Für geänderte Fragen eine neue Erhebung eröffnen und die Fragen dort übernehmen.</div>`) +
+        (b.questions.length ? `<ol class="stack" style="gap:10px;padding-left:20px">${b.questions.map((q) => `<li><b>${esc(q.text)}</b> <span class="small muted">· ${TYPE_LABEL[q.type]}</span>${q.options ? `<ul class="small">${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol>` : '<p class="muted small">Keine eigenen Fragen.</p>');
       return;
     }
     const others = ctx.campaigns().filter((c) => c.id !== ed.id && count(c));
-    box.innerHTML = head + `
+    el.innerHTML = head + `
       <div class="two-col" style="gap:20px">
-        <div class="field"><label for="ed-title">Titel des Blocks</label><input type="text" id="ed-title" maxlength="80" value="${esc(b.title)}"></div>
+        <div class="field"><label for="ed-title">Überschrift im Fragebogen</label><input type="text" id="ed-title" maxlength="80" value="${esc(b.title)}"></div>
         <div class="field"><label for="ed-intro">Einleitung <span class="small muted">(freiwillig)</span></label><textarea id="ed-intro" rows="2" maxlength="500">${esc(b.intro || '')}</textarea></div>
       </div>
-      <div class="stack" id="ed-questions" style="gap:12px">${b.questions.map(qHTML).join('') || '<p class="muted">Noch keine Fragen.</p>'}</div>
+      <div class="stack" id="ed-questions" style="gap:12px">${b.questions.map((q, i) => qHTML(q, i, textMin)).join('') || '<p class="muted small">Noch keine Fragen.</p>'}</div>
       <div class="row">
         <label for="ed-newtype" class="small"><b>Frage hinzufügen</b></label>
         <select id="ed-newtype" style="width:auto">${Object.entries(TYPE_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
@@ -148,13 +151,13 @@ window.Block = (function () {
         <button class="btn" type="button" id="ed-save">Eigene Fragen speichern</button>
         <button class="btn secondary" type="button" id="ed-preview-btn" aria-expanded="${ed.preview}" ${b.questions.length ? '' : 'disabled'}>${ed.preview ? 'Vorschau schliessen' : 'Vorschau für Lehrpersonen'}</button>
         <span class="confirm" id="ed-remove"></span>
-        <span class="small" id="ed-msg" role="status"></span>
+        <span class="small ${ed.dirty ? 'warn' : ''}" id="ed-msg" role="status">${ed.dirty ? 'Ungespeicherte Änderungen' : ''}</span>
       </div>
       <div id="ed-preview" class="preview" ${ed.preview && b.questions.length ? '' : 'hidden'}>${ed.preview ? previewHTML(b) : ''}</div>`;
     bind();
   }
 
-  function qHTML(q, i) {
+  function qHTML(q, i, textMin) {
     const n = ed.block.questions.length;
     let extra = '';
     if (q.type === 'scale') extra = `<p class="small muted">Antworten: ${SCALE.join(' · ')} · Kann ich nicht beurteilen</p>`;
@@ -162,7 +165,7 @@ window.Block = (function () {
       <p class="small muted">Zusätzlich gibt es immer die Option «Dazu hatte ich bisher keine Gelegenheit».</p>`;
     if (q.type === 'choice') extra = `<div class="field"><label for="qe-${i}-opts" class="small">Antwortoptionen: eine pro Zeile (2 bis 10)</label><textarea id="qe-${i}-opts" rows="4" data-i="${i}" data-f="options">${esc((q.options || []).join('\n'))}</textarea></div>
       <label class="check small"><input type="checkbox" id="qe-${i}-multi" data-i="${i}" data-f="multiple" ${q.multiple ? 'checked' : ''}><span>Mehrere Antworten erlaubt</span></label>`;
-    if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Sie werden erst ab fünf Teilnahmen und in zufälliger Reihenfolge angezeigt. Offene Fragen sparsam einsetzen.</p>`;
+    if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Sie erscheinen erst ab ${textMin === 10 ? 'zehn' : textMin} Antworten und in zufälliger Reihenfolge. Offene Fragen sparsam einsetzen.</p>`;
     return `<div class="qedit">
       <div class="qedit-head"><span><span class="num">Frage ${i + 1}</span> · ${TYPE_LABEL[q.type]}</span>
         <span class="row" style="gap:4px">
@@ -174,54 +177,55 @@ window.Block = (function () {
   }
 
   function bind() {
+    const el = box();
+    const q$ = (s) => el.querySelector(s);
+    const q$$ = (s) => Array.from(el.querySelectorAll(s));
     const b = ed.block;
-    $('#ed-close').addEventListener('click', close);
-    const refresh = () => { if (ed.preview) $('#ed-preview').innerHTML = previewHTML(b); };
-    $('#ed-title').addEventListener('input', (e) => { b.title = e.target.value; refresh(); });
-    $('#ed-intro').addEventListener('input', (e) => { b.intro = e.target.value; refresh(); });
-    $$('#ed-questions [data-f]').forEach((el) => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', () => {
-      const q = b.questions[+el.dataset.i];
-      if (el.dataset.f === 'options') q.options = el.value.split('\n');
-      else if (el.dataset.f === 'multiple') q.multiple = el.checked;
-      else q.text = el.value;
-      refresh();
+    const refresh = () => { if (ed.preview) q$('#ed-preview').innerHTML = previewHTML(b); };
+    q$('#ed-title').addEventListener('input', (e) => { b.title = e.target.value; markDirty(); refresh(); });
+    q$('#ed-intro').addEventListener('input', (e) => { b.intro = e.target.value; markDirty(); refresh(); });
+    q$$('#ed-questions [data-f]').forEach((x) => x.addEventListener(x.type === 'checkbox' ? 'change' : 'input', () => {
+      const q = b.questions[+x.dataset.i];
+      if (x.dataset.f === 'options') q.options = x.value.split('\n');
+      else if (x.dataset.f === 'multiple') q.multiple = x.checked;
+      else q.text = x.value;
+      markDirty(); refresh();
     }));
-    $$('#ed-questions [data-move]').forEach((btn) => btn.addEventListener('click', () => {
+    q$$('#ed-questions [data-move]').forEach((btn) => btn.addEventListener('click', () => {
       const i = +btn.dataset.move, j = i + +btn.dataset.dir;
       [b.questions[i], b.questions[j]] = [b.questions[j], b.questions[i]];
-      render();
+      ed.dirty = true; render();
     }));
-    $$('#ed-questions [data-remove]').forEach((btn) => btn.addEventListener('click', () => { b.questions.splice(+btn.dataset.remove, 1); render(); }));
-    $('#ed-add').addEventListener('click', () => { b.questions.push(emptyQ($('#ed-newtype').value)); render(); $(`#qe-${b.questions.length - 1}-text`).focus(); });
-    const cp = $('#ed-copy');
+    q$$('#ed-questions [data-remove]').forEach((btn) => btn.addEventListener('click', () => { b.questions.splice(+btn.dataset.remove, 1); ed.dirty = true; render(); }));
+    q$('#ed-add').addEventListener('click', () => { b.questions.push(emptyQ(q$('#ed-newtype').value)); ed.dirty = true; render(); q$(`#qe-${b.questions.length - 1}-text`).focus(); });
+    const cp = q$('#ed-copy');
     if (cp) cp.addEventListener('change', () => {
       const src = ctx.campaigns().find((c) => c.id === cp.value);
       if (!src) return;
       ed.block = JSON.parse(JSON.stringify(src.custom_block));
+      ed.dirty = true;
       render();
-      $('#ed-msg').textContent = 'Fragen übernommen. Zum Übernehmen noch speichern.';
+      q$('#ed-msg').textContent = 'Fragen übernommen. Zum Übernehmen noch speichern.';
     });
-    $('#ed-save').addEventListener('click', () => save(b));
-    $('#ed-preview-btn').addEventListener('click', () => { ed.preview = !ed.preview; render(); if (ed.preview) $('#ed-preview').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    q$('#ed-save').addEventListener('click', () => save(b));
+    q$('#ed-preview-btn').addEventListener('click', () => { ed.preview = !ed.preview; render(); if (ed.preview) q$('#ed-preview').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     if (b.questions.length || count(ctx.campaigns().find((c) => c.id === ed.id))) {
-      confirmButton($('#ed-remove'), 'Alle eigenen Fragen entfernen', 'Alle eigenen Fragen dieser Erhebung entfernen?', 'Ja, entfernen', () => save(null), 'btn quiet');
+      confirmButton(q$('#ed-remove'), 'Alle eigenen Fragen entfernen', 'Alle eigenen Fragen dieser Erhebung entfernen?', 'Ja, entfernen', () => save(null), 'btn quiet');
     }
   }
 
   async function save(b) {
-    const msg = $('#ed-msg');
+    const msg = box().querySelector('#ed-msg');
     const payload = b ? { ...b, questions: b.questions.map((q) => ({ ...q, options: q.options ? q.options.map((o) => o.trim()).filter(Boolean) : undefined })) } : null;
     try {
       const r = await api('PUT', `leitung/campaigns/${ed.id}/block`, { block: payload });
-      await ctx.reload();
-      if (r.block) {
-        ed.block = JSON.parse(JSON.stringify(r.block));
-        render();
-        $('#ed-msg').className = 'small ok';
-        $('#ed-msg').textContent = 'Gespeichert.';
-      } else close();
+      const id = ed.id;
+      ed.dirty = false;
+      if (ctx.onDirty) ctx.onDirty(false);
+      ed = null; // nach dem Neuladen frisch aus den gespeicherten Daten öffnen
+      await ctx.reload(id, r.block ? `Gespeichert: ${r.block.questions.length} eigene Frage${r.block.questions.length === 1 ? '' : 'n'}.` : 'Eigene Fragen entfernt.');
     } catch (err) { msg.className = 'small error'; msg.textContent = err.message; }
   }
 
-  return { SCALE, TYPE_LABEL, count, section, csv, csvCell, open };
+  return { SCALE, TYPE_LABEL, count, section, csv, csvCell, open, isDirty, currentId, discard };
 })();

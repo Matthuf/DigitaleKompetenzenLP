@@ -61,7 +61,6 @@
     <nav class="tabs" aria-label="Bereiche der Schulleitung">
       <a href="#erhebungen" data-tab="erhebungen">Erhebungen</a>
       <a href="#auswertung" data-tab="auswertung">Auswertung</a>
-      <a href="#fragen" data-tab="fragen">Eigene Fragen</a>
       <a href="#team" data-tab="team" id="tab-team-link">Schulen und Zugänge</a>
     </nav>
 
@@ -70,16 +69,21 @@
         <h2>Erhebungen</h2>
         <p class="muted" id="camp-intro" style="max-width:72ch">Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt. Jede Schule erhält einen eigenen Link. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>
       </div>
+      <div id="start-steps"></div>
       <details class="panel create" id="create-box">
         <summary><b>Neue Erhebung eröffnen</b></summary>
         <form class="stack" id="form-campaign" style="margin-top:16px">
           <div class="field" id="camp-round-field" hidden><label for="camp-round">Runde</label><select id="camp-round"></select>
             <p class="small muted" id="camp-round-hint"></p></div>
-          <div class="field"><label for="camp-title">Titel</label><input type="text" id="camp-title" placeholder="z. B. Herbst 2026" maxlength="80"></div>
+          <div class="two-col" style="gap:20px">
+            <div class="field"><label for="camp-title">Titel</label><input type="text" id="camp-title" placeholder="z. B. Herbst 2026" maxlength="80"></div>
+            <div class="field"><label for="camp-due">Ausfüllen bis <span class="small muted">(freiwillig)</span></label><input type="date" id="camp-due">
+              <p class="small muted">Erscheint in der E-Mail-Vorlage und auf der Startseite der Lehrpersonen. Die Erhebung schliesst nicht automatisch.</p></div>
+          </div>
           <fieldset class="field" id="camp-schools-field" hidden><legend class="small"><b>Beteiligte Schulen</b></legend>
             <div class="check-grid" id="camp-schools"></div>
-            <p class="small muted">Jede Schule erhält einen eigenen Link. So sieht jede Schulleitung die Auswertung ihrer Schule, das Rektorat alle zusammen.</p></fieldset>
-          <div class="field" id="camp-copy-field" hidden><label for="camp-copy">Eigene Fragen</label><select id="camp-copy"></select></div>
+            <p class="small muted">Jede Schule erhält einen eigenen Link. So sieht jede Schulleitung die Auswertung ihrer Schule, das Rektorat alle zusammen. Später erfasste Schulhäuser lassen sich in eine laufende Erhebung aufnehmen.</p></fieldset>
+          <div class="field" id="camp-copy-field" hidden><label for="camp-copy">Eigene Fragen übernehmen</label><select id="camp-copy"></select></div>
           <div class="row"><button class="btn" type="submit">Erhebung eröffnen</button><span class="error small" id="camp-msg" role="alert"></span></div>
         </form>
       </details>
@@ -89,7 +93,7 @@
     <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stack" style="gap:6px"><h2>Auswertung</h2><p class="muted small">Zusammengefasste Werte der Schule. Einzelne Profile sind nicht einsehbar.</p></div>
-        <div class="row">
+        <div class="row" id="an-filters">
           <div class="field"><label for="an-campaign" class="small">Erhebung</label><select id="an-campaign"></select></div>
           <div class="field"><label for="an-compare" class="small">Vergleich mit</label><select id="an-compare"></select></div>
           <div class="field" id="an-school-field" hidden><label for="an-school" class="small">Schule</label><select id="an-school"></select></div>
@@ -99,13 +103,6 @@
       <div id="an-out" class="stack" style="gap:28px"></div>
     </div>
 
-    <div class="tabpanel stack" id="tab-fragen" style="gap:20px" hidden>
-      <div class="row" style="justify-content:space-between;align-items:flex-end">
-        <div class="stack" style="gap:6px"><h2>Eigene Fragen</h2><p class="muted small" style="max-width:72ch">Zusätzliche Fragen, pro Erhebung. Bei Erhebungen des Rektorats legt das Rektorat die Fragen fest. Sie erscheinen am Schluss des Fragebogens und werden getrennt vom Kompetenzprofil ausgewertet.</p></div>
-        <div class="field"><label for="fq-campaign" class="small">Erhebung</label><select id="fq-campaign"></select></div>
-      </div>
-      <div class="stack" style="gap:20px" id="block-editor"></div>
-    </div>
     <div class="tabpanel stack" id="tab-team" style="gap:32px" hidden></div>
   </section>
   <section id="report" class="report" hidden aria-hidden="true"></section>

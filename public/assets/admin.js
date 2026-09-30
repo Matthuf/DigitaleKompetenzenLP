@@ -34,7 +34,7 @@
     const t = $('#tr-table');
     const shown = traeger.filter((x) => !filter || x.name.toLowerCase().includes(filter) || x.schools.some((s) => s.name.toLowerCase().includes(filter)));
     t.innerHTML = !traeger.length ? `<tbody><tr><td class="muted">Noch kein Schulträger erfasst.</td></tr></tbody>` : !shown.length ? `<tbody><tr><td class="muted">Nichts gefunden.</td></tr></tbody>`
-      : `<thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Schulen</th><th scope="col" class="num">Zugänge Rektorat</th><th scope="col" class="num">Zugänge Schulleitung</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"></th></tr></thead>
+      : `<thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Schulen</th><th scope="col" class="num">Zugänge Rektorat</th><th scope="col" class="num">Zugänge Schulleitung</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${shown.map((x) => `<tr><td><b>${esc(x.name)}</b></td><td>${KIND[x.kind]}</td><td class="small">${x.schools.map((s) => esc(s.name)).join(', ') || '–'}</td>
         <td class="num">${x.rektorat}</td><td class="num">${x.schools.reduce((a, s) => a + s.users, 0)}</td><td class="num">${x.campaigns}</td><td class="num">${x.participants}</td>
         <td><button class="btn ${current === x.id ? '' : 'secondary'}" type="button" data-tr="${x.id}">Verwalten</button></td></tr>`).join('')}</tbody>`;
@@ -70,7 +70,7 @@
     });
     $('#user-scope').innerHTML = `<option value="">Schulträger: Rektorat / Hauptschulleitung</option>` + t.schools.map((s) => `<option value="${s.id}">Schulleitung ${esc(s.name)}</option>`).join('');
     const [users, invs] = await Promise.all([api('GET', `admin/traeger/${t.id}/users`), api('GET', `admin/traeger/${t.id}/invitations`)]);
-    $('#user-table').innerHTML = users.length ? `<thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"></th></tr></thead>
+    $('#user-table').innerHTML = users.length ? `<thead><tr><th scope="col">Person</th><th scope="col">Rolle</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b><br><span class="small muted">${esc(u.username)}</span></td>
         <td>${u.role === 'traeger' ? 'Schulträger' : 'Schulleitung ' + esc(u.school_name || '')}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
         <td><div class="row" style="gap:4px"><button class="btn quiet" type="button" data-reset="${u.id}">Link für neues Passwort</button><span class="confirm" data-del="${u.id}"></span></div></td></tr>`).join('')}</tbody>`
@@ -174,7 +174,7 @@
     $('#imp-out').innerHTML = `<div class="box box--success"><b>Import abgeschlossen.</b> ${withLink.length} Einladung${withLink.length === 1 ? '' : 'en'} erstellt. Die Links werden nur jetzt angezeigt: jetzt per E-Mail verschicken oder die Liste für einen Serienbrief speichern. Später lässt sich pro Schulträger ein neuer Link erzeugen.</div>
       <div class="row"><button class="btn" type="button" id="imp-csv">Einladungen als CSV (Serienbrief)</button></div>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Ergebnis Import"><table class="list">
-        <thead><tr><th scope="col">Schulträger</th><th scope="col">Rektorat</th><th scope="col">Ergebnis</th><th scope="col"></th></tr></thead>
+        <thead><tr><th scope="col">Schulträger</th><th scope="col">Rektorat</th><th scope="col">Ergebnis</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
         <tbody>${res.rows.map((r, k) => `<tr><td><b>${esc(r.traeger)}</b></td><td class="small">${esc(r.name || '')}<br>${esc(r.email || '')}</td><td class="small">${esc(r.status)}</td>
           <td>${r.token ? `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-icopy="${k}">Link kopieren</button><a class="btn secondary small" data-imail="${k}" href="#">E-Mail öffnen</a></div>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
     const mailOf = (r) => UI.inviteMail({ token: r.token, expires_at: r.expires_at, name: r.name, roleText: 'Schulträger ' + r.traeger, from: 'Amt für Volksschulen und Sport' });
@@ -194,7 +194,7 @@
   /* ---------- Runden ---------- */
   async function loadRounds() {
     rounds = await api('GET', 'admin/rounds');
-    $('#round-table').innerHTML = rounds.length ? `<thead><tr><th scope="col">Runde</th><th scope="col">Status</th><th scope="col" class="num">Schulen</th><th scope="col" class="num">Abgeschlossen</th><th scope="col">Erfasst</th><th scope="col"></th></tr></thead>
+    $('#round-table').innerHTML = rounds.length ? `<thead><tr><th scope="col">Runde</th><th scope="col">Status</th><th scope="col" class="num">Schulen</th><th scope="col" class="num">Abgeschlossen</th><th scope="col">Erfasst</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${rounds.map((r) => `<tr><td><b>${esc(r.title)}</b></td><td><span class="status ${r.active ? 'open' : 'closed'}">${r.active ? 'wählbar' : 'nicht mehr wählbar'}</span></td>
         <td class="num">${r.schools}</td><td class="num">${r.submitted}</td><td>${date(r.created_at)}</td>
         <td><button class="btn quiet" type="button" data-round="${r.id}" data-active="${r.active ? 1 : 0}">${r.active ? 'Nicht mehr wählbar machen' : 'Wieder wählbar machen'}</button></td></tr>`).join('')}</tbody>`
@@ -250,7 +250,7 @@
     passwort_link_erstellt: 'Passwort-Link erstellt', passwort_link_eingeloest: 'Passwort-Link eingelöst',
     einladung_erstellt: 'Einladung erstellt', einladung_angenommen: 'Einladung angenommen', zugang_geloescht: 'Zugang gelöscht',
     schule_erfasst: 'Schule erfasst', schule_geloescht: 'Schule gelöscht', schultraeger_geloescht: 'Schulträger gelöscht', import: 'Liste importiert',
-    erhebung_eroeffnet: 'Erhebung eröffnet', erhebung_abgeschlossen: 'Erhebung abgeschlossen', erhebung_geoeffnet: 'Erhebung wieder geöffnet',
+    erhebung_eroeffnet: 'Erhebung eröffnet', schule_aufgenommen: 'Schulhaus in Erhebung aufgenommen', erhebung_abgeschlossen: 'Erhebung abgeschlossen', erhebung_geoeffnet: 'Erhebung wieder geöffnet',
     auswertung_angesehen: 'Auswertung angesehen', kantonsauswertung_angesehen: 'Kantonale Auswertung angesehen',
   };
   const ROLE = { admin: 'AVS', traeger: 'Schulträger', leitung: 'Schulleitung' };
