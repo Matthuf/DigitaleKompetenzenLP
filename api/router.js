@@ -404,7 +404,7 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
   let round = null;
   if (body.roundId) {
     round = await one(`select id, title, active from rounds where id = $1`, [body.roundId]);
-    if (!round || !round.active) fail(400, 'Diese Runde ist nicht verfügbar.');
+    if (!round || !round.active) fail(400, 'Diese Vorgabe des AVS ist nicht mehr verfügbar.');
   }
   const title = String(body.title || '').trim().slice(0, 80) || (round ? round.title : '');
   if (!title) fail(400, 'Bitte einen Titel angeben, zum Beispiel «Herbst 2026».');
@@ -421,7 +421,7 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
   if (round) {
     const dup = await q(`select distinct s.name from campaign_links l join campaigns c on c.id = l.campaign_id join schools s on s.id = l.school_id
                           where c.round_id = $1 and l.school_id = any($2)`, [round.id, schoolIds]);
-    if (dup.length) fail(409, `Für die Runde «${round.title}» gibt es bereits eine Erhebung für: ${dup.map((d) => d.name).join(', ')}.`);
+    if (dup.length) fail(409, `«${round.title}» ist bereits eröffnet für: ${dup.map((d) => d.name).join(', ')}.`);
   }
   let block = null;
   if (body.copyBlockFrom) {
@@ -461,7 +461,7 @@ on('POST', 'leitung/campaigns/:id/links', async ({ req, params, body }) => {
   if (await one(`select 1 from campaign_links where campaign_id = $1 and school_id = $2`, [c.id, s.id])) fail(409, `${s.name} ist bereits dabei.`);
   if (c.round_id) {
     const dup = await one(`select 1 from campaign_links l join campaigns x on x.id = l.campaign_id where x.round_id = $1 and l.school_id = $2`, [c.round_id, s.id]);
-    if (dup) fail(409, `${s.name} nimmt in dieser Runde bereits mit einer anderen Erhebung teil.`);
+    if (dup) fail(409, `${s.name} nimmt an «${c.title}» bereits mit einer anderen Erhebung teil.`);
   }
   await q(`insert into campaign_links (id, campaign_id, school_id, token) values ($1,$2,$3,$4)`, [newId(), c.id, s.id, newToken()]);
   await audit(u, 'schule_aufgenommen', c.id, { school: s.name });
@@ -500,11 +500,11 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
     camps = [c]; title = c.title; block = c.custom_block;
   } else if (kind === 'r') {
     const r = await one(`select id, title from rounds where id = $1`, [id]);
-    if (!r) fail(404, 'Runde nicht gefunden.');
+    if (!r) fail(404, 'Erhebung nicht gefunden.');
     camps = await q(`select c.* from campaigns c where c.round_id = $1 and c.traeger_id = $2
                      ${u.role === 'leitung' ? 'and exists (select 1 from campaign_links l where l.campaign_id = c.id and l.school_id = $3)' : ''}`,
       u.role === 'leitung' ? [r.id, u.tid, u.sid] : [r.id, u.tid]);
-    if (!camps.length) fail(404, 'In dieser Runde gibt es noch keine Erhebung.');
+    if (!camps.length) fail(404, 'Dazu gibt es noch keine Erhebung.');
     title = r.title;
   } else fail(400, 'Bitte eine Erhebung wählen.');
   const ids = camps.map((c) => c.id);
@@ -541,7 +541,7 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
     allRows.forEach((r) => { per[r.school_id] = (per[r.school_id] || 0) + 1; });
     if (Object.values(per).some((n) => n < MIN)) {
       return { ...base, n: recs.length, tooFew: true,
-        reason: `Die Runde umfasst mehrere Erhebungen. Eine Gesamtauswertung ist erst möglich, wenn jede beteiligte Schule mindestens ${MIN} abgeschlossene Teilnahmen hat. Die einzelnen Erhebungen lassen sich weiterhin auswerten.` };
+        reason: `«${title}» umfasst hier mehrere Erhebungen, zum Beispiel von Schulleitungen eröffnete. Eine gemeinsame Auswertung ist erst möglich, wenn jede beteiligte Schule mindestens ${MIN} abgeschlossene Teilnahmen hat. Die einzelnen Erhebungen lassen sich weiterhin auswerten.` };
     }
   }
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
@@ -813,12 +813,7 @@ on('POST', 'admin/import', async ({ req, body }) => {
     let created = false;
     if (!t) { t = { id: newId(), kind }; await q(`insert into traeger (id, name, kind) values ($1,$2,$3)`, [t.id, name, kind]); created = true; }
     else if (t.kind !== kind) await q(`update traeger set kind = $1 where id = $2`, [kind, t.id]);
-    const schools = (Array.isArray(r.schools) ? r.schools : []).map((x) => String(x || '').trim().slice(0, 120)).filter(Boolean);
-    if (!schools.length && created) schools.push(name);
-    let added = 0;
-    for (const sn of schools) {
-      if (!(await one(`select 1 from schools where traeger_id = $1 and lower(name) = lower($2)`, [t.id, sn]))) { await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [newId(), sn, t.id]); added++; }
-    }
+    // Schulhäuser gibt das AVS nicht vor: Sie erfasst das Rektorat bzw. die Hauptschulleitung nach der Anmeldung
     const email = cleanEmail(r.email);
     let invite = null, status = created ? 'neu erfasst' : 'bereits vorhanden';
     if (email) {
@@ -830,7 +825,6 @@ on('POST', 'admin/import', async ({ req, body }) => {
         status += pending ? ', Einladung erneuert' : ', Einladung erstellt';
       }
     } else status += ', keine gültige E-Mail';
-    if (added) status += `, ${added} Schule${added === 1 ? '' : 'n'} ergänzt`;
     out.push({ traeger: name, kind, name: r.name || '', email, status, token: invite ? invite.token : null, expires_at: invite ? invite.expires_at : null });
   }
   await audit(s, 'import', null, { rows: out.length });
@@ -881,8 +875,8 @@ on('POST', 'admin/traeger', async ({ req, body }) => {
   const kind = parseKind(body.kind);
   const id = newId();
   await q(`insert into traeger (id, name, kind) values ($1,$2,$3)`, [id, name, kind]);
-  // Ein erstes Schulhaus mit gleichem Namen, damit kleine Träger sofort starten können
-  if (body.firstSchool !== false) await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [newId(), String(body.schoolName || name).trim().slice(0, 120), id]);
+  // Schulhäuser erfasst das Rektorat bzw. die Hauptschulleitung selbst. Nur für Unterstützung/Tests: schoolName legt ein erstes an.
+  if (body.schoolName) await q(`insert into schools (id, name, traeger_id) values ($1,$2,$3)`, [newId(), String(body.schoolName).trim().slice(0, 120), id]);
   return { id };
 });
 on('PATCH', 'admin/traeger/:id', async ({ req, params, body }) => {
@@ -949,7 +943,7 @@ on('GET', 'admin/rounds', async ({ req }) => {
 on('POST', 'admin/rounds', async ({ req, body }) => {
   await staff(req, 'admin');
   const title = String(body.title || '').trim().slice(0, 80);
-  if (!title) fail(400, 'Bitte einen Titel angeben, z. B. «Erste Runde 2026/27».');
+  if (!title) fail(400, 'Bitte einen Titel angeben, z. B. «Erhebung ICT Kompetenzen Lehrpersonen Schwyz».');
   const id = newId();
   await q(`insert into rounds (id, title) values ($1,$2)`, [id, title]);
   return { id };
@@ -969,7 +963,7 @@ on('GET', 'admin/aggregate', async ({ req, query }) => {
   const s = await staff(req, 'admin');
   const round = String(query.round || '');
   // Nur pro Runde: Vergleiche zwischen überlappenden Auswahlen könnten sonst kleine Gruppen offenlegen
-  if (!round) fail(400, 'Bitte eine Runde wählen.');
+  if (!round) fail(400, 'Bitte eine Erhebung wählen.');
   const zyklus = String(query.zyklus || '');
   const rows = await q(`select distinct on (r.participant_id) r.context, r.answers, r.school_id, c.traeger_id
                           from responses r join campaigns c on c.id = r.campaign_id
@@ -1007,7 +1001,7 @@ on('GET', 'admin/audit', async ({ req, query }) => {
   const names = {};
   if (ids.length) {
     (await q(`select c.id, c.title || ' (' || t.name || ')' as name from campaigns c join traeger t on t.id = c.traeger_id where c.id = any($1)
-              union all select id, 'Runde ' || title from rounds where id = any($1)
+              union all select id, 'Vorgabe AVS: ' || title from rounds where id = any($1)
               union all select s.id, s.name || ' (' || t.name || ')' from schools s join traeger t on t.id = s.traeger_id where s.id = any($1)
               union all select id, name from traeger where id = any($1)
               union all select id, username from users where id = any($1)`, [ids])).forEach((x) => { names[x.id] = x.name; });

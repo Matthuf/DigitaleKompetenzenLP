@@ -61,7 +61,7 @@
     <nav class="tabs" aria-label="Bereiche der AVS-Verwaltung">
       <a href="#traeger" data-tab="traeger">Schulträger und Zugänge</a>
       <a href="#import" data-tab="import">Liste importieren</a>
-      <a href="#runden" data-tab="runden">Runden</a>
+      <a href="#runden" data-tab="runden">Vorgabe AVS</a>
       <a href="#auswertung" data-tab="auswertung">Kantonale Auswertung</a>
       <a href="#protokoll" data-tab="protokoll">Protokoll</a>
     </nav>
@@ -71,7 +71,7 @@
         <div class="row" style="justify-content:space-between;align-items:flex-end">
           <div class="stack" style="gap:6px">
             <h2>Schulträger</h2>
-            <p class="muted small" style="max-width:72ch">Gemeinden führen die Primarstufe (Zyklus 1 und 2), Bezirke die Sekundarstufe (Zyklus 3); Einsiedeln, Küssnacht und Gersau beide. Die Stufe bestimmt die Zyklen neuer Schulhäuser; pro Schulhaus lassen sie sich anpassen. Jeder Träger hat eine oder mehrere Schulen bzw. Schulhäuser. Zugänge gibt es für das Rektorat bzw. die Hauptschulleitung (ganzer Träger) und für die Schulleitungen (eine Schule).</p>
+            <p class="muted small" style="max-width:72ch">Gemeinden führen die Primarstufe (Zyklus 1 und 2), Bezirke die Sekundarstufe (Zyklus 3); Einsiedeln, Küssnacht und Gersau beide. Die Stufe bestimmt die Zyklen neuer Schulhäuser; pro Schulhaus lassen sie sich anpassen. Jeder Träger hat eine oder mehrere Schulen bzw. Schulhäuser; diese erfasst das Rektorat bzw. die Hauptschulleitung selbst (hier nur bei Bedarf). Zugänge gibt es für das Rektorat bzw. die Hauptschulleitung (ganzer Träger) und für die Schulleitungen (eine Schule).</p>
           </div>
           <form class="row" id="form-traeger" style="align-items:flex-end">
             <div class="field"><label for="tr-new" class="small">Neuer Schulträger</label><input type="text" id="tr-new" placeholder="z. B. Gemeinde Musterdorf" style="width:240px"></div>
@@ -120,10 +120,10 @@
 
     <div class="tabpanel stack" id="tab-import" style="gap:20px" hidden>
       <div class="stack" style="gap:6px"><h2>Liste importieren</h2>
-        <p class="muted small" style="max-width:76ch">Die Liste der Schulträger mit Rektorat bzw. Hauptschulleitung einfügen. Daraus entstehen die Schulträger, ihre Schulhäuser und je ein Einladungslink. Bereits vorhandene Träger werden ergänzt, nicht doppelt angelegt. Der Import lässt sich wiederholen, zum Beispiel für neue Rektorate.</p></div>
-      <div class="box box--info small"><b>Spalten in dieser Reihenfolge:</b> Schulträger · Stufe (Primar, Sek oder «beide») · Name Rektorat/Hauptschulleitung · E-Mail · Schulhäuser (freiwillig, mehrere mit Komma getrennt).
+        <p class="muted small" style="max-width:76ch">Die Liste der Schulträger mit Rektorat bzw. Hauptschulleitung einfügen. Daraus entstehen die Schulträger und je ein Einladungslink. Die Schulhäuser erfasst das Rektorat bzw. die Hauptschulleitung nach der Anmeldung selbst. Bereits vorhandene Träger werden ergänzt, nicht doppelt angelegt. Der Import lässt sich wiederholen, zum Beispiel für neue Rektorate.</p></div>
+      <div class="box box--info small"><b>Spalten in dieser Reihenfolge:</b> Schulträger · Stufe (Primar, Sek oder «beide») · Name Rektorat/Hauptschulleitung · E-Mail.
         Am einfachsten die Zeilen in Excel markieren, kopieren und unten einfügen. Eine Titelzeile wird erkannt und übersprungen. <button class="btn quiet small" type="button" id="imp-template">Vorlage als CSV herunterladen</button></div>
-      <div class="field"><label for="imp-text">Liste einfügen</label><textarea id="imp-text" class="import-area" spellcheck="false" placeholder="Bezirk March&#9;Bezirk&#9;Maria Muster&#9;rektorat@bezirk-march.ch&#9;Schulhaus Lachen, Schulhaus Siebnen"></textarea></div>
+      <div class="field"><label for="imp-text">Liste einfügen</label><textarea id="imp-text" class="import-area" spellcheck="false" placeholder="Bezirk March&#9;Sek&#9;Maria Muster&#9;rektorat@bezirk-march.ch"></textarea></div>
       <div class="row"><label class="btn secondary" for="imp-file">CSV-Datei wählen</label><input type="file" id="imp-file" accept=".csv,.txt,text/csv" hidden>
         <button class="btn secondary" type="button" id="imp-preview">Vorschau</button><span class="error small" id="imp-msg" role="alert"></span></div>
       <div id="imp-out" class="stack" style="gap:14px"></div>
@@ -131,15 +131,15 @@
 
     <div class="tabpanel stack" id="tab-runden" style="gap:20px" hidden>
       <div class="row" style="justify-content:space-between;align-items:flex-end">
-        <div class="stack" style="gap:6px"><h2>Runden</h2>
-          <p class="muted small" style="max-width:72ch">Eine Runde bündelt die Erhebungen aller Schulen im gleichen Zeitraum, zum Beispiel die erste kantonale Runde. Schulen wählen sie beim Eröffnen einer Erhebung aus. Weitere Erhebungen legen die Schulen selbst fest. Die kantonale Auswertung lässt sich pro Runde filtern.</p></div>
+        <div class="stack" style="gap:6px"><h2>Vorgegebene Erhebung</h2>
+          <p class="muted small" style="max-width:72ch">Die Erhebung, die das AVS allen Schulträgern vorgibt. Rektorate und Hauptschulleitungen finden sie beim Eröffnen einer Erhebung vorausgewählt; jedes Schulhaus nimmt einmal teil. Zusätzliche Erhebungen legen die Schulen selbst fest. Die kantonale Auswertung bezieht sich immer auf eine vorgegebene Erhebung.</p></div>
         <form class="row" id="form-round" style="align-items:flex-end">
-          <div class="field"><label for="round-new" class="small">Neue Runde</label><input type="text" id="round-new" placeholder="z. B. Erste Runde 2026/27" style="width:240px"></div>
+          <div class="field"><label for="round-new" class="small">Neue Vorgabe</label><input type="text" id="round-new" placeholder="z. B. Erhebung ICT Kompetenzen Lehrpersonen Schwyz" style="width:340px"></div>
           <button class="btn" type="submit">Erfassen</button>
         </form>
       </div>
       <p class="error small" id="round-msg" role="alert"></p>
-      <div class="table-scroll" tabindex="0" role="region" aria-label="Runden"><table class="list" id="round-table"></table></div>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Vorgegebene Erhebungen"><table class="list" id="round-table"></table></div>
     </div>
 
     <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
@@ -147,7 +147,7 @@
         <div class="stack" style="gap:6px"><h2>Kantonale Auswertung</h2>
           <p class="muted small" style="max-width:72ch">Alle abgeschlossenen Selbsteinschätzungen des Kantons zusammen. Ohne Angaben zu Schulen oder Schulträgern, ohne eigene Fragen der Schulen und ohne Freitexte. Ausgewertet wird immer eine Runde; jede Lehrperson zählt darin einmal.</p></div>
         <div class="row">
-          <div class="field"><label for="k-round" class="small">Runde</label><select id="k-round"></select></div>
+          <div class="field"><label for="k-round" class="small">Erhebung</label><select id="k-round"></select></div>
           <div class="field"><label for="k-zyklus" class="small">Zyklus</label><select id="k-zyklus"></select></div>
         </div>
       </div>

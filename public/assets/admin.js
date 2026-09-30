@@ -1,4 +1,4 @@
-// AVS-Verwaltung: Schulträger, Schulen und Zugänge, Runden sowie die kantonale Auswertung ohne Schulbezug.
+// AVS-Verwaltung: Schulträger, Schulen und Zugänge, vorgegebene Erhebung sowie die kantonale Auswertung ohne Schulbezug.
 (function () {
   'use strict';
   const { $, $$, esc, date, api, confirmButton, copyText } = UI;
@@ -147,8 +147,7 @@
     const rows = lines.map(split);
     if (/träger|traeger/i.test(rows[0][0] || '')) rows.shift();
     return rows.filter((r) => r[0]).map((r) => ({
-      traeger: r[0], kind: parseKind(r[1]), name: r[2] || '', email: r[3] || '',
-      schools: (r[4] || '').split(delim === ',' ? /[;|]/ : /[,;|]/).map((x) => x.trim()).filter(Boolean),
+      traeger: r[0], kind: parseKind(r[1]), name: r[2] || '', email: r[3] || '', // weitere Spalten (z. B. alte Spalte Schulhäuser) werden ignoriert
     }));
   }
   const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -159,8 +158,8 @@
     const known = new Set(traeger.map((t) => t.name.toLowerCase()));
     $('#imp-out').innerHTML = `<h3>Vorschau: ${parsed.length} Schulträger</h3>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Vorschau Import"><table class="list">
-        <thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Rektorat/ Hauptschulleitung</th><th scope="col">E-Mail</th><th scope="col">Schulhäuser</th><th scope="col">Hinweis</th></tr></thead>
-        <tbody>${parsed.map((r) => `<tr><td><b>${esc(r.traeger)}</b></td><td>${KIND[r.kind]}</td><td>${esc(r.name)}</td><td class="small">${esc(r.email)}</td><td class="small">${esc(r.schools.join(', ') || '–')}</td>
+        <thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Rektorat/ Hauptschulleitung</th><th scope="col">E-Mail</th><th scope="col">Hinweis</th></tr></thead>
+        <tbody>${parsed.map((r) => `<tr><td><b>${esc(r.traeger)}</b></td><td>${KIND[r.kind]}</td><td>${esc(r.name)}</td><td class="small">${esc(r.email)}</td>
           <td class="small">${[known.has(r.traeger.toLowerCase()) ? 'bereits vorhanden, wird ergänzt' : '', validEmail(r.email) ? '' : '<b>keine gültige E-Mail, keine Einladung</b>'].filter(Boolean).join(' · ') || 'neu'}</td></tr>`).join('')}</tbody></table></div>
       <div class="row"><button class="btn" type="button" id="imp-run">${parsed.length} Schulträger importieren und Einladungen erstellen</button></div>`;
     $('#imp-run').addEventListener('click', runImport);
@@ -190,17 +189,27 @@
   }
   $('#imp-preview').addEventListener('click', preview);
   $('#imp-file').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; $('#imp-text').value = await f.text(); e.target.value = ''; preview(); });
-  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat/Hauptschulleitung;E-Mail;Schulhäuser\r\nGemeinde Musterdorf;Primar;Maria Muster;rektorat@musterdorf.ch;Schulhaus Dorf, Schulhaus Berg\r\nBezirk Muster;Sek;Hans Beispiel;hauptschulleitung@bezirk-muster.ch;Schulhaus Nord, Schulhaus Süd\r\nBezirk Beispiel;beide;Eva Beispiel;rektorat@bezirk-beispiel.ch;Schulhaus Dorf, Oberstufenzentrum\r\n', 'text/csv;charset=utf-8'));
+  $('#imp-template').addEventListener('click', () => UI.download('Vorlage_Schultraeger.csv', '﻿' + 'Schulträger;Stufe;Name Rektorat/Hauptschulleitung;E-Mail\r\nGemeinde Musterdorf;Primar;Maria Muster;rektorat@musterdorf.ch\r\nBezirk Muster;Sek;Hans Beispiel;hauptschulleitung@bezirk-muster.ch\r\nBezirk Beispiel;beide;Eva Beispiel;rektorat@bezirk-beispiel.ch\r\n', 'text/csv;charset=utf-8'));
 
-  /* ---------- Runden ---------- */
+  /* ---------- Vorgegebene Erhebung (technisch: «round») ---------- */
   async function loadRounds() {
     rounds = await api('GET', 'admin/rounds');
-    $('#round-table').innerHTML = rounds.length ? `<thead><tr><th scope="col">Runde</th><th scope="col">Status</th><th scope="col" class="num">Schulen</th><th scope="col" class="num">Abgeschlossen</th><th scope="col">Erfasst</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
+    $('#round-table').innerHTML = rounds.length ? `<thead><tr><th scope="col">Erhebung</th><th scope="col">Status</th><th scope="col" class="num">Schulen</th><th scope="col" class="num">Abgeschlossen</th><th scope="col">Erfasst</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${rounds.map((r) => `<tr><td><b>${esc(r.title)}</b></td><td><span class="status ${r.active ? 'open' : 'closed'}">${r.active ? 'wählbar' : 'nicht mehr wählbar'}</span></td>
         <td class="num">${r.schools}</td><td class="num">${r.submitted}</td><td>${date(r.created_at)}</td>
-        <td><button class="btn quiet" type="button" data-round="${r.id}" data-active="${r.active ? 1 : 0}">${r.active ? 'Nicht mehr wählbar machen' : 'Wieder wählbar machen'}</button></td></tr>`).join('')}</tbody>`
-      : `<tbody><tr><td class="muted">Noch keine Runde. Die erste kantonale Runde hier erfassen.</td></tr></tbody>`;
+        <td><div class="row" style="gap:6px"><button class="btn quiet" type="button" data-rtitle="${r.id}">Umbenennen</button><button class="btn quiet" type="button" data-round="${r.id}" data-active="${r.active ? 1 : 0}">${r.active ? 'Nicht mehr wählbar machen' : 'Wieder wählbar machen'}</button></div></td></tr>`).join('')}</tbody>`
+      : `<tbody><tr><td class="muted">Noch keine Vorgabe. Die Erhebung für alle Schulträger hier erfassen.</td></tr></tbody>`;
     $$('[data-round]').forEach((b) => b.addEventListener('click', async () => { await api('PATCH', `admin/rounds/${b.dataset.round}`, { active: b.dataset.active !== '1' }); loadRounds(); }));
+    $$('[data-rtitle]').forEach((b) => b.addEventListener('click', () => {
+      const r = rounds.find((x) => x.id === b.dataset.rtitle);
+      const td = b.closest('tr').firstElementChild;
+      td.innerHTML = `<span class="inline-edit"><label class="sr-only" for="rt-${r.id}">Neuer Titel</label><input type="text" id="rt-${r.id}" value="${esc(r.title)}" style="width:320px"><button class="btn secondary small" type="button">Speichern</button><span class="error small"></span></span>`;
+      td.querySelector('input').focus();
+      td.querySelector('button').addEventListener('click', async () => {
+        try { await api('PATCH', `admin/rounds/${r.id}`, { title: td.querySelector('input').value }); loadRounds(); }
+        catch (err) { td.querySelector('.error').textContent = err.message; }
+      });
+    }));
   }
   $('#form-round').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -213,7 +222,7 @@
   const k = { round: null, zyklus: '' };
   async function openKanton() {
     rounds = await api('GET', 'admin/rounds');
-    if (!rounds.length) { $('#k-round').innerHTML = ''; $('#k-out').innerHTML = '<div class="box box--info">Noch keine Runde erfasst. Die kantonale Auswertung erfolgt pro Runde (Reiter «Runden»).</div>'; return; }
+    if (!rounds.length) { $('#k-round').innerHTML = ''; $('#k-out').innerHTML = '<div class="box box--info">Noch keine vorgegebene Erhebung erfasst (Reiter «Vorgabe AVS»). Die kantonale Auswertung bezieht sich immer auf eine vorgegebene Erhebung.</div>'; return; }
     if (!k.round || !rounds.some((r) => r.id === k.round)) k.round = rounds[rounds.length - 1].id;
     $('#k-round').innerHTML = rounds.map((r) => `<option value="${r.id}" ${r.id === k.round ? 'selected' : ''}>${esc(r.title)}</option>`).join('');
     loadKanton();

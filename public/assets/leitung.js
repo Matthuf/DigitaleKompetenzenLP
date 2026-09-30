@@ -52,7 +52,7 @@
   });
   window.addEventListener('beforeunload', (e) => { if (Block.isDirty()) { e.preventDefault(); e.returnValue = ''; } });
 
-  // Reihenfolge: offene vor geschlossenen, kantonale Runde zuerst, dann neueste
+  // Reihenfolge: offene vor geschlossenen, Vorgabe des AVS zuerst, dann neueste
   function sortCampaigns(list) {
     return list.slice().sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1)
       || (a.round_id ? 0 : 1) - (b.round_id ? 0 : 1) || String(b.created_at).localeCompare(String(a.created_at)));
@@ -110,7 +110,7 @@
     const missing = missingSchools(c);
     const qState = !c.manageable ? 'legt Rektorat/Hauptschulleitung fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
     return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
-      <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Kantonale Runde</span>` : ''}</span>
+      <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Vorgabe AVS</span>` : ''}</span>
         <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
       <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)} ${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
       ${isRektorat() && c.links.length > 1 ? `<p class="small"><b>Total ${c.submitted}</b> abgeschlossen, ${c.drafts} in Bearbeitung · ${c.links.length} Schulen</p>` : ''}
@@ -128,23 +128,38 @@
     </article>`;
   }
 
+  // Erste Schritte (Rektorat ohne Erhebung): Ziel, drei Schritte, was danach passiert
   async function renderSteps() {
     const box = $('#start-steps');
     if (campaigns.length || !isRektorat()) { box.innerHTML = ''; return; }
     let t = null;
     try { t = await api('GET', 'leitung/team'); } catch { /* ohne Zahlen weiter */ }
-    const others = t ? t.users.filter((u) => !u.self).length : 0;
-    const inv = t ? t.invites.length : 0;
+    const n = ctx.schools.length;
+    const withLead = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
+    const vorgabe = ctx.rounds.find((r) => r.active);
+    const minTxt = ctx.min === 1 ? 'ab der ersten abgeschlossenen Teilnahme' : `ab ${ctx.min === 5 ? 'fünf' : ctx.min} abgeschlossenen Teilnahmen`;
     box.innerHTML = `<section class="panel first-steps stack" style="gap:14px" aria-labelledby="h-steps">
-      <h3 id="h-steps">Erste Schritte</h3>
+      <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3><p class="small muted">So kommt Ihr Kollegium zur Selbsteinschätzung.</p></div>
       <ol class="steps">
-        <li><div><b>Schulhäuser und Zyklen prüfen</b>
-          <span class="st">${ctx.schools.length} Schulhaus${ctx.schools.length === 1 ? '' : 'häuser'} erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}. Jedes Schulhaus erhält einen eigenen Link; die Zyklen bestimmen, was Lehrpersonen auswählen können. <a href="#team">Schulen und Zugänge</a></span></div></li>
-        <li><div><b>Schulleitungen einladen</b> <span class="small muted">(freiwillig)</span>
-          <span class="st">Schulleitungen sehen die Auswertung ihres Schulhauses und können den Link selbst verteilen. ${t ? `Bisher: ${others ? others + ' weitere' + (others === 1 ? 'r Zugang' : ' Zugänge') : 'noch keine weiteren Zugänge'}${inv ? `, ${inv} offene Einladung${inv === 1 ? '' : 'en'}` : ''}.` : ''} <a href="#team">Beim Schulhaus einladen</a></span></div></li>
+        <li><div><b>Schulhäuser erfassen</b>
+          <span class="st">${n ? `Erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}.` : 'Noch kein Schulhaus erfasst.'} Jedes Schulhaus erhält einen eigenen Link. Die Zyklen lassen sich unter <a href="#team">Schulen und Zugänge</a> anpassen.</span>
+          <form class="row" id="steps-school" style="margin-top:10px;align-items:flex-end">
+            <div class="field"><label for="steps-school-name" class="small">${n ? 'Weiteres Schulhaus' : 'Erstes Schulhaus'}</label><input type="text" id="steps-school-name" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
+            <button class="btn ${n ? 'secondary' : ''}" type="submit">Hinzufügen</button><span class="error small" role="alert"></span></form></div></li>
+        <li><div><b>Schulleitungen einladen</b> <span class="small muted">(empfohlen)</span>
+          <span class="st">Mit eigenem Zugang geben die Schulleitungen den Link an ihr Kollegium weiter und sehen die Auswertung ihres Schulhauses.${n && t ? ` Bisher: ${withLead} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}.` : ''} <a href="#team">Schulleitungen einladen</a></span></div></li>
         <li><div><b>Erhebung eröffnen</b>
-          <span class="st">Im Formular unten die kantonale Runde wählen und die Links ans Kollegium weitergeben.</span></div></li>
-      </ol></section>`;
+          <span class="st">Unten «Neue Erhebung eröffnen» wählen.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft dem Kollegium.</span></div></li>
+      </ol>
+      <p class="small"><b>Danach:</b> Die Links erscheinen hier bei der Erhebung. Schulleitungen mit Zugang finden sie nach dem Anmelden, für die übrigen Schulhäuser geben Sie den Link selbst weiter. Die Auswertung erscheint ${minTxt}.</p>
+    </section>`;
+    const f = $('#steps-school');
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = $('#steps-school-name').value;
+      try { await api('POST', 'leitung/schools', { name }); await refreshCtx(); $('#steps-school-name').focus(); }
+      catch (err) { f.querySelector('.error').textContent = err.message; }
+    });
   }
 
   function renderCampaigns() {
@@ -382,8 +397,8 @@ ${signature()}`;
   }
 
   /* Formular «Neue Erhebung»
-   * Runden, an denen alle Schulen schon teilnehmen, werden nicht vorgewählt; Schulen, die in der gewählten
-   * Runde schon teilnehmen, sind ausgegraut. So entsteht der Fehler «bereits vorhanden» gar nicht erst. */
+   * Die Vorgabe des AVS ist vorgewählt, solange noch ein Schulhaus fehlt; Schulhäuser, die daran schon
+   * teilnehmen, sind ausgegraut. So entsteht der Fehler «bereits eröffnet» gar nicht erst. */
   let formBuilt = false;
   function fillCreateForm() {
     if (formBuilt && $('#create-box').open) return; // offenes Formular nicht unter den Händen neu aufbauen
@@ -394,17 +409,20 @@ ${signature()}`;
     $('#camp-round-field').hidden = !active.length;
     $('#camp-round').innerHTML = active.map((r) => {
       const f = free(r);
-      return `<option value="${r.id}" ${f ? '' : 'disabled'}>Kantonale Runde: ${esc(r.title)}${f ? '' : isRektorat() ? ' (alle Schulhäuser nehmen bereits teil)' : ' (Ihre Schule nimmt bereits teil)'}</option>`;
-    }).join('') + `<option value="">Eigene Erhebung ${isRektorat() ? 'des Schulträgers' : 'der Schule'} (ohne Runde)</option>`;
+      return `<option value="${r.id}" ${f ? '' : 'disabled'}>${esc(r.title)} (Vorgabe AVS)${f ? '' : isRektorat() ? ' – alle Schulhäuser nehmen bereits teil' : ' – Ihr Schulhaus nimmt bereits teil'}</option>`;
+    }).join('') + `<option value="">Eigene, zusätzliche Erhebung</option>`;
     const first = active.find((r) => free(r));
     $('#camp-round').value = first ? first.id : '';
-    if (isRektorat()) {
+    const noSchool = isRektorat() && !ctx.schools.length;
+    $('#form-campaign button[type=submit]').disabled = noSchool;
+    if (noSchool) $('#camp-schools').innerHTML = '<p class="small"><b>Zuerst ein Schulhaus erfassen</b> (oben unter «Erste Schritte»).</p>';
+    else if (isRektorat()) {
       $('#camp-schools').innerHTML = ctx.schools.map((s) => `<label class="check small"><input type="checkbox" value="${s.id}" checked><span>${esc(s.name)}<span class="muted" data-inround hidden> · nimmt bereits teil</span></span></label>`).join('');
     }
     const syncRound = () => {
       const r = active.find((x) => x.id === $('#camp-round').value);
       $('#camp-title').placeholder = r ? r.title : 'z. B. Herbst 2026';
-      $('#camp-round-hint').textContent = r ? 'Vom AVS vorgegeben. Pro Runde nimmt jede Schule einmal teil. Der Titel ist freiwillig.' : 'Weitere Erhebungen legt die Schule selbst fest, zum Beispiel ein Jahr später zum Vergleich.';
+      $('#camp-round-hint').textContent = r ? 'Vom AVS vorgegeben. Jedes Schulhaus nimmt einmal teil. Der Titel ist freiwillig.' : 'Zusätzlich zur Vorgabe des AVS, zum Beispiel ein Jahr später zum Vergleich.';
       const used = r ? schoolsInRound(r.id) : new Set();
       $$('#camp-schools input').forEach((i) => {
         const u = used.has(i.value);
@@ -426,7 +444,7 @@ ${signature()}`;
   function sourcesList() {
     const list = campaigns.map((c) => ({ value: 'c:' + c.id, label: c.title + (c.status === 'closed' ? ' (geschlossen)' : '') }));
     if (isRektorat()) {
-      // Runde als Ganzes: nur sinnvoll, wenn Schulen die Runde in mehreren Erhebungen durchführen
+      // Vorgabe des AVS als Ganzes: nur sinnvoll, wenn die Schulhäuser daran in mehreren Erhebungen teilnehmen
       ctx.rounds.forEach((r) => {
         const n = campaigns.filter((c) => c.round_id === r.id).length;
         if (n > 1) list.unshift({ value: 'r:' + r.id, label: `${r.title}: alle Schulen (${n} Erhebungen)` });

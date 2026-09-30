@@ -9,12 +9,12 @@ export default async function (B) {
     { traeger: 'Bezirk Höfe', kind: 'sek', name: 'Rita Rektorin', email: 'rektorat@hoefe.ch', schools: ['Schulhaus Pfäffikon', 'Schulhaus Wollerau'] },
     { traeger: 'Gemeinde Illgau', kind: 'primar', name: 'Ivo Illgau', email: 'kein-mail', schools: [] },
   ] });
-  ok(imp.rows[0].token && imp.rows[0].status.includes('Einladung erstellt') && imp.rows[0].status.includes('2 Schulen'), 'Import: Träger, 2 Schulen, Einladung');
+  ok(imp.rows[0].token && imp.rows[0].status.includes('Einladung erstellt') && !/Schule/.test(imp.rows[0].status), 'Import: Träger und Einladung, keine Schulhäuser');
   ok(!imp.rows[1].token && imp.rows[1].status.includes('keine gültige E-Mail'), 'Import: ohne gültige Mail keine Einladung');
   const imp2 = await ad('POST', 'admin/import', { rows: [{ traeger: 'bezirk höfe', kind: 'sek', name: 'Rita Rektorin', email: 'rektorat@hoefe.ch', schools: ['Schulhaus Wollerau', 'Schulhaus Freienbach'] }] });
-  ok(imp2.rows[0].status.includes('bereits vorhanden') && imp2.rows[0].status.includes('erneuert') && imp2.rows[0].status.includes('1 Schule'), 'Import wiederholt: kein Duplikat, Einladung erneuert, 1 Schule ergänzt');
+  ok(imp2.rows[0].status.includes('bereits vorhanden') && imp2.rows[0].status.includes('erneuert'), 'Import wiederholt: kein Duplikat, Einladung erneuert');
   const tr = (await ad('GET', 'admin/traeger')).find((t) => t.name === 'Bezirk Höfe');
-  ok(tr.schools.length === 3, 'Bezirk Höfe hat 3 Schulen');
+  ok(tr.schools.length === 0, 'AVS gibt keine Schulhäuser vor');
   const pub = client(B);
   await expectErr(pub('GET', 'invite/' + imp.rows[0].token), 404, 'Alter Link nach Erneuerung ungültig');
   const tok = imp2.rows[0].token;
@@ -25,8 +25,10 @@ export default async function (B) {
   const acc = await rek('POST', 'invite/' + tok, { username: 'rita.rektorin', password: 'sicheres-pw-2026', display_name: 'Rita Rektorin' });
   ok(acc.role === 'traeger', 'Einladung angenommen, angemeldet als Träger');
   await expectErr(pub('POST', 'invite/' + tok, { username: 'x2', password: 'sicheres-pw-2026' }), 410, 'Link nur einmal gültig');
+  await expectErr(rek('POST', 'leitung/campaigns', { title: 'Zu früh' }), 400, 'Ohne Schulhaus keine Erhebung');
+  for (const n of ['Schulhaus Pfäffikon', 'Schulhaus Wollerau', 'Schulhaus Freienbach']) await rek('POST', 'leitung/schools', { name: n });
   let team = await rek('GET', 'leitung/team');
-  ok(team.schools.length === 3 && team.users.length === 1 && team.users[0].self, 'Team: 3 Schulen, eigener Zugang');
+  ok(team.schools.length === 3 && team.schools.every((s) => s.zyklen.join() === 'Zyklus 3') && team.users.length === 1 && team.users[0].self, 'Rektorat erfasst Schulhäuser (Zyklus nach Stufe), eigener Zugang');
   // Rektorat erfasst Schulhaus, lädt SL und Stellvertretung ein
   await rek('POST', 'leitung/schools', { name: 'Schulhaus Bäch' });
   team = await rek('GET', 'leitung/team');

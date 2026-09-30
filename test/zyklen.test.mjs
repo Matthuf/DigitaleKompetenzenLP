@@ -4,10 +4,11 @@ import { client, checker, adminClient, invitedClient, teacher } from './lib.mjs'
 export default async function (B) {
   const { ok, expectErr, res } = checker('Zyklen');
   const ad = await adminClient(B);
-  const imp = await ad('POST', 'admin/import', { rows: [{ traeger: 'Bezirk Einsiedeln', kind: 'gesamt', name: 'Eva', email: 'eva@einsiedeln.ch', schools: ['Schulhaus Nordstrasse', 'Oberstufenzentrum'] }] });
-  const t = (await ad('GET', 'admin/traeger')).find((x) => x.name === 'Bezirk Einsiedeln');
-  ok(t.kind === 'gesamt' && t.schools.every((s) => s.zyklen.length === 3), 'Träger «gesamt»: Schulhäuser standardmässig Zyklus 1–3');
+  const imp = await ad('POST', 'admin/import', { rows: [{ traeger: 'Bezirk Einsiedeln', kind: 'gesamt', name: 'Eva', email: 'eva@einsiedeln.ch' }] });
   const rek = client(B); await rek('POST', 'invite/' + imp.rows[0].token, { username: 'eva.e', password: 'sicheres-pw-2026' });
+  for (const n of ['Schulhaus Nordstrasse', 'Oberstufenzentrum']) await rek('POST', 'leitung/schools', { name: n });
+  const t = (await ad('GET', 'admin/traeger')).find((x) => x.name === 'Bezirk Einsiedeln');
+  ok(t.kind === 'gesamt' && t.schools.length === 2 && t.schools.every((s) => s.zyklen.length === 3), 'Träger «gesamt»: Schulhäuser standardmässig Zyklus 1–3');
   let team = await rek('GET', 'leitung/team');
   const obz = team.schools.find((s) => s.name === 'Oberstufenzentrum'), nord = team.schools.find((s) => s.name === 'Schulhaus Nordstrasse');
   await rek('PATCH', 'leitung/schools/' + obz.id, { zyklen: ['Zyklus 3'] });
@@ -34,7 +35,8 @@ export default async function (B) {
   await ad('PATCH', 'admin/schools/' + nord.id, { zyklen: ['Zyklus 1'] });
   ok((await pub('GET', 'c/' + tok['Schulhaus Nordstrasse'])).school.zyklen.join() === 'Zyklus 1', 'AVS setzt Zyklen');
   // bestehende Primar/Sek-Träger unverändert
-  const imp2 = await ad('POST', 'admin/import', { rows: [{ traeger: 'Gemeinde X', kind: 'primar', name: 'x', email: 'x@x.ch', schools: ['A'] }, { traeger: 'Bezirk Y', kind: 'sek', name: 'y', email: 'y@y.ch', schools: ['B'] }] });
+  const imp2 = await ad('POST', 'admin/import', { rows: [{ traeger: 'Gemeinde X', kind: 'primar', name: 'x', email: 'x@x.ch' }, { traeger: 'Bezirk Y', kind: 'sek', name: 'y', email: 'y@y.ch' }] });
+  for (const [i, n] of [[0, 'A'], [1, 'B']]) { const c2 = client(B); await c2('POST', 'invite/' + imp2.rows[i].token, { username: 'user.' + n.toLowerCase(), password: 'sicheres-pw-2026' }); await c2('POST', 'leitung/schools', { name: n }); }
   const all = await ad('GET', 'admin/traeger');
   ok(all.find((x) => x.name === 'Gemeinde X').schools[0].zyklen.join() === 'Zyklus 1,Zyklus 2' && all.find((x) => x.name === 'Bezirk Y').schools[0].zyklen.join() === 'Zyklus 3', 'Standard: Primar Zyklus 1–2, Sek Zyklus 3');
   return res;

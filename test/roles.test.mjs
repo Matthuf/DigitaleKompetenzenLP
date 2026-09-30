@@ -8,7 +8,7 @@ export default async function (B) {
   const { id: bez } = await ad('POST', 'admin/traeger', { name: 'Bezirk March', kind: 'sek', schoolName: 'Schulhaus Lachen' });
   await ad('POST', `admin/traeger/${bez}/schools`, { name: 'Schulhaus Siebnen' });
   await ad('POST', `admin/traeger/${bez}/schools`, { name: 'Schulhaus Buttikon' });
-  const { id: gem } = await ad('POST', 'admin/traeger', { name: 'Gemeinde Muotathal', kind: 'primar' });
+  const { id: gem } = await ad('POST', 'admin/traeger', { name: 'Gemeinde Muotathal', kind: 'primar', schoolName: 'Gemeinde Muotathal' });
   const trs = await ad('GET', 'admin/traeger');
   const bezT = trs.find(t => t.id === bez), gemT = trs.find(t => t.id === gem);
   const sch = Object.fromEntries(bezT.schools.concat(gemT.schools).map(s => [s.name, s.id]));
