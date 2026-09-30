@@ -142,14 +142,21 @@
       <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3><p class="small muted">So kommt Ihr Kollegium zur Selbsteinschätzung.</p></div>
       <ol class="steps">
         <li><div><b>Schulhäuser erfassen</b>
-          <span class="st">${n ? `Erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}.` : 'Noch kein Schulhaus erfasst.'} Jedes Schulhaus erhält einen eigenen Link. Die Zyklen lassen sich unter <a href="#team">Schulen und Zugänge</a> anpassen.</span>
+          <span class="st">${n ? `Erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}.` : 'Noch nichts erfasst.'} Zwei Möglichkeiten:</span>
+          <ul class="st options-list">
+            <li><b>Pro Schulhaus ein Eintrag:</b> Jedes Schulhaus erhält einen eigenen Link. Die Auswertung gibt es pro Schulhaus und für alle zusammen; jede Schulleitung sieht ihr Schulhaus.</li>
+            <li><b>Ein Eintrag für die ganze Schule:</b> ein gemeinsamer Link und eine gemeinsame Auswertung, ohne Aufteilung nach Schulhaus.</li>
+          </ul>
           <form class="row" id="steps-school" style="margin-top:10px;align-items:flex-end">
-            <div class="field"><label for="steps-school-name" class="small">${n ? 'Weiteres Schulhaus' : 'Erstes Schulhaus'}</label><input type="text" id="steps-school-name" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
-            <button class="btn ${n ? 'secondary' : ''}" type="submit">Hinzufügen</button><span class="error small" role="alert"></span></form></div></li>
+            <div class="field"><label for="steps-school-name" class="small">${n ? 'Weiteres Schulhaus' : 'Schulhaus'}</label><input type="text" id="steps-school-name" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
+            <button class="btn ${n ? 'secondary' : ''}" type="submit">Hinzufügen</button>
+            ${n ? '' : `<span class="small muted">oder</span><button class="btn secondary" type="button" id="steps-school-all">Ein Eintrag für die ganze Schule</button>`}
+            <span class="error small" role="alert"></span></form>
+          <span class="st" style="margin-top:6px">Die Zyklen und Namen lassen sich unter <a href="#team">Schulen und Zugänge</a> anpassen.</span></div></li>
         <li><div><b>Schulleitungen einladen</b> <span class="small muted">(empfohlen)</span>
           <span class="st">Mit eigenem Zugang geben die Schulleitungen den Link an ihr Kollegium weiter und sehen die Auswertung ihres Schulhauses.${n && t ? ` Bisher: ${withLead} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}.` : ''} <a href="#team">Schulleitungen einladen</a></span></div></li>
         <li><div><b>Erhebung eröffnen</b>
-          <span class="st">Unten «Neue Erhebung eröffnen» wählen.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft dem Kollegium.</span></div></li>
+          <span class="st">Unten «Neue Erhebung eröffnen» wählen. Eine Erhebung umfasst alle Schulhäuser zusammen, jedes mit eigenem Link.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft dem Kollegium.</span></div></li>
       </ol>
       <p class="small"><b>Danach:</b> Die Links erscheinen hier bei der Erhebung. Schulleitungen mit Zugang finden sie nach dem Anmelden, für die übrigen Schulhäuser geben Sie den Link selbst weiter. Die Auswertung erscheint ${minTxt}.</p>
     </section>`;
@@ -158,6 +165,12 @@
       e.preventDefault();
       const name = $('#steps-school-name').value;
       try { await api('POST', 'leitung/schools', { name }); await refreshCtx(); $('#steps-school-name').focus(); }
+      catch (err) { f.querySelector('.error').textContent = err.message; }
+    });
+    // Ein Eintrag für den ganzen Schulträger (ein Link, eine Auswertung); Name lässt sich später ändern
+    const all = $('#steps-school-all');
+    if (all) all.addEventListener('click', async () => {
+      try { await api('POST', 'leitung/schools', { name: `${ctx.traeger.name} (alle Schulhäuser)` }); await refreshCtx(); }
       catch (err) { f.querySelector('.error').textContent = err.message; }
     });
   }
@@ -577,7 +590,7 @@ ${signature()}`;
 
       ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
         <h3 id="h-schools">Schulhäuser</h3>
-        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen${ctx.mail ? ' (die Einladung geht direkt per E-Mail)' : ''}. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link ans Kollegium selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
+        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen${ctx.mail ? ' (die Einladung geht direkt per E-Mail)' : ''}. Wer keine Aufteilung nach Schulhaus braucht, erfasst nur einen Eintrag für die ganze Schule: ein Link, eine gemeinsame Auswertung. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link ans Kollegium selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
         <ul class="list-plain team-list school-list">${t.schools.map((s) => `<li data-school="${s.id}">
           <div class="school-main"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}${s.links ? ' · an Erhebungen beteiligt' : ''}</span></span>
             <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen ändern</button><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></div>

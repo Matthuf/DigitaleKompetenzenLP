@@ -518,3 +518,8 @@ details.past .stack { gap: 16px; }
 .chip-red { background: #FBE3E3; color: #8a1c1c; border-color: #E8A9A9; }
 .chip-grey { background: var(--box); color: var(--ink-2); border-color: var(--line); }
 .chip-detail { flex-basis: 100%; color: var(--ink-2); }
+
+/* Erste Schritte: Auswahl der Möglichkeiten */
+.first-steps .options-list { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.first-steps .options-list > li { display: list-item; counter-increment: none; grid-template-columns: none; }
+.first-steps .options-list > li::before { content: none; display: none; }
