@@ -7,6 +7,9 @@ window.Staff = (function () {
   function show(id) {
     $$('main > .view').forEach((v) => { v.hidden = v.id !== id; });
     $('#userbar').hidden = !user;
+    // Angemeldet: nur die Reiter des Arbeitsbereichs; die Hauptnavigation der Website entfällt (Hilfe steht in der Benutzerleiste)
+    const nav = document.getElementById('mainnav');
+    if (nav) nav.hidden = !!user;
   }
 
   async function start(requiredRole, ready) {

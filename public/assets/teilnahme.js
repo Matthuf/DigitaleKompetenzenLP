@@ -114,12 +114,12 @@
         }
       }
       if (camp.campaign.status !== 'open') {
-        return showError('Diese Erhebung ist abgeschlossen', 'Neue Teilnahmen sind nicht mehr möglich. Frühere Profile lassen sich unter «Mein Profil» mit dem persönlichen Code ansehen.', '<a class="btn" href="/mein-profil">Mein Profil</a>');
+        return showError('Diese Erhebung ist abgeschlossen', 'Neue Teilnahmen sind nicht mehr möglich. Frühere Profile lassen sich unter «Meine Selbsteinschätzung» mit dem persönlichen Code ansehen.', '<a class="btn" href="/mein-profil">Meine Selbsteinschätzung</a>');
       }
       show('v-welcome');
       setHash('start');
     } else {
-      $('#campaign-name').textContent = 'Mein Profil';
+      $('#campaign-name').textContent = 'Meine Selbsteinschätzung';
       await loadMe();
       renderHome();
     }
@@ -574,7 +574,7 @@
     $('#form-code-home').hidden = !!me;
     const list = $('#home-list');
     list.hidden = !me;
-    $('#h-home').textContent = me ? 'Meine Teilnahmen' : 'Mein Profil';
+    $('#h-home').textContent = me ? 'Meine Teilnahmen' : 'Meine Selbsteinschätzung';
     if (me) {
       $('#school-name').textContent = me.school.name;
       const rows = [...me.responses].reverse();
