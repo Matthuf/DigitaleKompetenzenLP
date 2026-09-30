@@ -12,6 +12,13 @@ export default async function (B) {
   const S = Object.fromEntries(team.schools.map((s) => [s.name, s.id]));
   const sl = await invitedClient(B, ad, tid, 'sl.b', S['Schulhaus B']);
 
+  // Schulleitungen pro Schulhaus für die E-Mail-Vorlage des Rektorats, nicht für Schulleitungen
+  const rc = await rek('GET', 'leitung/context');
+  const b = rc.schools.find((x) => x.id === S['Schulhaus B']), a = rc.schools.find((x) => x.id === S['Schulhaus A']);
+  ok(b.leaders.length === 1 && b.leaders[0].email === 'sl.b@example.ch' && a.leaders.length === 0, 'Rektorat: Schulleitung pro Schulhaus bekannt');
+  const sc0 = await sl('GET', 'leitung/context');
+  ok(sc0.schools.length === 1 && !('leaders' in sc0.schools[0]), 'Schulleitung erhält keine Kontaktliste');
+
   // Zieldatum
   await rek('POST', 'leitung/campaigns', { roundId: round, schoolIds: [S['Schulhaus A']], dueDate: '2026-11-13' });
   let c = (await rek('GET', 'leitung/campaigns'))[0];

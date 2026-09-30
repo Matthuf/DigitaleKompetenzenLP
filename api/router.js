@@ -366,6 +366,12 @@ on('GET', 'leitung/context', async ({ req }) => {
   const schools = (u.role === 'traeger'
     ? await q(`select id, name, zyklen from schools where traeger_id = $1 order by name`, [u.tid])
     : await q(`select id, name, zyklen from schools where id = $1`, [u.sid])).map((x) => ({ ...x, zyklen: schoolZyklen(x.zyklen, traeger.kind) }));
+  // Rektorat: Schulleitungen pro Schulhaus (für die E-Mail-Vorlage «An die Schulleitung»)
+  if (u.role === 'traeger') {
+    const leaders = await q(`select u.school_id, coalesce(u.display_name, u.username) as name, u.email from users u
+                               join schools s on s.id = u.school_id where s.traeger_id = $1 and u.role = 'leitung' order by u.created_at`, [u.tid]);
+    schools.forEach((x) => { x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email })); });
+  }
   const rounds = await q(`select id, title, active from rounds order by created_at desc`);
   return { role: u.role, traeger, schools, rounds, min: MIN };
 });

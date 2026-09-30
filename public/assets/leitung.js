@@ -75,7 +75,8 @@
       ${l.expected && l.submitted + l.drafts > l.expected ? `<p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über das Kollegium hinaus weitergegeben. Bei Bedarf die Erhebung abschliessen und eine neue eröffnen.</p>` : ''}
       ${c.status === 'open' ? `<div class="camp-link"><code title="${esc(linkFor(l))}">${esc(linkFor(l))}</code>
         <button class="btn secondary small" type="button" data-copy="${l.id}">Link kopieren</button>
-        <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail-Vorlage</button>
+        ${isRektorat() ? `<button class="btn secondary small" type="button" data-slmail="${l.id}">E-Mail an Schulleitung</button>` : ''}
+        <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail ans Kollegium</button>
         <button class="btn secondary small" type="button" data-qr="${l.id}">QR-Code</button></div>
         <div class="share" data-share="${l.id}" hidden></div>` : ''}
     </div>`;
@@ -160,6 +161,7 @@
 
     $$('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(linkFor(linkById(b.dataset.copy)), b)));
     $$('[data-mail]').forEach((b) => b.addEventListener('click', () => showMail(linkById(b.dataset.mail))));
+    $$('[data-slmail]').forEach((b) => b.addEventListener('click', () => showLeaderMail(linkById(b.dataset.slmail))));
     $$('[data-qr]').forEach((b) => b.addEventListener('click', () => showQR(linkById(b.dataset.qr))));
     $$('[data-expected]').forEach((b) => b.addEventListener('click', () => editExpected(linkById(b.dataset.expected))));
     $$('[data-due]').forEach((b) => b.addEventListener('click', () => editDue(byId(b.dataset.due))));
@@ -276,7 +278,7 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
   function showMail(l) {
     const p = sharePanel(l);
     const subject = `Selbsteinschätzung digitale Kompetenzen: ${l.campaign.title}`;
-    p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail an das Kollegium${isRektorat() ? ' von ' + esc(l.school_name) : ''}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
+    p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail ans Kollegium${isRektorat() ? ' von ' + esc(l.school_name) : ''}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
       <p class="small muted">${l.campaign.due_date ? 'Text bei Bedarf anpassen' : 'Text anpassen (zum Beispiel das Datum)'}, dann kopieren oder im E-Mail-Programm öffnen.</p>
       <div class="field"><label for="mail-subj-${l.id}" class="small">Betreff</label><input type="text" id="mail-subj-${l.id}" value="${esc(subject)}"></div>
       <div class="field"><label for="mail-body-${l.id}" class="small">Text</label><textarea id="mail-body-${l.id}">${esc(mailText(l))}</textarea></div>
@@ -285,6 +287,58 @@ ${isRektorat() ? 'Rektorat ' + ctx.traeger.name : l.school_name}`;
     upd();
     p.querySelectorAll('input, textarea').forEach((x) => x.addEventListener('input', upd));
     p.querySelector('[data-copytext]').addEventListener('click', (e) => copyText($(`#mail-body-${l.id}`).value, e.currentTarget));
+    p.querySelector('[data-close]').addEventListener('click', () => { p.hidden = true; });
+  }
+  /* E-Mail des Rektorats an die Schulleitung eines Schulhauses.
+   * Mit Zugang: Hinweis auf Anmeldung (dort Rücklauf, Vorlagen, Auswertung). Ohne Zugang: Link zum Weiterleiten. */
+  function leaderMailText(l, leaders) {
+    const due = l.campaign.due_date ? UI.dueLong(l.campaign.due_date) : '';
+    const greet = leaders.length === 1 && leaders[0].name && !/^[a-z0-9._-]+$/.test(leaders[0].name) ? `Guten Tag ${leaders[0].name}` : 'Guten Tag';
+    const intro = `Für die Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» ist die Erhebung «${l.campaign.title}» eröffnet. ${l.school_name} nimmt mit einem eigenen Link teil.`;
+    const privacy = 'Die Teilnahme dauert etwa 20 Minuten und erfolgt ohne Namen. Schulleitung und Rektorat sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.';
+    const body = leaders.length
+      ? `${intro}
+
+Bitte geben Sie den Link an Ihr Kollegium weiter${due ? ` und bitten Sie um Teilnahme bis ${due}` : ''}. Nach der Anmeldung unter ${location.origin}/leitung finden Sie ihn unter «Erhebungen», zusammen mit einer E-Mail-Vorlage für das Kollegium und einem QR-Code. Dort sehen Sie auch den Rücklauf und später die Auswertung Ihres Schulhauses.
+
+Link für das Kollegium von ${l.school_name}:
+${linkFor(l)}
+
+${privacy}`
+      : `${intro}
+
+Bitte leiten Sie den folgenden Link an Ihr Kollegium weiter${due ? `, mit der Bitte um Teilnahme bis ${due}` : ''}:
+${linkFor(l)}
+
+${privacy}`;
+    return `${greet}
+
+${body}
+
+Freundliche Grüsse
+Rektorat ${ctx.traeger.name}`;
+  }
+  function showLeaderMail(l) {
+    const p = sharePanel(l);
+    const school = ctx.schools.find((s) => s.id === l.school_id) || {};
+    const leaders = school.leaders || [];
+    const to = leaders.map((x) => x.email).filter(Boolean).join(', ');
+    const subject = `Erhebung «${l.campaign.title}» eröffnet: ${l.school_name}`;
+    p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail an die Schulleitung von ${esc(l.school_name)}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
+      <p class="small muted">${leaders.length
+        ? `Die Schulleitung hat einen eigenen Zugang und findet den Link auch nach dem Anmelden. Text bei Bedarf anpassen, dann kopieren oder im E-Mail-Programm öffnen.`
+        : `Für ${esc(l.school_name)} ist noch kein Zugang für eine Schulleitung eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten. Empfänger selbst eintragen oder die Schulleitung unter <a href="#team">Schulen und Zugänge</a> einladen.`}</p>
+      <div class="field"><label for="slm-to-${l.id}" class="small">An</label><input type="text" id="slm-to-${l.id}" value="${esc(to)}" placeholder="E-Mail der Schulleitung"></div>
+      <div class="field"><label for="slm-subj-${l.id}" class="small">Betreff</label><input type="text" id="slm-subj-${l.id}" value="${esc(subject)}"></div>
+      <div class="field"><label for="slm-body-${l.id}" class="small">Text</label><textarea id="slm-body-${l.id}">${esc(leaderMailText(l, leaders))}</textarea></div>
+      <div class="row"><button class="btn secondary" type="button" data-copytext>Text kopieren</button><a class="btn secondary" data-mailto href="#">Im E-Mail-Programm öffnen</a></div>`;
+    const upd = () => {
+      const rcpt = $(`#slm-to-${l.id}`).value.split(/[,;\s]+/).filter(Boolean).map((a) => a.replace(/[?&#%]/g, encodeURIComponent)).join(',');
+      p.querySelector('[data-mailto]').href = 'mailto:' + rcpt + '?subject=' + encodeURIComponent($(`#slm-subj-${l.id}`).value) + '&body=' + encodeURIComponent($(`#slm-body-${l.id}`).value);
+    };
+    upd();
+    p.querySelectorAll('input, textarea').forEach((x) => x.addEventListener('input', upd));
+    p.querySelector('[data-copytext]').addEventListener('click', (e) => copyText($(`#slm-body-${l.id}`).value, e.currentTarget));
     p.querySelector('[data-close]').addEventListener('click', () => { p.hidden = true; });
   }
   function showQR(l) {
