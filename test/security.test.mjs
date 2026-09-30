@@ -1,6 +1,7 @@
 import { client, checker, invitedClient, teacher, ADMIN } from './lib.mjs';
 
-// Sicherheit und Datenschutz im Echtbetrieb (Mindestgruppe 5)
+// Sicherheit und Datenschutz. Ohne Mindestgruppe: Auswertungen ab der ersten Teilnahme,
+// Freitexte bei eigenen Fragen weiterhin erst ab 10 Antworten.
 export default async function (B) {
   const { ok, expectErr, res } = checker('Sicherheit');
 
@@ -21,7 +22,6 @@ export default async function (B) {
   const sch = Object.fromEntries((await ad('GET', 'admin/traeger')).find((t) => t.id === tid).schools.map((s) => [s.name, s.id]));
   const rek = await invitedClient(B, ad, tid, 'rektor.sicher');
   const slB = await invitedClient(B, ad, tid, 'sl.b', sch['Schulhaus B']);
-  ok((await rek('GET', 'leitung/context')).min === 5, 'Ohne Testmodus gilt die Mindestgruppe 5');
 
   // Sitzungen widerrufen: Passwortwechsel beendet andere Sitzungen, Löschen beendet alle
   const rek2 = client(B);
@@ -70,19 +70,19 @@ export default async function (B) {
   for (let i = 0; i < 5; i++) await teacher(B, cA.links[0].token, { custom: { [q1]: 2 + (i % 3), [q3]: 'Antwort ' + i, ...(i === 0 ? { [q2]: 4 } : {}) } });
   for (let i = 0; i < 2; i++) await teacher(B, cB.links[0].token);
 
-  // Eigene Fragen: Mindestanzahl pro Frage, Freitexte ab 10
+  // Eigene Fragen: keine Mindestanzahl, Freitexte erst ab 10
   const aA = await rek('GET', 'leitung/aggregate?source=c:' + cA.id);
   const cq = Object.fromEntries(aA.custom.questions.map((q) => [q.id, q]));
   ok(aA.n === 6 && !aA.tooFew, 'Erhebung A mit 6 Teilnahmen ausgewertet');
   ok(cq[q1].answered === 6 && !cq[q1].suppressed, 'Frage von allen beantwortet: ausgewiesen');
-  ok(cq[q2].suppressed && cq[q2].counts === undefined, 'Frage von 2 beantwortet: nicht ausgewiesen');
+  ok(cq[q2].answered === 2 && !cq[q2].suppressed, 'Frage von 2 beantwortet: ausgewiesen (keine Mindestanzahl)');
   ok(cq[q3].suppressed && cq[q3].texts === undefined, 'Freitexte von 6 Personen: nicht ausgewiesen (mindestens 10)');
 
-  // Runde mit Schule unter der Mindestanzahl: keine Gesamtauswertung (Differenzbildung)
+  // Ohne Mindestgruppe: auch kleine Erhebungen und die ganze Runde werden ausgewertet
   const aR = await rek('GET', 'leitung/aggregate?source=r:' + round);
-  ok(aR.tooFew && /jede beteiligte Schule/.test(aR.reason || ''), 'Runde mit kleiner Schule: keine Gesamtauswertung');
+  ok(!aR.tooFew && aR.n === 8, 'Runde über beide Schulen ausgewertet');
   const aB = await rek('GET', 'leitung/aggregate?source=c:' + cB.id);
-  ok(aB.tooFew && !aB.agg, 'Erhebung B mit 2 Teilnahmen: keine Auswertung');
+  ok(!aB.tooFew && aB.n === 2, 'Erhebung B mit 2 Teilnahmen ausgewertet');
 
   // AVS nur pro Runde
   await expectErr(ad('GET', 'admin/aggregate'), 400, 'Kantonale Auswertung ohne Runde abgelehnt');

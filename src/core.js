@@ -6,7 +6,6 @@
 const DKCore = (function () {
   const NO_OPPORTUNITY = 0;
   const FORMAT = 'dk-sz-result';
-  const MIN_GROUP = 5;
 
   const mean = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
 
@@ -170,6 +169,6 @@ const DKCore = (function () {
     return { themes, multipliers, noOpp };
   }
 
-  return { NO_OPPORTUNITY, FORMAT, MIN_GROUP, SCALE, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, boxStats, needGroups, toCSV, aggregateCustom, pdThemeFor, personalThemes, schoolThemes };
+  return { NO_OPPORTUNITY, FORMAT, SCALE, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, boxStats, needGroups, toCSV, aggregateCustom, pdThemeFor, personalThemes, schoolThemes };
 })();
 if (typeof module !== 'undefined') module.exports = DKCore;

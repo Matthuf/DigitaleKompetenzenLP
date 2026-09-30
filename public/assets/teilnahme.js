@@ -1,7 +1,7 @@
 // Teilnahme der Lehrperson: Einstieg über Erhebungslink, persönlicher Code, Fragebogen mit automatischem Speichern, Profil.
 (function () {
   'use strict';
-  const { ITEMS, LV, $, $$, esc, fmt, date, api, radarSVG, meter, badge, download, today, confirmButton, copyText } = UI;
+  const { ITEMS, LV, $, $$, esc, fmt, date, api, radarSVG, meter, badge, download, today, copyText } = UI;
   const SUBS = DKCore.allSubareas(ITEMS);
 
   // Werte werden gespeichert, Beschriftungen nur angezeigt. Bezirksschulen: Zyklus 3 fest, das Feld entfällt.
@@ -372,7 +372,7 @@
       const sel = [].concat(v === undefined ? [] : v);
       body = `<div class="opts">${q.options.map((o, k) => `<label class="opt"><input type="${q.multiple ? 'checkbox' : 'radio'}" name="${name}" id="${name}-${k}" value="${k}" ${sel.includes(k) ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}</div>`;
     } else {
-      hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen. Die Schulleitung sieht Freitexte erst ab fünf abgeschlossenen Teilnahmen und in zufälliger Reihenfolge.';
+      hint = 'Freiwillig. Bitte keine Namen und keine Hinweise, die auf einzelne Personen schliessen lassen. Die Schulleitung sieht Freitexte erst ab zehn Antworten und in zufälliger Reihenfolge.';
       body = `<label class="sr-only" for="${name}">Antwort</label><textarea id="${name}" name="${name}" rows="4" maxlength="1000">${esc(v || '')}</textarea>`;
     }
     return `<fieldset class="q" id="fs-${q.id}" data-qtype="${q.type}"><legend><span class="qid">${i + 1}</span><span>${esc(q.text)}</span></legend><p class="hint">${hint}</p>${body}</fieldset>`;
@@ -383,7 +383,7 @@
     cur.custom_answers = cur.custom_answers || {};
     $('#area-eyebrow').textContent = 'Fragen der Schule · nicht Teil des Kompetenzprofils';
     $('#h-area').textContent = blk.title;
-    $('#area-desc').textContent = blk.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten fliessen nur in die Schulauswertung ein, ebenfalls erst ab fünf abgeschlossenen Teilnahmen.';
+    $('#area-desc').textContent = blk.intro || 'Diese Fragen hat die Schulleitung ergänzt. Die Antworten fliessen nur in die Schulauswertung ein, zusammengefasst und ohne Namen.';
     $('#questions').innerHTML = blk.questions.map(customQuestionHTML).join('');
     blk.questions.forEach((q) => {
       const name = 'cq-' + q.id;
@@ -555,9 +555,6 @@
     const editable = r.campaign_status === 'open';
     $('#btn-edit').hidden = !editable;
     $('#btn-edit').textContent = r.status === 'submitted' ? 'Antworten bearbeiten' : 'Selbsteinschätzung fortsetzen';
-    confirmButton($('#delete-me'), 'Meine Daten löschen', 'Alle Teilnahmen zu diesem Code endgültig löschen?', 'Ja, endgültig löschen', async () => {
-      await api('DELETE', 'me'); me = null; location.href = '/';
-    });
     show('v-result');
     setHash('profil-' + r.id);
   }

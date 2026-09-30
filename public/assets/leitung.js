@@ -137,7 +137,6 @@
     const n = ctx.schools.length;
     const withLead = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
     const vorgabe = ctx.rounds.find((r) => r.active);
-    const minTxt = ctx.min === 1 ? 'ab der ersten abgeschlossenen Teilnahme' : `ab ${ctx.min === 5 ? 'fünf' : ctx.min} abgeschlossenen Teilnahmen`;
     box.innerHTML = `<section class="panel first-steps stack" style="gap:14px" aria-labelledby="h-steps">
       <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3><p class="small muted">So kommt Ihr Kollegium zur Selbsteinschätzung.</p></div>
       <ol class="steps">
@@ -158,7 +157,7 @@
         <li><div><b>Erhebung eröffnen</b>
           <span class="st">Unten «Neue Erhebung eröffnen» wählen. Eine Erhebung umfasst alle Schulhäuser zusammen, jedes mit eigenem Link.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft dem Kollegium.</span></div></li>
       </ol>
-      <p class="small"><b>Danach:</b> Die Links erscheinen hier bei der Erhebung. Schulleitungen mit Zugang finden sie nach dem Anmelden, für die übrigen Schulhäuser geben Sie den Link selbst weiter. Die Auswertung erscheint ${minTxt}.</p>
+      <p class="small"><b>Danach:</b> Die Links erscheinen hier bei der Erhebung. Schulleitungen mit Zugang finden sie nach dem Anmelden, für die übrigen Schulhäuser geben Sie den Link selbst weiter. Die Auswertung erscheint, sobald die ersten Teilnahmen abgeschlossen sind.</p>
     </section>`;
     const f = $('#steps-school');
     f.addEventListener('submit', async (e) => {
@@ -233,7 +232,7 @@
   function mountQuestions(id, msg) {
     const box = $('#q-box-' + id);
     if (!box) return;
-    Block.open(id, { box, campaigns: () => campaigns, min: ctx.min,
+    Block.open(id, { box, campaigns: () => campaigns,
       reload: async (cid, m) => { openQ = cid; await loadCampaigns(); const b = $(`#q-box-${cid} #ed-msg`); if (b) { b.className = 'small ok'; b.textContent = m; } } });
     if (msg) { const b = box.querySelector('#ed-msg'); if (b) { b.className = 'small ok'; b.textContent = msg; } }
   }
@@ -540,7 +539,6 @@ ${signature()}`;
       groups: [['zyklen', 'Zyklen im Vergleich', ''], ['schulen', 'Schulen im Vergleich', 'Dient der Planung der Weiterbildung, nicht als Rangliste.']],
       showCustom: true,
       tooFewHint: c && c.status === 'open' ? `<p class="small">Den Link unter <a href="#erhebungen/${c.id}">Erhebungen</a> ans Kollegium weitergeben.</p>` : '',
-      footNote: isRektorat() && data.multiSchool && !(data.schools || []).length ? `Einzelne Schulen lassen sich filtern, sobald jede beteiligte Schule mindestens ${data.min} abgeschlossene Teilnahmen hat.` : '',
     });
   }
   $('#an-compare').addEventListener('change', (e) => { an.compare = e.target.value; loadAnalysis(); });

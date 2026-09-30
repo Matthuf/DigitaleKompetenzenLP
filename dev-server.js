@@ -5,7 +5,6 @@ import path from 'node:path';
 // Lokale Entwicklung: Entwicklungsschlüssel und Testmodus (Auswertung ab 1 Teilnahme) sind hier erlaubt.
 process.env.ALLOW_DEV_SECRET ??= '1';
 process.env.ALLOW_PGLITE ??= '1';
-process.env.TESTMODUS ??= '1';
 const { default: handler } = await import('./api/router.js');
 
 const PORT = +process.env.PORT || 3000;

@@ -185,7 +185,8 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
   details.sub summary .t::before { content: ""; }
   .area-block { break-inside: avoid; }
   body { font-size: 11pt; }
-  .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Farben immer mitdrucken, auch wenn im Druckdialog «Hintergrundgrafiken» nicht gewählt ist */
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 /* Serverversion */

@@ -13,13 +13,6 @@ const require = createRequire(import.meta.url);
 const DKCore = require('../lib/core.cjs');
 const ITEMS = require('../lib/items.json');
 const SUB_IDS = new Set(DKCore.allSubareas(ITEMS).map((s) => s.id));
-// Mindestgruppe für Auswertungen. Standard (auch wenn nichts gesetzt ist): 5. Kleinere Werte nur im ausdrücklich
-// eingeschalteten Testmodus (TESTMODUS=1), dort ab 1. Ohne Testmodus wird ein Wert unter 5 ignoriert.
-const TEST_MODE = process.env.TESTMODUS === '1';
-const MIN = (() => {
-  const v = parseInt(process.env.MIN_GROUP_SIZE || '', 10);
-  return TEST_MODE ? Math.max(1, Number.isInteger(v) ? v : 1) : Math.max(5, Number.isInteger(v) ? v : 5);
-})();
 checkSecrets(); // ohne SESSION_SECRET startet die Funktion nicht
 
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
@@ -179,7 +172,6 @@ function compareGroups(recs, keyFn, labelFn = (k) => k, sortFn = (a, b) => a.loc
   recs.forEach((r) => { const k = keyFn(r) || ''; (groups[k] = groups[k] || []).push(r); });
   const named = Object.keys(groups).filter((k) => k);
   if (named.length < 2) return null;
-  if (!Object.values(groups).every((g) => g.length >= MIN)) return { hidden: true };
   return named.sort(sortFn).map((k) => {
     const g = DKCore.aggregate(ITEMS, groups[k].map((r) => ({ answers: r.answers })));
     return { key: k, label: labelFn(k), n: groups[k].length, areas: g.areas.map((a) => a.mean) };
@@ -192,7 +184,7 @@ function filterOptions(recs, keyFn) {
   const counts = {};
   recs.forEach((r) => { const k = keyFn(r) || ''; counts[k] = (counts[k] || 0) + 1; });
   const named = Object.keys(counts).filter((k) => k);
-  if (named.length < 2 || !Object.values(counts).every((n) => n >= MIN)) return [];
+  if (named.length < 2) return [];
   return named.sort((a, b) => a.localeCompare(b)).map((k) => ({ key: k, n: counts[k] }));
 }
 
@@ -374,7 +366,7 @@ on('GET', 'leitung/context', async ({ req }) => {
     schools.forEach((x) => { x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email })); });
   }
   const rounds = await q(`select id, title, active from rounds order by created_at desc`);
-  return { role: u.role, traeger, schools, rounds, min: MIN, mail: mailConfigured() };
+  return { role: u.role, traeger, schools, rounds, mail: mailConfigured() };
 });
 
 on('GET', 'leitung/campaigns', async ({ req }) => {
@@ -525,27 +517,17 @@ on('GET', 'leitung/aggregate', async ({ req, query }) => {
   if (u.role === 'traeger') {
     schools = filterOptions(allRows, (r) => r.school_id).map((x) => ({ id: x.key, name: names[x.key] || '–', n: x.n }));
     schools.sort((a, b) => a.name.localeCompare(b.name));
-    if (school && !schools.some((x) => x.id === school)) fail(403, 'Für diese Schule ist keine Einzelauswertung möglich, weil nicht alle Schulen die Mindestanzahl erreichen.');
+    if (school && !schools.some((x) => x.id === school)) fail(403, 'Für diese Schule ist keine Auswertung möglich.');
   }
   const zyklen = filterOptions(rows, zyk).map((x) => ({ zyklus: x.key, n: x.n }));
   if (zyklus && !zyklen.some((x) => x.zyklus === zyklus)) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
   const recs = zyklus ? rows.filter((r) => zyk(r) === zyklus) : rows;
-  const base = { source: { kind, id, title }, total: rows.length, min: MIN, testMode: TEST_MODE && MIN < DKCore.MIN_GROUP, schools, zyklen, expected,
+  const base = { source: { kind, id, title }, total: rows.length, schools, zyklen, expected,
     open: camps.some((c) => c.status === 'open'), multiSchool: u.role === 'traeger' && new Set(allLinks.map((l) => l.school_id)).size > 1 };
   await audit(u, 'auswertung_angesehen', query.source, { school: school || null, zyklus: zyklus || null });
-  if (recs.length < MIN) return { ...base, n: recs.length, tooFew: true };
-  // Runde über mehrere Erhebungen: Die Differenz zwischen Runde und einzelner Erhebung ergäbe die übrigen Schulen.
-  // Darum nur, wenn jede Schule mit Teilnahmen die Mindestanzahl erreicht.
-  if (kind === 'r' && camps.length > 1 && !school) {
-    const per = {};
-    allRows.forEach((r) => { per[r.school_id] = (per[r.school_id] || 0) + 1; });
-    if (Object.values(per).some((n) => n < MIN)) {
-      return { ...base, n: recs.length, tooFew: true,
-        reason: `«${title}» umfasst hier mehrere Erhebungen, zum Beispiel von Schulleitungen eröffnete. Eine gemeinsame Auswertung ist erst möglich, wenn jede beteiligte Schule mindestens ${MIN} abgeschlossene Teilnahmen hat. Die einzelnen Erhebungen lassen sich weiterhin auswerten.` };
-    }
-  }
+  if (!recs.length) return { ...base, n: 0, tooFew: true };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
-  const custom = block ? { block, ...aggregateCustom(block, recs.map((r) => r.custom_answers), MIN) } : null;
+  const custom = block ? { block, ...aggregateCustom(block, recs.map((r) => r.custom_answers)) } : null;
   const groups = {
     zyklen: zyklus ? null : compareGroups(recs, zyk),
     schulen: u.role === 'traeger' && !school ? compareGroups(recs, (r) => r.school_id, (k) => names[k] || '–', (a, b) => (names[a] || '').localeCompare(names[b] || '')) : null,
@@ -973,9 +955,9 @@ on('GET', 'admin/aggregate', async ({ req, query }) => {
   const zyklen = filterOptions(rows, zyk).map((x) => ({ zyklus: x.key, n: x.n }));
   if (zyklus && !zyklen.some((x) => x.zyklus === zyklus)) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
   const recs = zyklus ? rows.filter((r) => zyk(r) === zyklus) : rows;
-  const base = { total: rows.length, min: MIN, testMode: TEST_MODE && MIN < DKCore.MIN_GROUP, zyklen,
+  const base = { total: rows.length, zyklen,
     traegerCount: new Set(recs.map((r) => r.traeger_id)).size, schoolCount: new Set(recs.map((r) => r.school_id)).size };
-  if (recs.length < MIN) return { ...base, n: recs.length, tooFew: true };
+  if (!recs.length) return { ...base, n: 0, tooFew: true };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
   const ctx = (k) => (r) => (r.context && r.context[k]) || '';
   const groups = {

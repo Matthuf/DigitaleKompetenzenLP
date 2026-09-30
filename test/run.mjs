@@ -9,13 +9,13 @@ import { join } from 'node:path';
 const OUTBOX = join(tmpdir(), `dk-outbox-${process.pid}.jsonl`);
 
 const SUITES = [
-  ['roles.test.mjs', { TESTMODUS: '1' }],
-  ['invitations.test.mjs', { TESTMODUS: '1' }],
-  ['zyklen.test.mjs', { TESTMODUS: '1' }],
-  ['erhebungen.test.mjs', { TESTMODUS: '1' }],
-  ['security.test.mjs', { TESTMODUS: '0' }], // Echtbetrieb: Mindestgruppe 5
-  ['mail.test.mjs', { TESTMODUS: '1', MAIL_OUTBOX: OUTBOX }],
-  ['mail.test.mjs#failing', { TESTMODUS: '1', SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', MAIL_FROM: 'Test <t@localhost>' }],
+  ['roles.test.mjs', {}],
+  ['invitations.test.mjs', {}],
+  ['zyklen.test.mjs', {}],
+  ['erhebungen.test.mjs', {}],
+  ['security.test.mjs', {}],
+  ['mail.test.mjs', { MAIL_OUTBOX: OUTBOX }],
+  ['mail.test.mjs#failing', { SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', MAIL_FROM: 'Test <t@localhost>' }],
 ];
 const only = process.argv[2];
 let pass = 0, fail = 0;

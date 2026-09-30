@@ -125,7 +125,7 @@ window.Block = (function () {
     const el = box();
     if (!el || !ed) return;
     const b = ed.block;
-    const textMin = (ctx.min || 5) >= 5 ? Math.max(10, ctx.min || 5) : ctx.min;
+    const textMin = 10;
     const head = `<p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen am Schluss des Fragebogens und fliessen nicht ins Kompetenzprofil ein. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
     if (ed.locked) {
       el.innerHTML = head + (ed.byOther

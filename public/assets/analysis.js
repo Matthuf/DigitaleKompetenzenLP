@@ -24,17 +24,12 @@ window.Analysis = (function () {
       Minimum und Maximum werden zum Schutz einzelner Personen nicht gezeigt.${level === 'areas' ? ' Grundlage pro Bereich: die persönlichen Mittelwerte der Lehrpersonen.' : ''}` + cmpNote;
   }
 
-  function testNote(data) {
-    return data.testMode ? `<div class="box box--warning"><b>Testmodus:</b> Die Auswertung erscheint schon ab ${data.min === 1 ? 'der ersten abgeschlossenen Teilnahme' : data.min + ' abgeschlossenen Teilnahmen'}. Einzelne Antworten können dadurch erkennbar sein. Vor dem Echtbetrieb in Vercel die Variable <code>MIN_GROUP_SIZE</code> auf 5 setzen.</div>` : '';
-  }
-
   /* opts: title, cmpTitle, org, filterText, groups: [[key, Titel, Hinweis]], tooFewHint, showCustom */
   function render(out, data, cmp, o) {
     if (data.tooFew) {
-      const txt = data.reason ? esc(data.reason) : data.n === 0
-        ? `Für «${esc(o.title)}»${o.filterText ? ' (' + esc(o.filterText) + ')' : ''} ist noch keine Teilnahme abgeschlossen.`
-        : `${data.n} von mindestens ${data.min} abgeschlossenen Teilnahmen${o.filterText ? ' (' + esc(o.filterText) + ')' : ''}. Die Auswertung erscheint ab ${data.min}, damit keine Rückschlüsse auf einzelne Lehrpersonen möglich sind.`;
-      out.innerHTML = testNote(data) + `<div class="box box--info stack" style="gap:8px"><h3>Noch keine Auswertung</h3><p>${txt}</p>${o.tooFewHint || ''}</div>`;
+      const txt = data.reason ? esc(data.reason)
+        : `Für «${esc(o.title)}»${o.filterText ? ' (' + esc(o.filterText) + ')' : ''} ist noch keine Teilnahme abgeschlossen.`;
+      out.innerHTML = `<div class="box box--info stack" style="gap:8px"><h3>Noch keine Auswertung</h3><p>${txt}</p>${o.tooFewHint || ''}</div>`;
       return;
     }
     const agg = data.agg;
@@ -52,7 +47,6 @@ window.Analysis = (function () {
     const noOppSVG = Charts.noOpp(agg);
     const groups = (o.groups || []).map(([key, title, note]) => ({ key, title, note, g: data.groups && data.groups[key] }));
     const shownGroups = groups.filter((x) => Array.isArray(x.g));
-    const hiddenGroups = groups.filter((x) => x.g && x.g.hidden);
     const custom = o.showCustom && data.custom;
 
     // Abschnitte mit grauem Titelband und Nummer; die Navigation darüber zeigt, wo man gerade ist
@@ -67,8 +61,8 @@ window.Analysis = (function () {
     const band = (id, title, tools = '') => `<div class="sec-head"><h3 id="h-${id}"><span class="sec-no">${no(id)}</span>${title}</h3>${tools ? `<div class="sec-tools no-print">${tools}</div>` : ''}</div>`;
     const mult = pd.multipliers.map((s) => { const d = agg.bySub[s.id], r = d.counts.slice(1).reduce((x, y) => x + y, 0); return { s, share: (d.counts[5] + d.counts[6]) / r }; }).sort((x, y) => y.share - x.share);
 
-    out.innerHTML = testNote(data) + `
-      ${cmp && cmp.tooFew ? `<div class="box box--info">Für «${esc(cTitle)}» liegen zu wenige abgeschlossene Teilnahmen vor. Ein Vergleich ist darum nicht möglich.</div>` : ''}
+    out.innerHTML = `
+      ${cmp && cmp.tooFew ? `<div class="box box--info">Für «${esc(cTitle)}» ist noch keine Teilnahme abgeschlossen. Ein Vergleich ist darum nicht möglich.</div>` : ''}
       <nav class="an-nav no-print" aria-label="Abschnitte der Auswertung">
         <div class="an-nav-links">${secs.map(([id, t]) => `<a href="#sec-${id}" data-sec="${id}">${t}</a>`).join('')}</div>
         <button class="btn quiet small" type="button" data-report>Bericht (PDF)</button>
@@ -129,7 +123,7 @@ window.Analysis = (function () {
 
       ${shownGroups.map((x) => `<section class="an-sec" id="sec-grp-${x.key}" aria-labelledby="h-grp-${x.key}">
         ${band('grp-' + x.key, esc(x.title), saveBtn('grp-' + x.key))}
-        <p class="small muted lead-note">Mittelwert pro Bereich. ${x.note ? esc(x.note) + ' ' : ''}Nur sichtbar, wenn jede Gruppe mindestens ${data.min} Teilnahme${data.min === 1 ? '' : 'n'} umfasst.</p>
+        <p class="small muted lead-note">Mittelwert pro Bereich. ${x.note ? esc(x.note) + ' ' : ''}</p>
         <div class="legend">${Charts.stufenLegend(x.g)}</div>
         <figure tabindex="0" class="chart" data-chart="grp-${x.key}">${Charts.stufen(x.g)}</figure>
         <div class="table-scroll" tabindex="0" role="region" aria-label="${esc(x.title)} als Tabelle"><table class="kv-table grp-table">
@@ -148,7 +142,6 @@ window.Analysis = (function () {
         ${Block.section(custom, data.n, { bare: true })}
       </section>` : ''}
 
-      ${hiddenGroups.map((x) => `<p class="small muted">${esc(x.title)}: erscheint, sobald jede Gruppe (auch die ohne Angabe) mindestens ${data.min} abgeschlossene Teilnahmen hat.</p>`).join('')}
       ${o.footNote ? `<p class="small muted">${o.footNote}</p>` : ''}
       <div class="export-bar no-print">
         <div class="stack" style="gap:4px"><b>Ergebnisse weitergeben</b><span class="small muted">${esc(o.exportText || 'Für Schulkonferenz, Schulpflege oder die eigene Ablage.')}</span></div>

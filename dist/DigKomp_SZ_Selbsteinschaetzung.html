@@ -272,7 +272,7 @@ address.contact { font-style: normal; line-height: 1.6; }
   details.sub summary .t::before { content: ""; }
   .area-block { break-inside: avoid; }
   body { font-size: 11pt; }
-  .lv1, .lv2, .lv3, .lv4, .lv5, .lv6, .meter span, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 /* Fragebogen: Einleitung pro Teilbereich und Stufenkennzeichnung neben den Aussagen */
 .q-intro { margin: 2px 0 10px; color: var(--ink-2); font-size: 0.95rem; }
@@ -512,7 +512,7 @@ address.contact { font-style: normal; line-height: 1.6; }
 
       <h3>Für Schulleitungen</h3>
       <details class="faq"><summary>Gibt es eine Auswertung für die Schule?</summary>
-        <p>Nicht mit dieser Datei. Die Offline-Version dient nur der persönlichen Selbsteinschätzung. Schulauswertungen gibt es in der Serverversion: Die Schulleitung verteilt einen Link, die Ergebnisse werden automatisch und ohne Namen zusammengeführt und erst ab fünf Teilnahmen angezeigt.</p></details>
+        <p>Nicht mit dieser Datei. Die Offline-Version dient nur der persönlichen Selbsteinschätzung. Schulauswertungen gibt es in der Serverversion: Die Schulleitung verteilt einen Link, die Ergebnisse werden automatisch und ohne Namen zusammengeführt.</p></details>
 
       <h3>Quelle</h3>
       <p>Die Aussagen basieren auf dem Selbsteinschätzungswerkzeug «DigCompEdu Bavaria» der Akademie für Lehrerfortbildung und Personalführung Dillingen und auf dem Referenzrahmen DigCompEdu der Europäischen Kommission. Die Anpassung an den Kanton Schwyz ist in Arbeit. Aussagen zu Künstlicher Intelligenz werden in einer nächsten Version ergänzt.</p>
@@ -556,7 +556,6 @@ address.contact { font-style: normal; line-height: 1.6; }
 const DKCore = (function () {
   const NO_OPPORTUNITY = 0;
   const FORMAT = 'dk-sz-result';
-  const MIN_GROUP = 5;
 
   const mean = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
 
@@ -720,7 +719,7 @@ const DKCore = (function () {
     return { themes, multipliers, noOpp };
   }
 
-  return { NO_OPPORTUNITY, FORMAT, MIN_GROUP, SCALE, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, boxStats, needGroups, toCSV, aggregateCustom, pdThemeFor, personalThemes, schoolThemes };
+  return { NO_OPPORTUNITY, FORMAT, SCALE, mean, allSubareas, areaScores, progress, strengthsAndGaps, validateRecord, aggregate, boxStats, needGroups, toCSV, aggregateCustom, pdThemeFor, personalThemes, schoolThemes };
 })();
 if (typeof module !== 'undefined') module.exports = DKCore;
 
