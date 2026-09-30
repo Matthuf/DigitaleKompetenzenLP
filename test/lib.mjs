@@ -5,9 +5,14 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const ADMIN = { username: 'avs', start: 'avs-start-passwort-2026', password: 'avs-test-passwort-2026' };
 
-let port = 3600 + Math.floor(Math.random() * 300);
+// Freien Port vom Betriebssystem holen (sonst Kollision mit einem laufenden lokalen Server)
+import { createServer } from 'node:net';
+const freePort = () => new Promise((resolve, reject) => {
+  const srv = createServer(); srv.unref(); srv.on('error', reject);
+  srv.listen(0, () => { const { port } = srv.address(); srv.close(() => resolve(port)); });
+});
 export async function startServer(env = {}) {
-  const p = port++;
+  const p = await freePort();
   const child = spawn(process.execPath, ['dev-server.js'], {
     cwd: ROOT,
     env: { ...process.env, PORT: String(p), ADMIN_USERNAME: ADMIN.username, ADMIN_PASSWORD: ADMIN.start, DATABASE_URL: '', POSTGRES_URL: '', PGLITE_DIR: '', ...env },
