@@ -66,7 +66,7 @@
     const quote = l.expected ? Math.min(100, Math.round(100 * l.submitted / l.expected)) : null;
     return `<div class="link-row" data-link="${l.id}">
       <div class="link-head">
-        ${isRektorat() ? `<b>${esc(l.school_name)}</b>` : ''}
+        <b>${esc(l.school_name)}</b>
         <span class="small"><b>${l.submitted}</b> abgeschlossen · ${l.drafts} in Bearbeitung</span>
         <span class="quote small" data-quote="${l.id}">${quote !== null
           ? `Rücklauf ${quote} % von ${l.expected} <button class="btn quiet small" type="button" data-expected="${l.id}">ändern</button><span class="bar"><span style="width:${quote}%"></span></span>`
@@ -100,7 +100,7 @@
 
   function cardHTML(c) {
     const n = Block.count(c);
-    const who = c.byTraeger ? 'vom Rektorat' : isRektorat() ? `von der Schulleitung ${esc(c.owner_school_name || '')}` : 'von der Schulleitung';
+    const who = c.byTraeger ? 'vom Rektorat' : `von der Schulleitung ${esc(c.owner_school_name || '')}`;
     const missing = missingSchools(c);
     const qState = !c.manageable ? 'legt das Rektorat fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
     return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
@@ -628,7 +628,8 @@ Rektorat ${ctx.traeger.name}`;
   Staff.start(['traeger', 'leitung'], async () => {
     try {
       ctx = await api('GET', 'leitung/context');
-      $('#school-name').textContent = isRektorat() ? `Rektorat · ${ctx.traeger.name}` : `${orgName()} · ${ctx.traeger.name}`;
+      // Rolle immer ausschreiben: Rektorat (ganzer Träger) oder Schulleitung (ein Schulhaus)
+      $('#school-name').textContent = isRektorat() ? `Rektorat · ${ctx.traeger.name}` : `Schulleitung · ${orgName()}${ctx.traeger.name !== orgName() ? ' · ' + ctx.traeger.name : ''}`;
       $('#tab-team-link').textContent = isRektorat() ? 'Schulen und Zugänge' : 'Zugänge';
       await loadCampaigns();
     } catch (err) { $('#camp-list').innerHTML = `<p class="error">${esc(err.message)}</p>`; }

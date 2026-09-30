@@ -21,7 +21,7 @@ window.Staff = (function () {
       $('#login-msg').textContent = role === 'admin' ? 'Dieses Konto hat keinen Zugang zur AVS-Verwaltung.' : 'Dieses Konto ist kein Konto für Rektorat oder Schulleitung. Die AVS-Verwaltung ist unter /admin erreichbar.';
       return show('v-login');
     }
-    $('#user-name').textContent = (user.display_name || user.username) + (user.role === 'traeger' ? ' · Rektorat ' + (user.traeger_name || '') : user.school_name ? ' · ' + user.school_name : '');
+    $('#user-name').textContent = (user.display_name || user.username) + (user.role === 'traeger' ? ' · Rektorat ' + (user.traeger_name || '') : user.school_name ? ' · Schulleitung ' + user.school_name : '');
     if (user.must_change_password) {
       $('#pw-intro').textContent = 'Beim ersten Anmelden bitte ein eigenes Passwort festlegen. Mindestens 10 Zeichen.';
       $('#btn-pw-cancel').hidden = true;
