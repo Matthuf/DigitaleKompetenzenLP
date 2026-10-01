@@ -583,3 +583,9 @@ details.past .stack { gap: 16px; }
 .report-dialog .check span b { font-weight: 700; }
 .report-dialog .row { gap: 12px; }
 @media (max-width: 520px) { .report-dialog { padding: 16px; } }
+
+/* Öffnungszeiten im Impressum */
+.hours { display: grid; grid-template-columns: auto 1fr; gap: 4px 28px; margin: 0; }
+.hours dt { font-weight: 700; }
+.hours dd { margin: 0; }
+@media (max-width: 480px) { .hours { grid-template-columns: 1fr; gap: 2px; } .hours dd { margin-bottom: 10px; } }
