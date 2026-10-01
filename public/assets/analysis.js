@@ -204,12 +204,91 @@ window.Analysis = (function () {
       $$('.an-sec', out).forEach((sec) => secObserver.observe(sec));
     }
     $('#btn-csv', out).addEventListener('click', () => download(`Auswertung_${safe(o.title)}_${today()}.csv`, '﻿' + DKCore.toCSV(ITEMS, agg) + (custom ? Block.csv(custom) : ''), 'text/csv;charset=utf-8'));
-    $('#btn-report', out).addEventListener('click', () => printReport(data, agg, cagg, cTitle, sorted, pd, o));
+    const reportCtx = { data, agg, cagg, cTitle, sorted, pd, o, noOppSVG, shownGroups, custom };
+    $('#btn-report', out).addEventListener('click', () => openReportDialog(reportCtx));
     $('[data-report]', out).addEventListener('click', () => $('#btn-report', out).click());
   }
 
-  /* Bericht auf einer Seite (Schulkonferenz, Schulrat, AVS) */
-  function printReport(data, agg, cagg, cTitle, sorted, pd, o) {
+  /* Vor dem Druck fragen, was auf den Bericht soll. Der Kopfteil (Kennzahlen, Netz,
+   * Handlungsfelder, Stärken, Themen) ist immer dabei; alles Weitere wird hier gewählt. */
+  // Grobe Seitenanteile; Abschnitte werden beim Druck nicht umbrochen, darum belegen die
+  // langen (alle 22 Teilbereiche) praktisch eine eigene Seite.
+  const SEITE = { head: 0.72, dist: 0.3, distPersons: 0.3, box: 0.3, needs: 1.0, noopp: 0.6, change: 1.0, grp: 0.35, table: 1.4, custom: 0.45 };
+
+  function reportOptions(c) {
+    const list = [
+      ['dist', 'Verteilung nach Antworten', 'Anteil der Einschätzungen pro Stufe I–VI'],
+      ['distPersons', 'Verteilung nach Lehrpersonen', 'Anteil der Personen in den drei Gruppen'],
+      ['box', 'Boxplot', 'Streuung pro Bereich'],
+      ['needs', 'Wer braucht was?', 'Alle 22 Teilbereiche nach Einstieg, Vertiefung, Weitergeben'],
+    ];
+    if (c.noOppSVG) list.push(['noopp', 'Voraussetzungen', 'Anteil «keine Gelegenheit» pro Teilbereich']);
+    if (c.cagg) list.push(['change', 'Veränderung', `Vergleich mit «${c.cTitle}»`]);
+    c.shownGroups.forEach((x) => list.push(['grp:' + x.key, x.title, 'Mittelwerte pro Gruppe']));
+    list.push(['table', 'Tabelle: Anzahl pro Stufe', 'Alle Teilbereiche als Zahlen']);
+    if (c.custom) list.push(['custom', 'Eigene Fragen der Schule', 'Auswertung der zusätzlichen Fragen']);
+    return list;
+  }
+
+  function openReportDialog(c) {
+    const opts = reportOptions(c);
+    let dlg = $('#report-dialog');
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      dlg.id = 'report-dialog';
+      dlg.className = 'report-dialog';
+      document.body.appendChild(dlg);
+    }
+    dlg.innerHTML = `<form method="dialog" class="stack" style="gap:16px">
+      <div class="stack" style="gap:4px"><h2 style="font-size:1.2rem">Bericht zusammenstellen</h2>
+        <p class="small muted">Kennzahlen, Netzdiagramm, Handlungsfelder, Stärken und Weiterbildungsthemen sind immer dabei. Was soll zusätzlich auf den Bericht?</p></div>
+      <div class="stack" style="gap:8px">${opts.map(([k, t, h]) => `
+        <label class="check"><input type="checkbox" value="${esc(k)}" >
+          <span><b>${esc(t)}</b><br><span class="small muted">${esc(h)}</span></span></label>`).join('')}</div>
+      <p class="small muted" id="rp-pages" aria-live="polite"></p>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn quiet" type="submit" value="abbrechen">Abbrechen</button>
+        <button class="btn" type="submit" value="drucken">Bericht drucken</button>
+      </div>
+    </form>`;
+    const boxes = $$('input[type=checkbox]', dlg);
+    const update = () => {
+      const sum = boxes.filter((b) => b.checked).reduce((a, b) => a + (SEITE[b.value.split(':')[0]] || 0.35), SEITE.head);
+      const n = Math.max(1, Math.ceil(sum - 0.08));
+      $('#rp-pages', dlg).textContent = `Ungefähr ${n} Seite${n === 1 ? '' : 'n'}.`;
+    };
+    boxes.forEach((b) => b.addEventListener('change', update));
+    update();
+    dlg.addEventListener('close', () => {
+      if (dlg.returnValue !== 'drucken') return;
+      printReport(c, boxes.filter((b) => b.checked).map((b) => b.value));
+    }, { once: true });
+    dlg.showModal();
+  }
+
+  // Die gewählten Zusatzabschnitte, in fester Reihenfolge
+  function reportSections(c, picked) {
+    const { agg, cagg, cTitle, custom, noOppSVG, shownGroups, data } = c;
+    const has = (k) => picked.includes(k);
+    const lvLeg = LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('');
+    const grpLeg = ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'].map((t, i) => `<span><i style="background:${Charts.NEEDCOL[i]}"></i>${esc(t)}</span>`).join('');
+    const sec = (title, body) => `<div class="rp-sec"><h3>${title}</h3>${body}</div>`;
+    let h = '';
+    if (has('dist')) h += sec('Verteilung der Stufen pro Bereich', Charts.dist(agg, 'areas') + `<div class="legend">${lvLeg}</div>`);
+    if (has('distPersons')) h += sec('Verteilung der Lehrpersonen pro Bereich', Charts.distPersons(agg, 'areas') + `<div class="legend">${grpLeg}</div>`);
+    if (has('box')) h += sec('Streuung pro Bereich', Charts.boxplot(agg, 'areas') + '<p class="small">Box = mittlere 50 %, Strich = Median, Punkt = Mittelwert, Antennen = 10.–90. Perzentil. Grundlage: die persönlichen Mittelwerte der Lehrpersonen.</p>');
+    if (has('needs')) h += sec('Wer braucht was?', Charts.needs(agg, view.order) + `<div class="legend">${grpLeg}</div>`);
+    if (has('noopp') && noOppSVG) h += sec('Voraussetzungen klären', noOppSVG + '<p class="small">Anteil der Lehrpersonen, die in einem Teilbereich bisher keine Gelegenheit hatten. Ab einem Viertel lohnt sich die Klärung von Geräten, Plattformen oder Absprachen.</p>');
+    if (has('change') && cagg) h += sec(`Veränderung gegenüber «${esc(cTitle)}»`, Charts.dumbbell(agg, cagg));
+    shownGroups.forEach((x) => { if (has('grp:' + x.key)) h += sec(esc(x.title), Charts.stufen(x.g) + `<div class="legend">${Charts.stufenLegend(x.g)}</div>` + (x.note ? `<p class="small">${esc(x.note)}</p>` : '')); });
+    if (has('table')) h += sec('Anzahl Lehrpersonen pro Stufe', heatTable(agg));
+    if (has('custom') && custom) h += sec(esc(custom.block.title || 'Eigene Fragen der Schule'), Block.section(custom, data.n, { bare: true }));
+    return h;
+  }
+
+  /* Bericht (Schulkonferenz, Schulrat, AVS) */
+  function printReport(c, picked) {
+    const { data, agg, cagg, cTitle, sorted, pd, o } = c;
     const r = $('#report');
     const series = [{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }];
     if (cagg) series.push({ values: cagg.areas.map((a) => a.mean), fill: 'none', stroke: '#6E6E6E', dash: true });
@@ -232,11 +311,7 @@ window.Analysis = (function () {
           ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}</p>` : ''}
         </div>
       </div>
-      <h3>${view.basis === 'persons' ? 'Verteilung der Lehrpersonen pro Bereich' : 'Verteilung der Stufen pro Bereich'}</h3>
-      ${view.basis === 'persons' ? Charts.distPersons(agg, 'areas') : Charts.dist(agg, 'areas')}
-      <div class="legend">${view.basis === 'persons'
-        ? ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'].map((t, i) => `<span><i style="background:${Charts.NEEDCOL[i]}"></i>${esc(t)}</span>`).join('')
-        : LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('')}</div>
+      ${reportSections(c, picked)}
       <p class="small rp-foot">${esc(o.reportFoot || 'Zusammengefasste Selbsteinschätzungen der Lehrpersonen nach DigCompEdu. Einzelne Profile sind nicht einsehbar.')} Kanton Schwyz, Amt für Volksschulen und Sport.</p>`;
     document.body.classList.add('print-report');
     const done = () => { document.body.classList.remove('print-report'); window.removeEventListener('afterprint', done); };
