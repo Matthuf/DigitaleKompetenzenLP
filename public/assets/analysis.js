@@ -100,7 +100,7 @@ window.Analysis = (function () {
         ${band('change', `Veränderung seit «${esc(cTitle)}»`, saveBtn('change'))}
         <p class="small muted lead-note">Mittelwert pro Teilbereich, nach Veränderung sortiert. <span class="lg-dot lg-dot--cmp"></span> ${esc(cTitle)} · <span class="lg-dot"></span> ${esc(o.title)}</p>
         <figure tabindex="0" class="chart" data-chart="change">${Charts.dumbbell(agg, cagg)}</figure>
-        <p class="small muted">Verglichen wird das Kollegium als Ganzes. Personelle Wechsel beeinflussen das Ergebnis.</p>
+        <p class="small muted">Verglichen werden die Lehrpersonen als Ganzes. Personelle Wechsel beeinflussen das Ergebnis.</p>
       </section>` : ''}
 
       <section class="an-sec" id="sec-needs" aria-labelledby="h-needs">
@@ -204,7 +204,7 @@ window.Analysis = (function () {
     const li = (s) => `<li><b>${s.id}</b> ${esc(s.title)} <span class="muted">(Ø ${fmt(agg.bySub[s.id].mean)})</span></li>`;
     const split = SUBS.filter((s) => DKCore.needGroups(agg.bySub[s.id]).spread === 'gespalten');
     r.innerHTML = `
-      <div class="rp-head"><div><div class="eyebrow">${esc(o.org || '')}</div><h2>${esc(o.reportTitle || 'Digitale Kompetenzen des Kollegiums')}</h2>
+      <div class="rp-head"><div><div class="eyebrow">${esc(o.org || '')}</div><h2>${esc(o.reportTitle || 'Digitale Kompetenzen der Lehrpersonen')}</h2>
         <p>«${esc(o.title)}»${o.filterText ? ' · ' + esc(o.filterText) : ''} · ${data.n} abgeschlossene Teilnahme${data.n === 1 ? '' : 'n'} · Stand ${new Date().toLocaleDateString('de-CH')}</p></div></div>
       ${cagg ? `<p class="small">Veränderung gegenüber «${esc(cTitle)}» unter den Werten.</p>` : ''}
       <div class="stat-row rp-stats">${ITEMS.areas.map((a, i) => `<div class="stat"><span class="small">${a.id} ${esc(a.short)}</span><b>${fmt(agg.areas[i].mean)}</b>${cagg && agg.areas[i].mean !== null && cagg.areas[i].mean !== null ? `<span class="small">${agg.areas[i].mean - cagg.areas[i].mean >= 0 ? '+' : ''}${fmt(agg.areas[i].mean - cagg.areas[i].mean)}</span>` : ''}</div>`).join('')}</div>

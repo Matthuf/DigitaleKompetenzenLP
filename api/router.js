@@ -208,7 +208,7 @@ on('GET', 'c/:token', async ({ req, params }) => {
 on('POST', 'c/:token/start', async ({ req, params, body, res }) => {
   const c = await campaignByToken(params.token, req);
   if (c.status !== 'open') fail(409, 'Diese Erhebung ist abgeschlossen.');
-  // Grosszügig, weil ein ganzes Kollegium über dieselbe Schul-IP teilnehmen kann. Bremst nur automatisierte Massenanmeldungen.
+  // Grosszügig, weil alle Lehrpersonen einer Schule über dieselbe Schul-IP teilnehmen können. Bremst nur automatisierte Massenanmeldungen.
   await limit('start:' + c.link_id + ':' + clientIp(req), 80, 600, 'Über diesen Link wurden in kurzer Zeit sehr viele Teilnahmen gestartet. Bitte in einigen Minuten nochmals versuchen.');
   await limit('start:' + c.link_id, 400, 86400, 'Über diesen Link wurden heute ungewöhnlich viele Teilnahmen gestartet. Bitte die Schulleitung informieren.');
   const code = newCode();
@@ -599,7 +599,7 @@ async function mailInvite(id, token, actor, req) {
       : (person ? person + '\n' : '') + (i.creator_role === 'traeger' ? `Rektorat/Hauptschulleitung ${i.traeger_name}` : `Schulleitung ${i.creator_school || ''}`);
     const what = i.role === 'traeger'
       ? 'Mit dem Zugang eröffnen Sie Erhebungen für alle Schulhäuser, sehen deren Rücklauf und Auswertung und verwalten Schulhäuser und Zugänge.'
-      : 'Mit dem Zugang verteilen Sie den Link zur Selbsteinschätzung an Ihr Kollegium, sehen Rücklauf und Auswertung Ihres Schulhauses und können eigene Erhebungen eröffnen.';
+      : 'Mit dem Zugang verteilen Sie den Link zur Selbsteinschätzung an Ihre Lehrpersonen, sehen Rücklauf und Auswertung Ihres Schulhauses und können eigene Erhebungen eröffnen.';
     const until = new Date(i.expires_at).toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich' });
     const text = `Guten Tag${i.name ? ' ' + i.name : ''}
 

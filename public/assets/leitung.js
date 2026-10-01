@@ -78,11 +78,11 @@
           ? `Rücklauf ${quote} % von ${l.expected} <button class="btn quiet small" type="button" data-expected="${l.id}">ändern</button><span class="bar"><span style="width:${quote}%"></span></span>`
           : `<button class="btn quiet small" type="button" data-expected="${l.id}">Anzahl Lehrpersonen eintragen</button>`}</span>
       </div>
-      ${l.expected && l.submitted + l.drafts > l.expected ? `<p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über das Kollegium hinaus weitergegeben. Bei Bedarf die Erhebung abschliessen und eine neue eröffnen.</p>` : ''}
+      ${l.expected && l.submitted + l.drafts > l.expected ? `<p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über die eigenen Lehrpersonen hinaus weitergegeben. Bei Bedarf die Erhebung abschliessen und eine neue eröffnen.</p>` : ''}
       ${c.status === 'open' ? `<div class="camp-link"><code title="${esc(linkFor(l))}">${esc(linkFor(l))}</code>
         <button class="btn secondary small" type="button" data-copy="${l.id}">Link kopieren</button>
         ${isRektorat() ? `<button class="btn secondary small" type="button" data-slmail="${l.id}">E-Mail an Schulleitung</button>` : ''}
-        <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail ans Kollegium</button>
+        <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail an die Lehrpersonen</button>
         <button class="btn secondary small" type="button" data-qr="${l.id}">QR-Code</button></div>
         <div class="share" data-share="${l.id}" hidden></div>` : ''}
     </div>`;
@@ -138,7 +138,7 @@
     const withLead = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
     const vorgabe = ctx.rounds.find((r) => r.active);
     box.innerHTML = `<section class="panel first-steps stack" style="gap:14px" aria-labelledby="h-steps">
-      <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3><p class="small muted">So kommt Ihr Kollegium zur Selbsteinschätzung.</p></div>
+      <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3><p class="small muted">So kommen Ihre Lehrpersonen zur Selbsteinschätzung.</p></div>
       <ol class="steps">
         <li><div><b>Schulhäuser erfassen</b>
           <span class="st">${n ? `Erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}.` : 'Noch nichts erfasst.'} Zwei Möglichkeiten:</span>
@@ -153,9 +153,9 @@
             <span class="error small" role="alert"></span></form>
           <span class="st" style="margin-top:6px">Die Zyklen und Namen lassen sich unter <a href="#team">Schulen und Zugänge</a> anpassen.</span></div></li>
         <li><div><b>Schulleitungen einladen</b> <span class="small muted">(empfohlen)</span>
-          <span class="st">Mit eigenem Zugang geben die Schulleitungen den Link an ihr Kollegium weiter und sehen die Auswertung ihres Schulhauses.${n && t ? ` Bisher: ${withLead} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}.` : ''} <a href="#team">Schulleitungen einladen</a></span></div></li>
+          <span class="st">Mit eigenem Zugang geben die Schulleitungen den Link an ihre Lehrpersonen weiter und sehen die Auswertung ihres Schulhauses.${n && t ? ` Bisher: ${withLead} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}.` : ''} <a href="#team">Schulleitungen einladen</a></span></div></li>
         <li><div><b>Erhebung eröffnen</b>
-          <span class="st">Unten «Neue Erhebung eröffnen» wählen. Eine Erhebung umfasst alle Schulhäuser zusammen, jedes mit eigenem Link.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft dem Kollegium.</span></div></li>
+          <span class="st">Unten «Neue Erhebung eröffnen» wählen. Eine Erhebung umfasst alle Schulhäuser zusammen, jedes mit eigenem Link.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft den Lehrpersonen.</span></div></li>
       </ol>
       <p class="small"><b>Danach:</b> Die Links erscheinen hier bei der Erhebung. Schulleitungen mit Zugang finden sie nach dem Anmelden, für die übrigen Schulhäuser geben Sie den Link selbst weiter. Die Auswertung erscheint, sobald die ersten Teilnahmen abgeschlossen sind.</p>
     </section>`;
@@ -179,7 +179,7 @@
     renderSteps();
     if (!campaigns.length) {
       $('#create-box').open = true;
-      list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Mit «Neue Erhebung eröffnen» beginnen und den Link ans Kollegium weitergeben.</p>`;
+      list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Mit «Neue Erhebung eröffnen» beginnen und den Link an die Lehrpersonen weitergeben.</p>`;
       return;
     }
     const open = campaigns.filter((c) => c.status === 'open');
@@ -311,7 +311,7 @@ ${signature()}`;
   function showMail(l) {
     const p = sharePanel(l);
     const subject = `Selbsteinschätzung digitale Kompetenzen: ${l.campaign.title}`;
-    p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail ans Kollegium${isRektorat() ? ' von ' + esc(l.school_name) : ''}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
+    p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail an die Lehrpersonen${isRektorat() ? ' von ' + esc(l.school_name) : ''}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
       <p class="small muted">${l.campaign.due_date ? 'Text bei Bedarf anpassen' : 'Text anpassen (zum Beispiel das Datum)'}, dann kopieren oder im E-Mail-Programm öffnen.</p>
       <div class="field"><label for="mail-subj-${l.id}" class="small">Betreff</label><input type="text" id="mail-subj-${l.id}" value="${esc(subject)}"></div>
       <div class="field"><label for="mail-body-${l.id}" class="small">Text</label><textarea id="mail-body-${l.id}">${esc(mailText(l))}</textarea></div>
@@ -332,15 +332,15 @@ ${signature()}`;
     const body = leaders.length
       ? `${intro}
 
-Bitte geben Sie den Link an Ihr Kollegium weiter${due ? ` und bitten Sie um Teilnahme bis ${due}` : ''}. Nach der Anmeldung unter ${location.origin}/leitung finden Sie ihn unter «Erhebungen», zusammen mit einer E-Mail-Vorlage für das Kollegium und einem QR-Code. Dort sehen Sie auch den Rücklauf und später die Auswertung Ihres Schulhauses.
+Bitte geben Sie den Link an Ihre Lehrpersonen weiter${due ? ` und bitten Sie um Teilnahme bis ${due}` : ''}. Nach der Anmeldung unter ${location.origin}/leitung finden Sie ihn unter «Erhebungen», zusammen mit einer E-Mail-Vorlage für die Lehrpersonen und einem QR-Code. Dort sehen Sie auch den Rücklauf und später die Auswertung Ihres Schulhauses.
 
-Link für das Kollegium von ${l.school_name}:
+Link für die Lehrpersonen von ${l.school_name}:
 ${linkFor(l)}
 
 ${privacy}`
       : `${intro}
 
-Bitte leiten Sie den folgenden Link an Ihr Kollegium weiter${due ? `, mit der Bitte um Teilnahme bis ${due}` : ''}:
+Bitte leiten Sie den folgenden Link an Ihre Lehrpersonen weiter${due ? `, mit der Bitte um Teilnahme bis ${due}` : ''}:
 ${linkFor(l)}
 
 ${privacy}`;
@@ -448,8 +448,8 @@ ${signature()}`;
     $('#camp-schools-field').hidden = !isRektorat();
     $('#camp-due').min = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     $('#camp-intro').textContent = isRektorat()
-      ? 'Eine Erhebung ist ein Zeitraum, in dem die Kollegien die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Rektorat bzw. Hauptschulleitung sehen die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
-      : 'Eine Erhebung ist ein Zeitraum, in dem das Kollegium die Selbsteinschätzung ausfüllt. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
+      ? 'Eine Erhebung ist ein Zeitraum, in dem die Lehrpersonen die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Rektorat bzw. Hauptschulleitung sehen die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
+      : 'Eine Erhebung ist ein Zeitraum, in dem die Lehrpersonen die Selbsteinschätzung ausfüllen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
   }
   $('#create-box').addEventListener('toggle', () => { if (!$('#create-box').open) { formBuilt = false; fillCreateForm(); } });
 
@@ -538,7 +538,7 @@ ${signature()}`;
       profileTitle: isRektorat() && !an.school && data.multiSchool ? 'Profil des Schulträgers' : 'Profil der Schule',
       groups: [['zyklen', 'Zyklen im Vergleich', ''], ['schulen', 'Schulen im Vergleich', 'Dient der Planung der Weiterbildung, nicht als Rangliste.']],
       showCustom: true,
-      tooFewHint: c && c.status === 'open' ? `<p class="small">Den Link unter <a href="#erhebungen/${c.id}">Erhebungen</a> ans Kollegium weitergeben.</p>` : '',
+      tooFewHint: c && c.status === 'open' ? `<p class="small">Den Link unter <a href="#erhebungen/${c.id}">Erhebungen</a> an die Lehrpersonen weitergeben.</p>` : '',
     });
   }
   $('#an-compare').addEventListener('change', (e) => { an.compare = e.target.value; loadAnalysis(); });
@@ -588,7 +588,7 @@ ${signature()}`;
 
       ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
         <h3 id="h-schools">Schulhäuser</h3>
-        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen${ctx.mail ? ' (die Einladung geht direkt per E-Mail)' : ''}. Wer keine Aufteilung nach Schulhaus braucht, erfasst nur einen Eintrag für die ganze Schule: ein Link, eine gemeinsame Auswertung. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link ans Kollegium selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
+        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen${ctx.mail ? ' (die Einladung geht direkt per E-Mail)' : ''}. Wer keine Aufteilung nach Schulhaus braucht, erfasst nur einen Eintrag für die ganze Schule: ein Link, eine gemeinsame Auswertung. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link an ihre Lehrpersonen selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
         <ul class="list-plain team-list school-list">${t.schools.map((s) => `<li data-school="${s.id}">
           <div class="school-main"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}${s.links ? ' · an Erhebungen beteiligt' : ''}</span></span>
             <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen ändern</button><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></div>

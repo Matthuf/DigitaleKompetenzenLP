@@ -179,7 +179,6 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
   .site-header .nav, footer .links, .no-print, .actions { display: none !important; }
   main > .view[hidden] { display: none !important; }
   .userstrip, .tabs, .nav-toggle, #code-panel, .sum-hint { display: none !important; }
-  details.sub summary::after { content: "" !important; }
   main { padding: 0; }
   details.sub .sub-body { display: grid !important; }
   details.sub summary .t::before { content: ""; }
@@ -187,6 +186,13 @@ footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 18px; f
   body { font-size: 11pt; }
   /* Farben immer mitdrucken, auch wenn im Druckdialog «Hintergrundgrafiken» nicht gewählt ist */
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Kopf- und Fusslinie auf die Breite des Inhalts einrücken, damit alle Querlinien gleich lang sind */
+  .site-header, footer { margin-inline: 24px; }
+  .site-header > .wrap, footer > .wrap { padding-inline: 0; max-width: none; }
+  .site-header .brand { padding-block: 0 14px; align-items: center; }
+  .brand-text h1 { font-size: 1.3rem; }
+  .site-header .logo-link img { height: 34px; }
+  footer { padding-block: 20px 0; }
 }
 
 /* Serverversion */
@@ -555,4 +561,14 @@ details.past .stack { gap: 16px; }
   .lvtag { grid-column: 2; grid-row: 1; flex-direction: row; gap: 6px; align-items: baseline; justify-self: start; min-height: 0; margin: 0; padding: 2px 8px; }
   .lvtag b { font-size: 0.8rem; }
   .opt-text { grid-column: 2; grid-row: 2; }
+}
+
+.nowrap-part { display: inline-block; }
+
+/* Druck: steht am Schluss, damit es die späteren Regeln der Serverversion überschreibt */
+@media print {
+  .site-header .logo-link img { height: 30px; }
+  .brand-text h1 { font-size: 1.2rem; }
+  details.sub summary::after { display: none !important; }
+  details.sub summary { grid-template-columns: minmax(0, 1fr) 150px 112px; gap: 12px; padding-inline: 0; margin-inline: 0; }
 }

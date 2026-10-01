@@ -98,7 +98,8 @@
       catch (e) { return showError('Dieser Link funktioniert nicht', e.message); }
       $('#school-name').textContent = camp.school.name;
       setZyklen(camp.school && camp.school.zyklen);
-      $('#campaign-name').textContent = 'Selbsteinschätzung · ' + camp.campaign.title;
+      // Titel als eigener Block: beim Umbruch bleibt er zusammen statt mitten im Namen zu brechen
+      $('#campaign-name').innerHTML = 'Selbsteinschätzung · <span class="nowrap-part">' + esc(camp.campaign.title) + '</span>';
       if (camp.campaign.due_date && !UI.duePast(camp.campaign.due_date)) {
         $('#due-note').hidden = false;
         $('#due-note').innerHTML = `Bitte bis <b>${esc(UI.dueLong(camp.campaign.due_date))}</b> ausfüllen.`;
@@ -311,11 +312,6 @@
     if (first) setTimeout(() => first.focus({ preventScroll: true }), smoothOK() ? 400 : 0);
   }
   // Nach der ersten Antwort auf eine Frage sanft zur nächsten offenen Frage weiter
-  function advanceFrom(fs) {
-    const all = $$('#questions fieldset.q');
-    const next = all.slice(all.indexOf(fs) + 1).find((f) => !f.querySelector('input:checked') && !(f.querySelector('textarea') && f.querySelector('textarea').value.trim()));
-    setTimeout(() => scrollToEl(next || $('.survey-foot')), 300);
-  }
   function closeNav() { $('#survey-aside').classList.remove('open'); $('#nav-toggle').setAttribute('aria-expanded', 'false'); }
   $('#nav-toggle').addEventListener('click', () => {
     const open = !$('#survey-aside').classList.contains('open');
@@ -402,7 +398,6 @@
         } else {
           const first = cur.custom_answers[q.id] === undefined;
           cur.custom_answers[q.id] = +inp.value;
-          if (first) advanceFrom(inp.closest('fieldset'));
         }
         scheduleSave(); renderAreaNav();
       }));
@@ -431,7 +426,6 @@
       $$('#questions input[type=radio]').forEach((r) => r.addEventListener('change', () => {
         const first = cur.answers[r.name.slice(2)] === undefined;
         cur.answers[r.name.slice(2)] = +r.value;
-        if (first) advanceFrom(r.closest('fieldset'));
         scheduleSave();
         renderAreaNav();
         $('#open-hint').textContent = '';
