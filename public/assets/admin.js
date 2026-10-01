@@ -45,12 +45,17 @@
     }));
   }
 
+  let scOpen = false;
+
   async function renderPanel() {
     const t = traeger.find((x) => x.id === current);
     if (!t) { $('#tr-panel').hidden = true; return; }
     $('#tr-panel').hidden = false;
     $('#tr-title').textContent = t.name;
     $('#tr-kind-label').textContent = KIND[t.kind];
+    $('#sc-count').textContent = t.schools.length ? `· ${t.schools.length} erfasst: ${t.schools.map((s) => s.name).join(', ')}` : '· keine erfasst, nur auf Anfrage der Schule';
+    $('#sc-box').open = scOpen;
+    $('#sc-box').addEventListener('toggle', () => { scOpen = $('#sc-box').open; }, { once: true });
     $('#sc-list').innerHTML = t.schools.length ? t.schools.map((s) => `<li class="row" style="justify-content:space-between"><span>${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))} · ${s.users} Zugang${s.users === 1 ? '' : 'e'}</span></span><span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen</button><span class="confirm" data-scdel="${s.id}"></span></span></li>`).join('') : '<li class="muted">Noch keine Schule.</li>';
     $$('#sc-list [data-zyk]').forEach((b) => b.addEventListener('click', () => {
       const li = b.closest('li'); const s = t.schools.find((x) => x.id === b.dataset.zyk);
@@ -107,7 +112,7 @@
   $('#form-school').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('#school-msg').textContent = '';
-    try { await api('POST', `admin/traeger/${current}/schools`, { name: $('#school-new').value }); $('#school-new').value = ''; await loadTraeger(); }
+    try { scOpen = true; await api('POST', `admin/traeger/${current}/schools`, { name: $('#school-new').value }); $('#school-new').value = ''; await loadTraeger(); }
     catch (err) { $('#school-msg').textContent = err.message; }
   });
   $('#form-user').addEventListener('submit', async (e) => {

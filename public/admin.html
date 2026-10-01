@@ -87,9 +87,22 @@
 
       <div class="stack" style="gap:20px" id="tr-panel" hidden>
         <div class="stack" style="gap:6px"><div class="eyebrow" id="tr-kind-label"></div><h2 id="tr-title"></h2></div>
-        <div class="two-col">
-          <div class="stack" style="gap:12px">
-            <h3>Schulen bzw. Schulhäuser</h3>
+        <div class="stack" style="gap:12px">
+          <h3>Person einladen</h3>
+          <p class="small muted" style="max-width:76ch">Das AVS lädt in der Regel nur das Rektorat bzw. die Hauptschulleitung ein. Schulleitungen und weitere Personen lädt der Schulträger danach selbst ein.</p>
+          <form class="row" id="form-user" style="align-items:flex-end;gap:12px">
+            <div class="field"><label for="user-scope" class="small">Zugang für</label><select id="user-scope"></select></div>
+            <div class="field"><label for="user-new-name" class="small">Name</label><input type="text" id="user-new-name" style="width:200px"></div>
+            <div class="field"><label for="user-new" class="small">E-Mail</label><input type="text" id="user-new" inputmode="email" autocomplete="off" style="width:240px"></div>
+            <button class="btn" type="submit">Einladung erstellen</button>
+          </form>
+          <p class="error small" id="user-msg" role="alert"></p>
+        </div>
+
+        <details class="panel create" id="sc-box">
+          <summary><b>Schulhäuser erfassen</b> <span class="small muted" id="sc-count"></span></summary>
+          <div class="stack" style="gap:12px;margin-top:14px">
+            <p class="small muted" style="max-width:76ch">Normalerweise erfassen Rektorat bzw. Hauptschulleitung ihre Schulhäuser nach der Anmeldung selbst. Hier nur erfassen, wenn die Schule darum bittet.</p>
             <ul class="list-plain stack" style="gap:6px" id="sc-list"></ul>
             <form class="row" id="form-school" style="align-items:flex-end">
               <div class="field"><label for="school-new" class="small">Weitere Schule</label><input type="text" id="school-new" placeholder="z. B. Schulhaus Dorf" style="width:220px"></div>
@@ -97,20 +110,8 @@
             </form>
             <p class="error small" id="school-msg" role="alert"></p>
           </div>
-          <div class="stack" style="gap:12px">
-            <h3>Person einladen</h3>
-            <form class="stack" id="form-user" style="gap:10px">
-              <div class="field"><label for="user-scope" class="small">Zugang für</label><select id="user-scope"></select></div>
-              <div class="row">
-                <div class="field"><label for="user-new-name" class="small">Name</label><input type="text" id="user-new-name" style="width:200px"></div>
-                <div class="field"><label for="user-new" class="small">E-Mail</label><input type="text" id="user-new" inputmode="email" autocomplete="off" style="width:240px"></div>
-              </div>
-              <div><button class="btn" type="submit">Einladung erstellen</button></div>
-            </form>
-            <p class="error small" id="user-msg" role="alert"></p>
-            <p class="small muted">In der Regel lädt das AVS nur das Rektorat bzw. die Hauptschulleitung ein. Weitere Personen lädt der Schulträger selbst ein.</p>
-          </div>
-        </div>
+        </details>
+
         <div class="box box--success" id="pw-once" hidden></div>
         <h3>Zugänge</h3>
         <div class="table-scroll" tabindex="0" role="region" aria-label="Zugänge"><table class="list" id="user-table"></table></div>
