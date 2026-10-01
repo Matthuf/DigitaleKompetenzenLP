@@ -144,7 +144,7 @@ window.Analysis = (function () {
 
       ${o.footNote ? `<p class="small muted">${o.footNote}</p>` : ''}
       <div class="export-bar no-print">
-        <div class="stack" style="gap:4px"><b>Ergebnisse weitergeben</b><span class="small muted">${esc(o.exportText || 'Für Schulkonferenz, Schulpflege oder die eigene Ablage.')}</span></div>
+        <div class="stack" style="gap:4px"><b>Ergebnisse weitergeben</b><span class="small muted">${esc(o.exportText || 'Für Schulkonferenz, Schulrat oder die eigene Ablage.')}</span></div>
         <div class="row">
           <button class="btn" type="button" id="btn-report">Bericht auf einer Seite (PDF)</button>
           <button class="btn secondary" type="button" id="btn-csv">Zahlen als CSV</button>
@@ -196,7 +196,7 @@ window.Analysis = (function () {
     $('[data-report]', out).addEventListener('click', () => $('#btn-report', out).click());
   }
 
-  /* Bericht auf einer Seite (Schulkonferenz, Schulpflege, AVS) */
+  /* Bericht auf einer Seite (Schulkonferenz, Schulrat, AVS) */
   function printReport(data, agg, cagg, cTitle, sorted, pd, o) {
     const r = $('#report');
     const series = [{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }];
