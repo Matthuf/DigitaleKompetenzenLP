@@ -174,19 +174,33 @@
     });
   }
 
+  // Läuft bereits eine Erhebung, soll das Formular nicht zu einer zweiten verleiten
+  function setCreateHint(openCount) {
+    const el = $('#create-hint');
+    if (!el) return;
+    el.hidden = !openCount;
+    if (openCount) {
+      el.textContent = openCount === 1
+        ? 'Eine Erhebung läuft bereits. Eine zusätzliche brauchen Sie nur, wenn Sie zu einem anderen Zeitpunkt oder zu einem anderen Zweck erheben möchten. Für weitere Schulhäuser genügt «Schulhaus aufnehmen» in der laufenden Erhebung.'
+        : `Es laufen bereits ${openCount} Erhebungen. Eine zusätzliche brauchen Sie nur, wenn Sie zu einem anderen Zeitpunkt oder zu einem anderen Zweck erheben möchten.`;
+    }
+  }
+
   function renderCampaigns() {
     const list = $('#camp-list');
     renderSteps();
     if (!campaigns.length) {
       $('#create-box').open = true;
-      list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Mit «Neue Erhebung eröffnen» beginnen und den Link an die Lehrpersonen weitergeben.</p>`;
+      setCreateHint(0);
+      list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Unten mit «Neue Erhebung eröffnen» beginnen und den Link an die Lehrpersonen weitergeben.</p>`;
       return;
     }
     const open = campaigns.filter((c) => c.status === 'open');
+    setCreateHint(open.length);
     const past = campaigns.filter((c) => c.status !== 'open');
     if (openQ && !byId(openQ)) openQ = null;
     if (openQ && past.some((c) => c.id === openQ)) pastOpen = true;
-    list.innerHTML = (open.length ? open.map(cardHTML).join('') : `<p class="muted">Zurzeit ist keine Erhebung offen. Mit «Neue Erhebung eröffnen» eine neue beginnen.</p>`) +
+    list.innerHTML = (open.length ? open.map(cardHTML).join('') : `<p class="muted">Zurzeit ist keine Erhebung offen. Unten mit «Neue Erhebung eröffnen» eine neue beginnen.</p>`) +
       (past.length ? `<details class="past" id="past-box" ${pastOpen || !open.length ? 'open' : ''}><summary>Frühere Erhebungen (${past.length})</summary>
         <div class="stack">${past.map(cardHTML).join('')}</div></details>` : '');
     const pb = $('#past-box');

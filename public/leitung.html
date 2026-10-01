@@ -71,8 +71,10 @@
         <p class="muted" id="camp-intro" style="max-width:72ch">Eine Erhebung ist ein Zeitraum, in dem die Lehrpersonen die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>
       </div>
       <div id="start-steps"></div>
+      <div id="camp-list" class="stack" style="gap:16px"></div>
       <details class="panel create" id="create-box">
         <summary><b>Neue Erhebung eröffnen</b></summary>
+        <p class="small muted" id="create-hint" hidden style="margin-top:8px"></p>
         <form class="stack" id="form-campaign" style="margin-top:16px">
           <div class="field" id="camp-round-field" hidden><label for="camp-round">Erhebung</label><select id="camp-round"></select>
             <p class="small muted" id="camp-round-hint"></p></div>
@@ -88,7 +90,6 @@
           <div class="row"><button class="btn" type="submit">Erhebung eröffnen</button><span class="error small" id="camp-msg" role="alert"></span></div>
         </form>
       </details>
-      <div id="camp-list" class="stack" style="gap:16px"></div>
     </div>
 
     <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
