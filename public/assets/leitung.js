@@ -128,50 +128,39 @@
     </article>`;
   }
 
-  // Erste Schritte (Rektorat ohne Erhebung): Ziel, drei Schritte, was danach passiert
+  /* Erste Schritte (Rektorat ohne Erhebung): kurze Standanzeige, der Weg führt über den Assistenten.
+   * Die Checkliste ist die Rückfallebene für alle, die den Assistenten abbrechen oder einzeln nacharbeiten. */
   async function renderSteps() {
     const box = $('#start-steps');
-    if (campaigns.length || !isRektorat()) { box.innerHTML = ''; return; }
+    if (campaigns.length || !isRektorat()) { box.innerHTML = ''; $('#camp-intro').hidden = false; return; }
+    $('#camp-intro').hidden = true;
     let t = null;
     try { t = await api('GET', 'leitung/team'); } catch { /* ohne Zahlen weiter */ }
     const n = ctx.schools.length;
-    const withLead = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
-    const vorgabe = ctx.rounds.find((r) => r.active);
-    box.innerHTML = `<section class="panel first-steps stack" style="gap:14px" aria-labelledby="h-steps">
-      <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3><p class="small muted">So kommen Ihre Lehrpersonen zur Selbsteinschätzung.</p></div>
-      <ol class="steps">
-        <li><div><b>Schulhäuser erfassen</b>
-          <span class="st">${n ? `Erfasst: ${ctx.schools.map((s) => esc(s.name)).join(', ')}.` : 'Noch nichts erfasst.'} Zwei Möglichkeiten:</span>
-          <ul class="st options-list">
-            <li><b>Pro Schulhaus ein Eintrag:</b> Jedes Schulhaus erhält einen eigenen Link. Die Auswertung gibt es pro Schulhaus und für alle zusammen; jede Schulleitung sieht ihr Schulhaus.</li>
-            <li><b>Ein Eintrag für die ganze Schule:</b> ein gemeinsamer Link und eine gemeinsame Auswertung, ohne Aufteilung nach Schulhaus.</li>
-          </ul>
-          <form class="row" id="steps-school" style="margin-top:10px;align-items:flex-end">
-            <div class="field"><label for="steps-school-name" class="small">${n ? 'Weiteres Schulhaus' : 'Schulhaus'}</label><input type="text" id="steps-school-name" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
-            <button class="btn ${n ? 'secondary' : ''}" type="submit">Hinzufügen</button>
-            ${n ? '' : `<span class="small muted">oder</span><button class="btn secondary" type="button" id="steps-school-all">Ein Eintrag für die ganze Schule</button>`}
-            <span class="error small" role="alert"></span></form>
-          <span class="st" style="margin-top:6px">Die Zyklen und Namen lassen sich unter <a href="#team">Schulen und Zugänge</a> anpassen.</span></div></li>
-        <li><div><b>Schulleitungen einladen</b> <span class="small muted">(empfohlen)</span>
-          <span class="st">Mit eigenem Zugang geben die Schulleitungen den Link an ihre Lehrpersonen weiter und sehen die Auswertung ihres Schulhauses.${n && t ? ` Bisher: ${withLead} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}.` : ''} <a href="#team">Schulleitungen einladen</a></span></div></li>
-        <li><div><b>Erhebung eröffnen</b>
-          <span class="st">Unten «Neue Erhebung eröffnen» wählen. Eine Erhebung umfasst alle Schulhäuser zusammen, jedes mit eigenem Link.${vorgabe ? ` Die Erhebung des AVS («${esc(vorgabe.title)}») ist bereits ausgewählt.` : ''} Ein Zieldatum hilft den Lehrpersonen.</span></div></li>
-      </ol>
-      <p class="small"><b>Danach:</b> Die Links erscheinen hier bei der Erhebung. Schulleitungen mit Zugang finden sie nach dem Anmelden, für die übrigen Schulhäuser geben Sie den Link selbst weiter. Die Auswertung erscheint, sobald die ersten Teilnahmen abgeschlossen sind.</p>
+    const mitLeitung = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
+    const zeile = (erledigt, titel, stand) =>
+      `<li class="${erledigt ? 'done' : ''}"><span class="ck" aria-hidden="true">${erledigt ? '✓' : ''}</span>
+        <span><b>${titel}</b><span class="st">${stand}</span></span></li>`;
+    box.innerHTML = `<section class="panel first-steps stack" style="gap:16px" aria-labelledby="h-steps">
+      <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3>
+        <p class="small muted">In drei Schritten kommen Ihre Lehrpersonen zur Selbsteinschätzung. Der Assistent führt Sie durch.</p></div>
+      <ul class="ck-list">
+        ${zeile(n > 0, 'Schulhäuser', n ? ctx.schools.map((s) => esc(s.name)).join(', ') : 'noch keine erfasst')}
+        ${zeile(n > 0 && mitLeitung === n, 'Zugänge für die Schulleitungen', !n ? 'nach den Schulhäusern' : `${mitLeitung} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'} · freiwillig`)}
+        ${zeile(false, 'Erhebung eröffnen', 'noch nicht eröffnet')}
+      </ul>
+      <div class="row" style="gap:14px;align-items:center">
+        <button class="btn" type="button" id="btn-wizard">Erhebung starten</button>
+        <span class="small muted">Dauert etwa zwei Minuten. Abbrechen ist jederzeit möglich, Erfasstes bleibt erhalten.</span>
+      </div>
     </section>`;
-    const f = $('#steps-school');
-    f.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = $('#steps-school-name').value;
-      try { await api('POST', 'leitung/schools', { name }); await refreshCtx(); $('#steps-school-name').focus(); }
-      catch (err) { f.querySelector('.error').textContent = err.message; }
-    });
-    // Ein Eintrag für den ganzen Schulträger (ein Link, eine Auswertung); Name lässt sich später ändern
-    const all = $('#steps-school-all');
-    if (all) all.addEventListener('click', async () => {
-      try { await api('POST', 'leitung/schools', { name: `${ctx.traeger.name} (alle Schulhäuser)` }); await refreshCtx(); }
-      catch (err) { f.querySelector('.error').textContent = err.message; }
-    });
+    $('#btn-wizard').addEventListener('click', () => Wizard.open({
+      schools: () => ctx.schools.map((s) => ({ ...s, hatLeitung: !!t && (t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)) })),
+      traegerName: () => ctx.traeger.name,
+      vorgabe: () => ctx.rounds.find((r) => r.active) || null,
+      refresh: async () => { await refreshCtx(); try { t = await api('GET', 'leitung/team'); } catch { /* ohne Zahlen weiter */ } },
+      reload: () => loadCampaigns(),
+    }));
   }
 
   // Läuft bereits eine Erhebung, soll das Formular nicht zu einer zweiten verleiten
@@ -190,7 +179,8 @@
     const list = $('#camp-list');
     renderSteps();
     if (!campaigns.length) {
-      $('#create-box').open = true;
+      // Beim Rektorat führt der Assistent; das Formular bleibt als zweiter Weg zu, aber vorhanden
+      $('#create-box').open = !isRektorat();
       setCreateHint(0);
       list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Unten mit «Neue Erhebung eröffnen» beginnen und den Link an die Lehrpersonen weitergeben.</p>`;
       return;
