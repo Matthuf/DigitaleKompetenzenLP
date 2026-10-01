@@ -462,8 +462,8 @@ ${signature()}`;
     $('#camp-schools-field').hidden = !isRektorat();
     $('#camp-due').min = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     $('#camp-intro').textContent = isRektorat()
-      ? 'Eine Erhebung ist ein Zeitraum, in dem die Lehrpersonen die Selbsteinschätzung ausfüllen. Jede Schule erhält einen eigenen Link. Rektorat bzw. Hauptschulleitung sehen die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
-      : 'Eine Erhebung ist ein Zeitraum, in dem die Lehrpersonen die Selbsteinschätzung ausfüllen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
+      ? 'Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Jede Schule erhält einen eigenen Link. Rektorat bzw. Hauptschulleitung sehen die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
+      : 'Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
   }
   $('#create-box').addEventListener('toggle', () => { if (!$('#create-box').open) { formBuilt = false; fillCreateForm(); } });
 
