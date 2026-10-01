@@ -6,7 +6,7 @@ window.Analysis = (function () {
   const SUBS = DKCore.allSubareas(ITEMS);
 
   // Gewählte Darstellung bleibt beim Wechsel von Erhebung oder Filter erhalten
-  const view = { chart: 'radar', level: 'areas', order: 'order' };
+  const view = { chart: 'radar', level: 'areas', order: 'order', basis: 'answers' };
   let secObserver = null;
   const CHARTS = [['radar', 'Netz'], ['bars', 'Balken'], ['dist', 'Verteilung'], ['box', 'Boxplot']];
   const seg = (name, label, opts, cur) => `<div class="seg" role="group" aria-label="${esc(label)}">${opts.map(([v, t]) =>
@@ -15,11 +15,18 @@ window.Analysis = (function () {
   const safe = (t) => String(t || 'Auswertung').replace(/[^\wäöüÄÖÜ-]+/g, '_');
   const lvOf = (v) => Math.min(6, Math.max(1, Math.round(v)));
 
-  function chartExplain(chart, level, hasCmp) {
+  function chartExplain(chart, level, hasCmp, basis) {
     const cmpNote = hasCmp && (chart === 'dist' || chart === 'box') ? ' Der Vergleich erscheint im Netz, bei den Balken und unter «Veränderung».' : '';
     if (chart === 'radar') return 'Mittelwert der Teilbereiche pro Bereich. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.';
     if (chart === 'bars') return `Mittelwert pro ${level === 'areas' ? 'Bereich' : 'Teilbereich'}. Stufe I = 1 bis VI = 6. «Keine Gelegenheit» zählt nicht mit.`;
-    if (chart === 'dist') return `Anteil der Einschätzungen pro Stufe${level === 'areas' ? ' (alle Teilbereiche eines Bereichs zusammen)' : ''}. «k. G.» = Anzahl «keine Gelegenheit», nicht in den Prozenten enthalten.` + cmpNote;
+    if (chart === 'dist') {
+      if (basis === 'persons') {
+        return `Anteil der <b>Lehrpersonen</b> pro Gruppe. ${level === 'areas'
+          ? 'Massgebend ist der persönliche Mittelwert über die Teilbereiche des Bereichs, auf eine Stufe gerundet.'
+          : 'Pro Teilbereich zählt die einzelne Antwort, jede Lehrperson also genau einmal.'} Die Zahl im Balken ist die Anzahl Lehrpersonen. Wer überall «keine Gelegenheit» gewählt hat, zählt nicht mit.` + cmpNote;
+      }
+      return `Anteil der <b>Antworten</b> pro Stufe${level === 'areas' ? ' (alle Teilbereiche eines Bereichs zusammen, eine Lehrperson steuert also mehrere Antworten bei)' : ''}. «k. G.» = Anzahl «keine Gelegenheit», nicht in den Prozenten enthalten.` + cmpNote;
+    }
     return `<span class="box-legend"><span><i class="lg-box"></i>mittlere 50 %</span><span><i class="lg-med"></i>Median</span><span><i class="lg-mean"></i>Mittelwert</span><span><i class="lg-wh"></i>10–90 %</span></span>
       Minimum und Maximum werden zum Schutz einzelner Personen nicht gezeigt.${level === 'areas' ? ' Grundlage pro Bereich: die persönlichen Mittelwerte der Lehrpersonen.' : ''}` + cmpNote;
   }
@@ -154,7 +161,8 @@ window.Analysis = (function () {
     function drawMain() {
       const isRadar = view.chart === 'radar';
       $('#chart-controls').innerHTML = seg('chart', 'Darstellung', CHARTS, view.chart) +
-        (isRadar ? '' : seg('level', 'Ebene', [['areas', 'Bereiche'], ['subs', 'Teilbereiche']], view.level)) + saveBtn('main');
+        (isRadar ? '' : seg('level', 'Ebene', [['areas', 'Bereiche'], ['subs', 'Teilbereiche']], view.level)) +
+        (view.chart === 'dist' ? seg('basis', 'Gezählt werden', [['answers', 'Antworten'], ['persons', 'Lehrpersonen']], view.basis) : '') + saveBtn('main');
       let svg;
       if (isRadar) {
         const series = [{ values: agg.areas.map((a) => a.mean), fill: 'rgba(226,0,26,0.14)', stroke: '#E2001A' }];
@@ -167,15 +175,19 @@ window.Analysis = (function () {
         svg = `<div class="radar-side"><div class="radar-wrap">${radarSVG(series, { valueLabels: true, label: 'Netzdiagramm: Mittelwerte pro Bereich' })}</div>
           <table class="kv-table"><caption class="sr-only">Mittelwerte pro Bereich</caption><thead><tr><th scope="col">Bereich</th><th scope="col">${esc(o.title)}</th>${cagg ? `<th scope="col">${esc(cTitle)}</th><th scope="col">Δ</th>` : ''}<th scope="col">Stufe</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       } else if (view.chart === 'bars') svg = Charts.bars(agg, view.level, cagg, { cur: o.title, cmp: cTitle });
-      else if (view.chart === 'dist') svg = Charts.dist(agg, view.level);
+      else if (view.chart === 'dist') svg = view.basis === 'persons' ? Charts.distPersons(agg, view.level) : Charts.dist(agg, view.level);
       else svg = Charts.boxplot(agg, view.level);
       const cmpLegend = cagg && (isRadar || view.chart === 'bars') ? `<span><i style="background:#E2001A"></i>${esc(o.title)}</span><span><i style="background:#6E6E6E"></i>${esc(cTitle)}</span>` : '';
-      const lvLegend = view.chart === 'dist' ? LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('') : '';
+      const lvLegend = view.chart !== 'dist' ? ''
+        : view.basis === 'persons'
+          ? ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'].map((t, i) => `<span><i style="background:${Charts.NEEDCOL[i]}"></i>${esc(t)}</span>`).join('')
+          : LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('');
       $('#chart-main').className = 'chart' + (isRadar ? ' chart--radar' : '');
-      $('#chart-main').innerHTML = svg + `<figcaption class="legend">${cmpLegend}${lvLegend}<span>${chartExplain(view.chart, view.level, !!cagg)}</span></figcaption>`;
+      $('#chart-main').innerHTML = svg + `<figcaption class="legend">${cmpLegend}${lvLegend}<span>${chartExplain(view.chart, view.level, !!cagg, view.basis)}</span></figcaption>`;
       $$('#chart-controls [data-chart]').forEach((b) => b.addEventListener('click', () => { view.chart = b.dataset.chart; drawMain(); $('#chart-controls [aria-pressed=true]').focus(); }));
       $$('#chart-controls [data-level]').forEach((b) => b.addEventListener('click', () => { view.level = b.dataset.level; drawMain(); $(`#chart-controls [data-level=${view.level}]`).focus(); }));
-      $('#chart-controls [data-png]').addEventListener('click', () => Charts.png($('#chart-main svg'), `${safe(o.title)}_${CHARTS.find((x) => x[0] === view.chart)[1]}_${today()}`));
+      $$('#chart-controls [data-basis]').forEach((b) => b.addEventListener('click', () => { view.basis = b.dataset.basis; drawMain(); $(`#chart-controls [data-basis=${view.basis}]`).focus(); }));
+      $('#chart-controls [data-png]').addEventListener('click', () => Charts.png($('#chart-main svg'), `${safe(o.title)}_${CHARTS.find((x) => x[0] === view.chart)[1]}${view.chart === 'dist' && view.basis === 'persons' ? '_Lehrpersonen' : ''}_${today()}`));
     }
     drawMain();
 
@@ -220,9 +232,11 @@ window.Analysis = (function () {
           ${pd.noOpp.length ? `<p class="small"><b>Voraussetzungen klären:</b> ${pd.noOpp.map((s) => s.id).join(', ')}</p>` : ''}
         </div>
       </div>
-      <h3>Verteilung der Stufen pro Bereich</h3>
-      ${Charts.dist(agg, 'areas')}
-      <div class="legend">${LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('')}</div>
+      <h3>${view.basis === 'persons' ? 'Verteilung der Lehrpersonen pro Bereich' : 'Verteilung der Stufen pro Bereich'}</h3>
+      ${view.basis === 'persons' ? Charts.distPersons(agg, 'areas') : Charts.dist(agg, 'areas')}
+      <div class="legend">${view.basis === 'persons'
+        ? ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'].map((t, i) => `<span><i style="background:${Charts.NEEDCOL[i]}"></i>${esc(t)}</span>`).join('')
+        : LV.map((l, i) => `<span><i style="background:${Charts.LVCOL[i + 1]}"></i>${l.roman} ${esc(l.label)}</span>`).join('')}</div>
       <p class="small rp-foot">${esc(o.reportFoot || 'Zusammengefasste Selbsteinschätzungen der Lehrpersonen nach DigCompEdu. Einzelne Profile sind nicht einsehbar.')} Kanton Schwyz, Amt für Volksschulen und Sport.</p>`;
     document.body.classList.add('print-report');
     const done = () => { document.body.classList.remove('print-report'); window.removeEventListener('afterprint', done); };

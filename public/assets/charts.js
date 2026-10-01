@@ -114,6 +114,35 @@
     return svg(bottom + 4, g, 'Verteilung der Stufen pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich') + '. ' + note);
   }
 
+  /* A2b: Verteilung nach Lehrpersonen – 100-%-Balken der drei Gruppen.
+   * Pro Bereich zählt der persönliche Bereichsmittelwert, pro Teilbereich die einzelne Antwort.
+   * Grober als die Stufensicht, dafür ist jede Person genau einmal vertreten. */
+  function distPersons(agg, level) {
+    const rows = rowsFor(level);
+    const top = 34, bottom = layout(rows, top);
+    const x1 = X1 - 8, xf = (s) => X0 + s * (x1 - X0);
+    const names = ['Einstieg (I–II)', 'Vertiefung (III–IV)', 'Weitergeben (V–VI)'];
+    let g = rowBackground(rows);
+    [0, 0.25, 0.5, 0.75, 1].forEach((s) => { g += `<text x="${xf(s).toFixed(1)}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}">${pct(s)}</text><line x1="${xf(s).toFixed(1)}" y1="${top - 3}" x2="${xf(s).toFixed(1)}" y2="${top}" stroke="${COL.ink2}"/>`; });
+    rows.filter((r) => r.type === 'item').forEach((r) => {
+      const counts = r.kind === 'area' ? agg.areas[r.idx].persons.groups : DKCore.needGroups(agg.bySub[r.id]).counts;
+      const noOpp = r.kind === 'area' ? 0 : agg.bySub[r.id].counts[0];
+      const total = counts.reduce((a, b) => a + b, 0);
+      let x = X0;
+      counts.forEach((c, k) => {
+        if (!c) return;
+        const w = (c / total) * (x1 - X0);
+        g += `<rect x="${x.toFixed(1)}" y="${r.cy - 8}" width="${w.toFixed(1)}" height="16" fill="${NEEDCOL[k]}" stroke="#fff" stroke-width="1"><title>${names[k]}: ${c} ${c === 1 ? 'Lehrperson' : 'Lehrpersonen'} (${pct(c / total)})</title></rect>`;
+        if (w > 30) g += `<text x="${(x + w / 2).toFixed(1)}" y="${r.cy + 4}" font-size="11" text-anchor="middle" fill="${k ? '#fff' : '#000'}">${c} · ${pct(c / total).replace(' ', '')}</text>`;
+        else if (w > 14) g += `<text x="${(x + w / 2).toFixed(1)}" y="${r.cy + 4}" font-size="11" text-anchor="middle" fill="${k ? '#fff' : '#000'}">${c}</text>`;
+        x += w;
+      });
+      if (!total) g += `<text x="${X0 + 6}" y="${r.cy + 4.5}" font-size="12" fill="${COL.ink2}">keine Einschätzung</text>`;
+      if (noOpp) g += `<text x="${W - 4}" y="${r.cy + 4.5}" font-size="11" text-anchor="end" fill="${COL.ink2}">+${noOpp}&#160;k.&#160;G.</text>`;
+    });
+    return svg(bottom + 4, g, 'Verteilung der Lehrpersonen auf die drei Gruppen pro ' + (level === 'areas' ? 'Bereich' : 'Teilbereich'));
+  }
+
   /* A4: Boxplot wie im Beurteilungstool – Box = mittlere 50 %, Antennen = 10.–90. Perzentil */
   function boxplot(agg, level) {
     const rows = rowsFor(level);
@@ -250,5 +279,5 @@
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
   }
 
-  window.Charts = { bars, dist, boxplot, dumbbell, needs, noOpp, stufen, stufenLegend, png, LVCOL, NEEDCOL };
+  window.Charts = { bars, dist, distPersons, boxplot, dumbbell, needs, noOpp, stufen, stufenLegend, png, LVCOL, NEEDCOL };
 })();

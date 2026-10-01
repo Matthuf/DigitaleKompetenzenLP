@@ -15,7 +15,7 @@ Blatt «Weiterbildung» der Excel-Masterdatei: pro Teilbereich ein Haupt- und ei
 
 ## Schulauswertung (nur Serverversion)
 
-- **Profil der Schule** mit Umschalter: Netz · Balken · Verteilung (100-%-Balken der Stufen) · Boxplot, jeweils für Bereiche oder Teilbereiche. Der Boxplot entspricht dem Beurteilungstool (Box = mittlere 50 %, Median, Mittelwert gepunktet); die Antennen zeigen bewusst das 10.–90. Perzentil statt Minimum/Maximum. Boxplot pro Bereich basiert auf den persönlichen Bereichsmittelwerten.
+- **Profil der Schule** mit Umschalter: Netz · Balken · Verteilung (100-%-Balken) · Boxplot, jeweils für Bereiche oder Teilbereiche. Die Verteilung kennt zwei Zählweisen: **Antworten** (Anteil der Einschätzungen pro Stufe I–VI, eine Lehrperson steuert mehrere Antworten bei) und **Lehrpersonen** (Anteil der Personen in den drei Gruppen Einstieg I–II, Vertiefung III–IV, Weitergeben V–VI; pro Bereich zählt der persönliche Mittelwert, auf eine Stufe gerundet). Der Bericht übernimmt die gewählte Zählweise. Der Boxplot entspricht dem Beurteilungstool (Box = mittlere 50 %, Median, Mittelwert gepunktet); die Antennen zeigen bewusst das 10.–90. Perzentil statt Minimum/Maximum. Boxplot pro Bereich basiert auf den persönlichen Bereichsmittelwerten.
 - **Veränderung** (bei gewähltem Vergleich): Hantel pro Teilbereich, nach Veränderung sortiert.
 - **Wer braucht was?** Anteile Einstieg (I–II), Vertiefung (III–IV), Weitergeben (V–VI) plus Streuung: *gespalten* = je mind. 25 % auf I–II und V–VI, *einig* = Standardabweichung ≤ 0,8, sonst *gemischt*.
 - **Voraussetzungen:** Anteil «keine Gelegenheit» pro Teilbereich, Schwelle 25 %.
