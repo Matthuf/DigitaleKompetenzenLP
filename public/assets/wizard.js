@@ -1,4 +1,4 @@
-// Assistent «Erhebung starten» für Rektorat bzw. Hauptschulleitung.
+// Assistent «Jetzt einrichten» für Rektorat bzw. Hauptschulleitung.
 // Führt in drei Schritten durch Schulhäuser, Schulleitungen und das Eröffnen und zeigt am Schluss die Links.
 // Pro Bildschirm eine Aufgabe; alles, was nicht zur Aufgabe gehört, bleibt weg.
 window.Wizard = (function () {
@@ -44,12 +44,12 @@ window.Wizard = (function () {
   }
 
   const kopf = () => `<div class="wz-head">
-      <p class="eyebrow">Erhebung starten · Schritt ${st.step + 1} von 3</p>
+      <p class="eyebrow">Einrichten · Schritt ${st.step + 1} von 3</p>
       <h2>${TITEL[st.step]}</h2>
       <ol class="wz-dots" aria-label="Fortschritt">${TITEL.map((t, i) =>
         `<li class="${i < st.step ? 'done' : i === st.step ? 'now' : ''}"><span class="sr-only">Schritt ${i + 1}: ${esc(t)}${i < st.step ? ' (erledigt)' : i === st.step ? ' (aktuell)' : ''}</span></li>`).join('')}</ol>
     </div>`;
-  const kopfFertig = () => `<div class="wz-head"><p class="eyebrow">Erhebung starten</p><h2>Die Erhebung läuft</h2></div>`;
+  const kopfFertig = () => `<div class="wz-head"><p class="eyebrow">Einrichten · fertig</p><h2>Die Erhebung läuft</h2></div>`;
 
   /* Schritt 1: Wie wird ausgewertet, und wie heissen die Schulhäuser?
    * Die Frage zielt auf das Ergebnis («welche Auswertung bekomme ich?»), nicht auf die Technik. */

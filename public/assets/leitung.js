@@ -138,19 +138,32 @@
     try { t = await api('GET', 'leitung/team'); } catch { /* ohne Zahlen weiter */ }
     const n = ctx.schools.length;
     const mitLeitung = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
-    const zeile = (erledigt, titel, stand) =>
-      `<li class="${erledigt ? 'done' : ''}"><span class="ck" aria-hidden="true">${erledigt ? '✓' : ''}</span>
-        <span><b>${titel}</b><span class="st">${stand}</span></span></li>`;
+    // Jede Zeile sagt, was zu tun ist und was daraus folgt – nicht nur den Stand
+    const schritte = [
+      { fertig: n > 0, titel: 'Schulhäuser erfassen',
+        was: 'Namen eintragen. Jedes Schulhaus erhält später einen eigenen Teilnahmelink und eine eigene Auswertung.',
+        stand: n ? ctx.schools.map((x) => esc(x.name)).join(', ') : 'noch keine erfasst' },
+      { fertig: n > 0 && mitLeitung === n, titel: 'Zugänge für die Schulleitungen',
+        was: 'Freiwillig. Mit eigenem Zugang verteilt die Schulleitung den Link selbst und sieht die Auswertung ihres Schulhauses.',
+        stand: !n ? 'nach den Schulhäusern' : `${mitLeitung} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}` },
+      { fertig: false, titel: 'Erhebung eröffnen',
+        was: 'Danach erhalten Sie die Links und geben sie weiter.', stand: 'noch nicht eröffnet' },
+    ];
+    const jetzt = schritte.findIndex((x) => !x.fertig);
+    const zeile = (x, i) =>
+      `<li class="${x.fertig ? 'done' : ''}${i === jetzt ? ' now' : ''}"><span class="ck" aria-hidden="true">${x.fertig ? '✓' : ''}</span>
+        <span><b>${x.titel}</b>${i === jetzt ? ' <span class="now-tag">jetzt</span>' : ''}
+          <span class="st">${x.was}</span><span class="st stand">Stand: ${x.stand}</span></span></li>`;
     box.innerHTML = `<section class="panel first-steps stack" style="gap:16px" aria-labelledby="h-steps">
-      <div class="stack" style="gap:4px"><h3 id="h-steps">Erste Schritte</h3>
-        <p class="small muted">In drei Schritten kommen Ihre Lehrpersonen zur Selbsteinschätzung. Der Assistent führt Sie durch.</p></div>
-      <ul class="ck-list">
-        ${zeile(n > 0, 'Schulhäuser', n ? ctx.schools.map((s) => esc(s.name)).join(', ') : 'noch keine erfasst')}
-        ${zeile(n > 0 && mitLeitung === n, 'Zugänge für die Schulleitungen', !n ? 'nach den Schulhäusern' : `${mitLeitung} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'} · freiwillig`)}
-        ${zeile(false, 'Erhebung eröffnen', 'noch nicht eröffnet')}
-      </ul>
+      <div class="stack" style="gap:6px">
+        <p class="eyebrow">Schritt ${jetzt + 1} von ${schritte.length}</p>
+        <h3 id="h-steps">Selbsteinschätzung einrichten</h3>
+        <p style="max-width:74ch">Damit Ihre Lehrpersonen teilnehmen können, braucht es drei Dinge: die Namen Ihrer Schulhäuser, auf Wunsch Zugänge für die Schulleitungen und das Eröffnen der Erhebung.
+          Am Schluss erhalten Sie pro Schulhaus einen Link, den Sie weitergeben.
+          <b>Sie selbst füllen keinen Fragebogen aus</b> – das tun die Lehrpersonen, in rund 20 Minuten.</p></div>
+      <ul class="ck-list">${schritte.map(zeile).join('')}</ul>
       <div class="row" style="gap:14px;align-items:center">
-        <button class="btn" type="button" id="btn-wizard">Erhebung starten</button>
+        <button class="btn" type="button" id="btn-wizard">Jetzt einrichten</button>
         <span class="small muted">Dauert etwa zwei Minuten. Abbrechen ist jederzeit möglich, Erfasstes bleibt erhalten.</span>
       </div>
     </section>`;
