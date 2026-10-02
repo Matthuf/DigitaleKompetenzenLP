@@ -563,7 +563,7 @@ async function inviteByToken(token) {
                          left join traeger t on t.id = coalesce(i.traeger_id, u.traeger_id, s.traeger_id)
                         where i.token_hash = $1`, [hashInviteToken(token)]);
   if (!i) fail(404, 'Dieser Link ist ungültig. Bitte einen neuen Link anfordern.');
-  if (i.used_at) fail(410, 'Dieser Link wurde bereits verwendet. Bitte unter «Für Schulen» anmelden.');
+  if (i.used_at) fail(410, 'Dieser Link wurde bereits verwendet. Bitte unter «Adminbereich Schule» anmelden.');
   if (new Date(i.expires_at) < new Date()) fail(410, 'Dieser Link ist abgelaufen. Bitte einen neuen Link anfordern.');
   return i;
 }
