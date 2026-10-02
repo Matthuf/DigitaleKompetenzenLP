@@ -140,11 +140,14 @@
     const mitLeitung = t ? ctx.schools.filter((s) => t.users.some((u) => u.role === 'leitung' && u.school_id === s.id) || t.invites.some((i) => i.role === 'leitung' && i.school_id === s.id)).length : 0;
     // Jede Zeile sagt, was zu tun ist und was daraus folgt – nicht nur den Stand
     const schritte = [
+      { fertig: n > 0, titel: 'Rahmen festlegen',
+        was: 'Getrennt pro Schulhaus oder gesamt für den ganzen Schulträger. Diese Entscheidung kommt zuerst.',
+        stand: n ? 'getrennt pro Schulhaus' : 'noch offen' },
       { fertig: n > 0, titel: 'Schulhäuser erfassen',
-        was: 'Namen eintragen. Jedes Schulhaus erhält später einen eigenen Teilnahmelink und eine eigene Auswertung.',
+        was: 'Namen eintragen. Jedes Schulhaus erhält einen eigenen Teilnahmelink und eine eigene Auswertung. Entfällt bei einer Gesamterhebung.',
         stand: n ? ctx.schools.map((x) => esc(x.name)).join(', ') : 'noch keine erfasst' },
       { fertig: n > 0 && mitLeitung === n, titel: 'Zugänge für die Schulleitungen',
-        was: 'Freiwillig. Mit eigenem Zugang verteilt die Schulleitung den Link selbst und sieht die Auswertung ihres Schulhauses.',
+        was: 'Freiwillig. Mit eigenem Zugang verteilt die Schulleitung den Link selbst und sieht die Auswertung ihres Schulhauses. Dafür brauchen Sie deren E-Mail-Adressen.',
         stand: !n ? 'nach den Schulhäusern' : `${mitLeitung} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}` },
       { fertig: false, titel: 'Erhebung eröffnen',
         was: 'Danach erhalten Sie die Links und geben sie weiter.', stand: 'noch nicht eröffnet' },
@@ -158,8 +161,8 @@
       <div class="stack" style="gap:6px">
         <p class="eyebrow">Schritt ${jetzt + 1} von ${schritte.length}</p>
         <h3 id="h-steps">Selbsteinschätzung einrichten</h3>
-        <p style="max-width:74ch">Damit Ihre Lehrpersonen teilnehmen können, braucht es drei Dinge: die Namen Ihrer Schulhäuser, auf Wunsch Zugänge für die Schulleitungen und das Eröffnen der Erhebung.
-          Am Schluss erhalten Sie pro Schulhaus einen Link, den Sie weitergeben.
+        <p style="max-width:74ch">Zuerst entscheiden Sie, ob jedes Schulhaus eine eigene Auswertung erhalten soll oder ob Sie alle Lehrpersonen gemeinsam auswerten.
+          Danach führt Sie der Assistent Schritt für Schritt bis zu den Teilnahmelinks, die Sie weitergeben.
           <b>Sie selbst füllen keinen Fragebogen aus</b> – das tun die Lehrpersonen, in rund 20 Minuten.</p></div>
       <ul class="ck-list">${schritte.map(zeile).join('')}</ul>
       <div class="row" style="gap:14px;align-items:center">

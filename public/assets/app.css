@@ -617,7 +617,7 @@ details.past .stack { gap: 16px; }
 .wz-card.sel { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); background: var(--red-tint); }
 .wz-card:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 .wz-card input { position: absolute; opacity: 0; pointer-events: none; }
-.wz-card b { display: block; margin-bottom: 3px; }
+.wz-card > b { display: block; margin-bottom: 3px; }
 .wz-card span { font-size: 0.9rem; color: var(--ink-2); }
 .wz-field { margin-bottom: 18px; }
 .wz-field > label { display: block; margin-bottom: 6px; }
@@ -632,3 +632,7 @@ details.past .stack { gap: 16px; }
 .ck-list li.now .ck { border-color: var(--red); border-width: 2px; }
 .ck-list .stand { color: var(--ink-3); }
 .ck-list li.done .stand { color: var(--ink-2); }
+
+/* Assistent: Entscheidungskarten untereinander, Ausblick auf das Weitere */
+.wz-cards--stack { grid-template-columns: 1fr; }
+.wz-next { background: var(--box); padding: 10px 12px; font-size: 0.9rem; margin: 0; }
