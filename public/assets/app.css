@@ -636,3 +636,9 @@ details.past .stack { gap: 16px; }
 /* Assistent: Entscheidungskarten untereinander, Ausblick auf das Weitere */
 .wz-cards--stack { grid-template-columns: 1fr; }
 .wz-next { background: var(--box); padding: 10px 12px; font-size: 0.9rem; margin: 0; }
+
+.camp-intro { max-width: 72ch; display: grid; gap: 8px; }
+.camp-intro p, .camp-intro ul { margin: 0; }
+.camp-intro ul { padding-left: 20px; display: grid; gap: 6px; }
+.camp-intro .intro-head { margin-top: 4px; color: var(--ink); }
+.camp-intro li b { color: var(--ink); }

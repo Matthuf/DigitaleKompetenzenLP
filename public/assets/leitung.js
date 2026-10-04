@@ -466,9 +466,19 @@ ${signature()}`;
     syncRound();
     $('#camp-schools-field').hidden = !isRektorat();
     $('#camp-due').min = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    $('#camp-intro').textContent = isRektorat()
-      ? 'Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Jede Schule erhält einen eigenen Link. Rektorat bzw. Hauptschulleitung sehen die Auswertung aller Schulen, jede Schulleitung die Auswertung ihrer Schule. Schulleitungen können auch selbst Erhebungen für ihre Schule eröffnen.'
-      : 'Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.';
+    // Der Text sagt, wozu die Seite da ist und was hier möglich ist (Beschriftungen wie in der Erhebungskarte)
+    $('#camp-intro').innerHTML = isRektorat()
+      ? `<p>Hier eröffnen und verwalten Sie Erhebungen. Die Ergebnisse sehen Sie unter «Auswertung».</p>
+        <p class="intro-head"><b>Das können Sie hier tun</b></p>
+        <ul>
+          <li><b>Link weitergeben:</b> Jedes Schulhaus hat einen eigenen Teilnahmelink. Sie geben ihn den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code) oder der Schulleitung, die ihn weiterleitet.</li>
+          <li><b>Rücklauf verfolgen:</b> Tragen Sie pro Schulhaus die Anzahl Lehrpersonen ein. Dann sehen Sie, wie viele schon teilgenommen haben.</li>
+          <li><b>Zieldatum setzen:</b> «Ausfüllen bis» erscheint für die Lehrpersonen. Die Erhebung schliesst nicht automatisch.</li>
+          <li><b>Eigene Fragen ergänzen:</b> Bis zu 15 zusätzliche Fragen. Sobald die erste Person abgeschlossen hat, sind sie gesperrt.</li>
+          <li><b>Schliessen:</b> Danach sind keine neuen Teilnahmen mehr möglich. Wieder öffnen geht jederzeit.</li>
+        </ul>
+        <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p>`
+      : `<p>Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>`;
   }
   $('#create-box').addEventListener('toggle', () => { if (!$('#create-box').open) { formBuilt = false; fillCreateForm(); } });
 
