@@ -27,12 +27,10 @@ export default async function (B) {
   ok(lc.length === 1 && lc[0].links.length === 1 && lc[0].links[0].school_name === 'Schulhaus Lachen' && lc[0].manageable === false, 'SL sieht nur eigenen Link, darf nicht verwalten');
   await expectErr(slL('PATCH', 'leitung/campaigns/' + lc[0].id, { status: 'closed' }), 403, 'SL darf Rektoratserhebung nicht schliessen');
   await expectErr(slL('PUT', `leitung/campaigns/${lc[0].id}/block`, { block: null }), 403, 'SL darf Fragen der Rektoratserhebung nicht ändern');
-  // SL eigene Erhebung
-  await slS('POST', 'leitung/campaigns', { title: 'Siebnen intern' });
-  rc = await rek('GET', 'leitung/campaigns');
-  ok(rc.length === 2 && rc.some(c => c.title === 'Siebnen intern' && c.manageable), 'Rektorat sieht und verwaltet SL-Erhebung');
-  lc = await slL('GET', 'leitung/campaigns');
-  ok(lc.length === 1, 'Andere SL sieht fremde SL-Erhebung nicht');
+  // Eigene Erhebung erst nach Abschluss der Vorgabe
+  await expectErr(slS('POST', 'leitung/campaigns', { title: 'Siebnen intern' }), 409, 'SL: eigene Erhebung erst nach Abschluss der Vorgabe');
+  await expectErr(rek('POST', 'leitung/campaigns', { title: 'Bezirk intern' }), 409, 'Rektorat: eigene Erhebung erst nach Abschluss der Vorgabe');
+  ok((await slS('GET', 'leitung/context')).vorgabe === round, 'Kontext nennt die aktuelle Vorgabe');
   await expectErr(slM('GET', 'leitung/aggregate?source=c:' + rc[0].id), 404, 'Andere Gemeinde sieht Bezirkserhebung nicht');
 
   // Lehrpersonen
@@ -68,10 +66,38 @@ export default async function (B) {
   ok(aL.n === 8 && aL.schools.length === 0 && !aL.multiSchool, 'SL: nur eigene Schule, Schulfilter ignoriert');
   const aM = await slM('GET', 'leitung/aggregate?source=c:' + gcamp.id);
   ok(aM.n === 7 && Array.isArray(aM.groups.zyklen), 'Gemeinde: Zyklenvergleich');
-  const k = await ad('GET', 'admin/aggregate?round=' + round);
-  ok(k.n === 26 && k.schoolCount === 4 && k.traegerCount === 2, 'AVS Runde: 26 Personen aus 4 Schulen, 2 Trägern');
-  ok(!JSON.stringify(k).includes('Lachen') && !JSON.stringify(k).includes('school_id'), 'AVS-Antwort enthält keine Schulnamen oder IDs');
-  ok(k.groups.erfahrung && Array.isArray(k.groups.erfahrung), 'AVS: Berufserfahrung im Vergleich');
+  // AVS: Schwelle drei Schulträger
+  let k = await ad('GET', 'admin/aggregate?round=' + round);
+  ok(k.tooFew && k.total === 26 && k.traegerCount === 2 && !k.agg && /drei|3/.test(k.reason), 'AVS: zwei Schulträger, noch keine Kantonswerte');
+  await expectErr(ad('GET', `admin/aggregate?round=${round}&zyklus=Zyklus%203`), 403, 'AVS: kein Zyklusfilter unter der Schwelle');
+  const { id: ill } = await ad('POST', 'admin/traeger', { name: 'Gemeinde Illgau', kind: 'primar', schoolName: 'Schulhaus Illgau' });
+  const slI = await mk(ill, 'sl.illgau', (await ad('GET', 'admin/traeger')).find(t => t.id === ill).schools[0].id);
+  await slI('POST', 'leitung/campaigns', { roundId: round });
+  const icamp = (await slI('GET', 'leitung/campaigns'))[0];
+  for (let i = 0; i < 3; i++) await teach(icamp.links[0].token, 0.2, { zyklus: 'Zyklus 1', erfahrung: exp[i % 3] });
+  k = await ad('GET', 'admin/aggregate?round=' + round);
+  ok(!k.tooFew && k.n === 29 && k.schoolCount === 5 && k.traegerCount === 3, 'AVS: drei Schulträger, 29 Personen aus 5 Schulen');
+  ok(!JSON.stringify(k).includes('Lachen') && !JSON.stringify(k).includes('school_id') && !JSON.stringify(k).includes('traeger_id'), 'AVS-Antwort enthält keine Schulnamen oder IDs');
+  ok(k.groups.erfahrung && k.groups.erfahrung.length === 3, 'AVS: Berufserfahrung im Vergleich (jede Gruppe aus 3 Trägern)');
+  ok(k.groups.zyklen === null && k.zyklen.length === 0, 'AVS: kein Zyklenvergleich, weil Zyklus 3 nur aus einem Träger stammt');
+  await expectErr(ad('GET', `admin/aggregate?round=${round}&zyklus=Zyklus%203`), 403, 'AVS: Zyklus 3 (ein Bezirk) nicht filterbar');
+  const rnd = (await ad('GET', 'admin/rounds')).find(r => r.id === round);
+  ok(rnd.traeger === 3 && rnd.traeger_data === 3 && rnd.traeger_total === 3 && rnd.submitted === 29, 'Vorgabe AVS: 3 von 3 Schulträgern, 29 Teilnahmen');
+  ok((await ad('GET', 'admin/traeger')).every(t => !('participants' in t) && !('campaigns' in t)), 'AVS: keine Teilnahmezahlen pro Träger');
+
+  // Nach Abschluss der Vorgabe: eigene Erhebung möglich, fliesst nicht in die Kantonswerte
+  await rek('PATCH', 'leitung/campaigns/' + camp.id, { status: 'closed' });
+  await slS('POST', 'leitung/campaigns', { title: 'Siebnen intern' });
+  rc = await rek('GET', 'leitung/campaigns');
+  const own = rc.find(c => c.title === 'Siebnen intern');
+  ok(rc.length === 2 && own && own.manageable && !own.round_id, 'Rektorat sieht und verwaltet SL-Erhebung');
+  lc = await slL('GET', 'leitung/campaigns');
+  ok(lc.length === 1, 'Andere SL sieht fremde SL-Erhebung nicht');
+  await expectErr(slM('POST', 'leitung/campaigns', { title: 'Muotathal intern' }), 409, 'Gemeinde mit offener Vorgabe: noch keine eigene Erhebung');
+  for (let i = 0; i < 4; i++) await teach(own.links[0].token, 1);
+  ok((await ad('GET', 'admin/aggregate?round=' + round)).n === 29, 'Eigene Erhebung fliesst nicht in die kantonale Auswertung');
+  await rek('PATCH', 'leitung/campaigns/' + camp.id, { status: 'open' });
+  ok(true, 'Vorgabe lässt sich wieder öffnen');
   await expectErr(rek('GET', 'admin/aggregate'), 403, 'Rektorat hat keinen Zugang zur kantonalen Auswertung');
   await expectErr(ad('GET', 'leitung/campaigns'), 403, 'AVS hat keinen Zugang zu Schulauswertungen');
   return res;

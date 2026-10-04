@@ -53,5 +53,28 @@ export default async function (B) {
   ok(one.multiSchool && one.schools.length === 2 && one.n === 2, 'Nach dem Filtern bleibt die Schulauswahl bestehen');
   const slA = await sl('GET', 'leitung/aggregate?source=c:' + own.id);
   ok(!slA.multiSchool && !JSON.stringify(slA).includes('Schulhaus A'), 'Schulleitung sieht keine anderen Schulen');
+
+  // Vorgabe zuerst: eigene Erhebung nur für Schulhäuser, deren Vorgabe abgeschlossen ist
+  const { id: sd } = await rek('POST', 'leitung/schools', { name: 'Schulhaus D' });
+  const msg = async (p) => { try { await p; return ''; } catch (e) { return e.message; } };
+  let m = await msg(rek('POST', 'leitung/campaigns', { title: 'Eigene', schoolIds: [S['Schulhaus A']] }));
+  ok(m.includes('409') && m.includes('Noch nicht abgeschlossen: Schulhaus A'), 'Vorgabe läuft noch: eigene Erhebung abgelehnt, Grund genannt');
+  await rek('PATCH', 'leitung/campaigns/' + c.id, { status: 'closed' });
+  m = await msg(rek('POST', 'leitung/campaigns', { title: 'Eigene', schoolIds: [S['Schulhaus A'], sd] }));
+  ok(m.includes('409') && m.includes('Noch nicht teilgenommen: Schulhaus D'), 'Schulhaus ohne Vorgabe: abgelehnt, auch zusammen mit anderen');
+  await rek('POST', 'leitung/campaigns', { title: 'Eigene', schoolIds: [S['Schulhaus A'], sc] });
+  const mine = (await rek('GET', 'leitung/campaigns')).find((x) => x.title === 'Eigene');
+  ok(mine && !mine.round_id && mine.links.length === 2, 'Nach Abschluss der Vorgabe: eigene Erhebung eröffnet');
+  await expectErr(rek('POST', `leitung/campaigns/${mine.id}/links`, { schoolId: sd }), 409, 'Schulhaus ohne Vorgabe nicht in eigene Erhebung aufnehmbar');
+  await expectErr(sl('POST', 'leitung/campaigns', { title: 'SL eigene' }), 409, 'Schulleitung mit offener Vorgabe: keine eigene Erhebung');
+  await sl('PATCH', 'leitung/campaigns/' + own.id, { status: 'closed' });
+  await sl('POST', 'leitung/campaigns', { title: 'SL eigene' });
+  ok((await sl('GET', 'leitung/campaigns')).some((x) => x.title === 'SL eigene'), 'Schulleitung: eigene Erhebung nach Abschluss ihrer Vorgabe');
+  // Neue Vorgabe des AVS: gilt ab sofort als aktuelle Vorgabe
+  const { id: round2 } = await ad('POST', 'admin/rounds', { title: 'Vorgabe 2' });
+  ok((await rek('GET', 'leitung/context')).vorgabe === round2, 'Neue Vorgabe wird zur aktuellen Vorgabe');
+  await expectErr(rek('POST', 'leitung/campaigns', { title: 'Eigene 2', schoolIds: [S['Schulhaus A']] }), 409, 'Neue Vorgabe: eigene Erhebung erst nach Teilnahme daran');
+  await ad('PATCH', 'admin/rounds/' + round2, { active: false });
+  ok((await rek('GET', 'leitung/context')).vorgabe === round, 'Nicht mehr wählbare Vorgabe: die vorherige gilt wieder');
   return res;
 }

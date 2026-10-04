@@ -356,6 +356,26 @@ async function manageableCampaign(u, id) {
   return c;
 }
 
+/* Vorgabe AVS zuerst: Eine eigene, zusätzliche Erhebung ist für ein Schulhaus erst möglich, wenn es an der
+ * aktuellen Vorgabe teilgenommen hat und diese Erhebung abgeschlossen ist. So fehlt keine Schule in den
+ * kantonalen Daten, und Vorgabe und eigene Erhebung laufen nicht gleichzeitig (Entscheid 4.10.2026).
+ * Aktuelle Vorgabe: die neueste wählbare, sonst die neueste überhaupt. */
+const currentRound = () => one(`select id, title from rounds order by active desc, created_at desc limit 1`);
+async function ownAllowed(schoolIds) {
+  const r = await currentRound();
+  if (!r) fail(409, 'Eigene Erhebungen sind erst möglich, wenn das AVS eine Erhebung vorgegeben hat und Ihr Schulhaus daran teilgenommen hat.');
+  const rows = await q(`select s.id, s.name, c.status from schools s
+                          left join campaign_links l on l.school_id = s.id and l.campaign_id in (select id from campaigns where round_id = $1)
+                          left join campaigns c on c.id = l.campaign_id
+                         where s.id = any($2) order by s.name`, [r.id, schoolIds]);
+  const missing = rows.filter((x) => !x.status).map((x) => x.name), running = rows.filter((x) => x.status === 'open').map((x) => x.name);
+  if (!missing.length && !running.length) return;
+  const parts = [];
+  if (missing.length) parts.push(`Noch nicht teilgenommen: ${missing.join(', ')}.`);
+  if (running.length) parts.push(`Noch nicht abgeschlossen: ${running.join(', ')}.`);
+  fail(409, `Eine eigene Erhebung ist erst möglich, wenn das Schulhaus an «${r.title}» teilgenommen hat und diese Erhebung abgeschlossen ist. ${parts.join(' ')}`);
+}
+
 on('GET', 'leitung/context', async ({ req }) => {
   const u = await lead(req);
   const traeger = await one(`select id, name, kind from traeger where id = $1`, [u.tid]);
@@ -369,7 +389,8 @@ on('GET', 'leitung/context', async ({ req }) => {
     schools.forEach((x) => { x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email })); });
   }
   const rounds = await q(`select id, title, active from rounds order by created_at desc`);
-  return { role: u.role, traeger, schools, rounds, mail: mailConfigured() };
+  const cur = await currentRound();
+  return { role: u.role, traeger, schools, rounds, vorgabe: cur ? cur.id : null, mail: mailConfigured() };
 });
 
 on('GET', 'leitung/campaigns', async ({ req }) => {
@@ -412,6 +433,7 @@ on('POST', 'leitung/campaigns', async ({ req, body }) => {
     schoolIds = all.map((x) => x.id).filter((id) => wanted.includes(id));
     if (!schoolIds.length) fail(400, 'Bitte mindestens eine Schule auswählen.');
   }
+  if (!round) await ownAllowed(schoolIds);
   // Pro Runde nimmt jede Schule nur einmal teil, sonst würden Lehrpersonen doppelt gezählt
   if (round) {
     const dup = await q(`select distinct s.name from campaign_links l join campaigns c on c.id = l.campaign_id join schools s on s.id = l.school_id
@@ -458,6 +480,7 @@ on('POST', 'leitung/campaigns/:id/links', async ({ req, params, body }) => {
     const dup = await one(`select 1 from campaign_links l join campaigns x on x.id = l.campaign_id where x.round_id = $1 and l.school_id = $2`, [c.round_id, s.id]);
     if (dup) fail(409, `${s.name} nimmt an «${c.title}» bereits mit einer anderen Erhebung teil.`);
   }
+  else await ownAllowed([s.id]);
   await q(`insert into campaign_links (id, campaign_id, school_id, token) values ($1,$2,$3,$4)`, [newId(), c.id, s.id, newToken()]);
   await audit(u, 'schule_aufgenommen', c.id, { school: s.name });
   return { ok: true };
@@ -848,10 +871,9 @@ on('DELETE', 'admin/invitations/:id', async ({ req, params }) => { await staff(r
 /* ---------- AVS: Träger, Schulen, Zugänge, Runden ---------- */
 on('GET', 'admin/traeger', async ({ req }) => {
   await staff(req, 'admin');
+  // Keine Erhebungs- oder Teilnahmezahlen pro Träger: Das AVS sieht nur Kantonswerte
   const tr = await q(`select t.id, t.name, t.kind, t.created_at,
-                             (select count(*)::int from users u where u.traeger_id = t.id) as rektorat,
-                             (select count(*)::int from participants p where p.traeger_id = t.id) as participants,
-                             (select count(*)::int from campaigns c where c.traeger_id = t.id) as campaigns
+                             (select count(*)::int from users u where u.traeger_id = t.id) as rektorat
                         from traeger t order by t.name`);
   const sc = await q(`select s.id, s.name, s.traeger_id, s.zyklen, (select count(*)::int from users u where u.school_id = s.id) as users from schools s order by s.name`);
   return tr.map((t) => ({ ...t, schools: sc.filter((s) => s.traeger_id === t.id).map((s) => ({ ...s, zyklen: schoolZyklen(s.zyklen, t.kind) })) }));
@@ -925,13 +947,16 @@ on('GET', 'admin/rounds', async ({ req }) => {
   await staff(req, 'admin');
   return q(`select r.id, r.title, r.active, r.created_at,
                    (select count(distinct l.school_id)::int from campaigns c join campaign_links l on l.campaign_id = c.id where c.round_id = r.id) as schools,
-                   (select count(*)::int from responses x join campaigns c on c.id = x.campaign_id where c.round_id = r.id and x.status = 'submitted') as submitted
+                   (select count(*)::int from responses x join campaigns c on c.id = x.campaign_id where c.round_id = r.id and x.status = 'submitted') as submitted,
+                   (select count(distinct c.traeger_id)::int from campaigns c where c.round_id = r.id) as traeger,
+                   (select count(distinct c.traeger_id)::int from responses x join campaigns c on c.id = x.campaign_id where c.round_id = r.id and x.status = 'submitted') as traeger_data,
+                   (select count(*)::int from traeger) as traeger_total
               from rounds r order by r.created_at desc`);
 });
 on('POST', 'admin/rounds', async ({ req, body }) => {
   await staff(req, 'admin');
   const title = String(body.title || '').trim().slice(0, 80);
-  if (!title) fail(400, 'Bitte einen Titel angeben, z. B. «Erhebung ICT Kompetenzen Lehrpersonen Schwyz».');
+  if (!title) fail(400, 'Bitte einen Titel angeben, z. B. «Erhebung ICT-Kompetenzen Lehrpersonen Schwyz».');
   const id = newId();
   await q(`insert into rounds (id, title) values ($1,$2)`, [id, title]);
   return { id };
@@ -945,8 +970,19 @@ on('PATCH', 'admin/rounds/:id', async ({ req, params, body }) => {
 
 /* AVS: kantonale Auswertung ohne Bezug zu Schulen oder Trägern.
  * Keine Filter oder Gruppen nach Schule/Träger, keine eigenen Fragen der Schulen, keine Freitexte.
- * Jede Person zählt einmal (jüngste abgeschlossene Teilnahme im gewählten Zeitraum). */
+ * Nur Erhebungen der Vorgabe (round_id), nie eigene Erhebungen der Schulen.
+ * Jede Person zählt einmal (jüngste abgeschlossene Teilnahme der Vorgabe).
+ * Schwelle auf Ebene Träger (Entscheid 4.10.2026): Kantonswerte erst ab Teilnahmen aus MIN_TRAEGER Schulträgern.
+ * Filter und Vergleiche nur, wenn JEDE Gruppe (auch «ohne Angabe») aus so vielen Trägern stammt. Sonst wäre
+ * ein Kantonswert praktisch der Wert eines einzelnen Trägers (z. B. «Zyklus 3» = ein Bezirk). */
+const MIN_TRAEGER = 3;
 const ERFAHRUNG_ORDER = ['Weniger als 5 Jahre', '5 bis 15 Jahre', 'Mehr als 15 Jahre'];
+const traegerOf = (recs) => new Set(recs.map((r) => r.traeger_id)).size;
+function groupsSafe(recs, keyFn) {
+  const g = {};
+  recs.forEach((r) => { const k = keyFn(r) || ''; (g[k] = g[k] || new Set()).add(r.traeger_id); });
+  return Object.values(g).every((x) => x.size >= MIN_TRAEGER);
+}
 on('GET', 'admin/aggregate', async ({ req, query }) => {
   const s = await staff(req, 'admin');
   const round = String(query.round || '');
@@ -958,18 +994,24 @@ on('GET', 'admin/aggregate', async ({ req, query }) => {
                          where r.status = 'submitted' and c.round_id = $1
                          order by r.participant_id, r.submitted_at desc`, [round]);
   await audit(s, 'kantonsauswertung_angesehen', round, { zyklus: zyklus || null });
-  const zyklen = filterOptions(rows, zyk).map((x) => ({ zyklus: x.key, n: x.n }));
+  const traegerCount = traegerOf(rows);
+  if (traegerCount < MIN_TRAEGER) {
+    if (zyklus) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
+    return { total: rows.length, zyklen: [], traegerCount, minTraeger: MIN_TRAEGER, n: 0, tooFew: true,
+      reason: `Kantonswerte erscheinen, sobald Teilnahmen aus mindestens ${MIN_TRAEGER} Schulträgern vorliegen. Bisher: ${traegerCount}. So lässt sich kein Kantonswert einem einzelnen Schulträger zuordnen.` };
+  }
+  const zyklen = groupsSafe(rows, zyk) ? filterOptions(rows, zyk).map((x) => ({ zyklus: x.key, n: x.n })) : [];
   if (zyklus && !zyklen.some((x) => x.zyklus === zyklus)) fail(403, 'Für diesen Zyklus ist keine Einzelauswertung möglich.');
   const recs = zyklus ? rows.filter((r) => zyk(r) === zyklus) : rows;
-  const base = { total: rows.length, zyklen,
-    traegerCount: new Set(recs.map((r) => r.traeger_id)).size, schoolCount: new Set(recs.map((r) => r.school_id)).size };
-  if (!recs.length) return { ...base, n: 0, tooFew: true };
+  // Anzahl Schulen und Träger nur für die ganze Vorgabe, nicht für gefilterte Gruppen
+  const base = { total: rows.length, zyklen, minTraeger: MIN_TRAEGER, ...(zyklus ? {} : { traegerCount, schoolCount: new Set(rows.map((r) => r.school_id)).size }) };
   const agg = DKCore.aggregate(ITEMS, recs.map((r) => ({ answers: r.answers })));
   const ctx = (k) => (r) => (r.context && r.context[k]) || '';
+  const safeGroups = (keyFn, ...rest) => (groupsSafe(recs, keyFn) ? compareGroups(recs, keyFn, ...rest) : null);
   const groups = {
-    zyklen: zyklus ? null : compareGroups(recs, zyk),
-    erfahrung: compareGroups(recs, ctx('erfahrung'), (k) => k, (a, b) => ERFAHRUNG_ORDER.indexOf(a) - ERFAHRUNG_ORDER.indexOf(b)),
-    funktion: compareGroups(recs, ctx('funktion')),
+    zyklen: zyklus ? null : safeGroups(zyk),
+    erfahrung: safeGroups(ctx('erfahrung'), (k) => k, (a, b) => ERFAHRUNG_ORDER.indexOf(a) - ERFAHRUNG_ORDER.indexOf(b)),
+    funktion: safeGroups(ctx('funktion')),
   };
   return { ...base, n: recs.length, tooFew: false, agg, groups };
 });

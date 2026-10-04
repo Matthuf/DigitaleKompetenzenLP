@@ -70,7 +70,9 @@ export default async function (B) {
   await expectErr(pub('GET', 'invite/' + pend.token), 404, 'Neuer Link macht alten ungültig');
   ok((await pub('GET', 'invite/' + r2.token)).role === 'leitung', 'Neuer Link gültig');
   // Schule mit Erhebung nicht löschbar
-  await rek('POST', 'leitung/campaigns', { title: 'Test', schoolIds: [pf.id] });
+  await expectErr(rek('POST', 'leitung/campaigns', { title: 'Test', schoolIds: [pf.id] }), 409, 'Ohne Vorgabe AVS keine eigene Erhebung');
+  const { id: round } = await ad('POST', 'admin/rounds', { title: 'Vorgabe' });
+  await rek('POST', 'leitung/campaigns', { roundId: round, schoolIds: [pf.id] });
   await expectErr(rek('DELETE', 'leitung/schools/' + pf.id), 409, 'Schule mit Erhebung nicht löschbar');
   await rek('DELETE', 'leitung/schools/' + bach.id);
   ok(true, 'Leere Schule löschbar');

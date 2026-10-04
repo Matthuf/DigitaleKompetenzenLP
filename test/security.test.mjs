@@ -86,7 +86,8 @@ export default async function (B) {
 
   // AVS nur pro Runde
   await expectErr(ad('GET', 'admin/aggregate'), 400, 'Kantonale Auswertung ohne Runde abgelehnt');
-  ok((await ad('GET', 'admin/aggregate?round=' + round)).n === 8, 'Kantonale Auswertung der Runde');
+  const k1 = await ad('GET', 'admin/aggregate?round=' + round);
+  ok(k1.tooFew && k1.n === 0 && k1.total === 8 && k1.traegerCount === 1 && !k1.agg, 'Kantonale Auswertung: ein Schulträger reicht nicht (Schwelle 3)');
 
   // Protokoll
   const log = await ad('GET', 'admin/audit');

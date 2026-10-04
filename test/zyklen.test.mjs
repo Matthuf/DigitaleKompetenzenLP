@@ -16,7 +16,8 @@ export default async function (B) {
   await expectErr(rek('PATCH', 'leitung/schools/' + nord.id, { zyklen: [] }), 400, 'Mindestens ein Zyklus nötig');
   team = await rek('GET', 'leitung/team');
   ok(team.schools.find((s) => s.id === obz.id).zyklen.join() === 'Zyklus 3', 'Oberstufenzentrum: Zyklus 3');
-  await rek('POST', 'leitung/campaigns', { title: 'Test' });
+  const { id: round } = await ad('POST', 'admin/rounds', { title: 'Vorgabe' });
+  await rek('POST', 'leitung/campaigns', { roundId: round });
   const c = (await rek('GET', 'leitung/campaigns'))[0];
   const tok = Object.fromEntries(c.links.map((l) => [l.school_name, l.token]));
   const pub = client(B);

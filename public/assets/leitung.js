@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   const { $, $$, esc, date, api, download, copyText, confirmButton } = UI;
-  let ctx = null;          // { role, traeger, schools, rounds, min }
+  let ctx = null;          // { role, traeger, schools, rounds, vorgabe }
   let campaigns = [];
   let an = { src: '', compare: '', school: '', zyklus: '' };
 
@@ -115,10 +115,15 @@
   function missingSchools(c) {
     if (!isRektorat() || c.status !== 'open' || !c.manageable || !c.byTraeger) return []; // Erhebungen einer Schulleitung bleiben bei ihrer Schule
     const inCamp = new Set(c.links.map((l) => l.school_id));
-    const inRound = c.round_id ? schoolsInRound(c.round_id) : new Set();
-    return ctx.schools.filter((s) => !inCamp.has(s.id) && !inRound.has(s.id));
+    if (c.round_id) { const inRound = schoolsInRound(c.round_id); return ctx.schools.filter((s) => !inCamp.has(s.id) && !inRound.has(s.id)); }
+    const ready = readyForOwn();
+    return ctx.schools.filter((s) => !inCamp.has(s.id) && ready.has(s.id));
   }
   const schoolsInRound = (rid) => new Set(campaigns.filter((c) => c.round_id === rid).flatMap((c) => c.links.map((l) => l.school_id)));
+  // Eigene Erhebung erst nach der Vorgabe: Schulhaus hat an der aktuellen Vorgabe teilgenommen, und diese Erhebung ist abgeschlossen
+  // (gleiche Regel prüft der Server)
+  const readyForOwn = () => new Set(ctx.vorgabe ? campaigns.filter((c) => c.round_id === ctx.vorgabe && c.status === 'closed').flatMap((c) => c.links.map((l) => l.school_id)) : []);
+  const vorgabeTitle = () => (ctx.rounds.find((r) => r.id === ctx.vorgabe) || {}).title || 'Vorgabe AVS';
 
   function dueHTML(c) {
     if (c.status !== 'open') return '';
@@ -472,28 +477,39 @@ ${signature()}`;
     const active = ctx.rounds.filter((r) => r.active);
     const mine = isRektorat() ? ctx.schools.map((s) => s.id) : [ctx.schools[0] && ctx.schools[0].id];
     const free = (r) => { const used = schoolsInRound(r.id); return mine.filter((id) => !used.has(id)).length; };
-    $('#camp-round-field').hidden = !active.length;
+    const ready = readyForOwn();
+    const inVorgabe = ctx.vorgabe ? schoolsInRound(ctx.vorgabe) : new Set();
+    const ownOk = mine.some((id) => ready.has(id));
+    const ownWhy = !ctx.vorgabe ? 'erst nach der Vorgabe AVS'
+      : isRektorat() ? 'erst, wenn ein Schulhaus die Vorgabe AVS abgeschlossen hat' : 'erst, wenn Ihr Schulhaus die Vorgabe AVS abgeschlossen hat';
+    $('#camp-round-field').hidden = false;
     $('#camp-round').innerHTML = active.map((r) => {
       const f = free(r);
       return `<option value="${r.id}" ${f ? '' : 'disabled'}>${esc(r.title)} (Vorgabe AVS)${f ? '' : isRektorat() ? ' – alle Schulhäuser nehmen bereits teil' : ' – Ihr Schulhaus nimmt bereits teil'}</option>`;
-    }).join('') + `<option value="">Eigene, zusätzliche Erhebung</option>`;
+    }).join('') + `<option value="" ${ownOk ? '' : 'disabled'}>Eigene, zusätzliche Erhebung${ownOk ? '' : ' – ' + ownWhy}</option>`;
     const first = active.find((r) => free(r));
-    $('#camp-round').value = first ? first.id : '';
+    $('#camp-round').value = first ? first.id : ownOk ? '' : (active[0] ? active[0].id : '');
+    const nothing = !first && !ownOk; // nichts wählbar: Vorgabe läuft überall, eigene noch nicht möglich
     const noSchool = isRektorat() && !ctx.schools.length;
-    $('#form-campaign button[type=submit]').disabled = noSchool;
+    $('#form-campaign button[type=submit]').disabled = noSchool || nothing;
     if (noSchool) $('#camp-schools').innerHTML = '<p class="small"><b>Zuerst ein Schulhaus erfassen</b> (oben unter «Erste Schritte»).</p>';
     else if (isRektorat()) {
-      $('#camp-schools').innerHTML = ctx.schools.map((s) => `<label class="check small"><input type="checkbox" value="${s.id}" checked><span>${esc(s.name)}<span class="muted" data-inround hidden> · nimmt bereits teil</span></span></label>`).join('');
+      $('#camp-schools').innerHTML = ctx.schools.map((s) => `<label class="check small"><input type="checkbox" value="${s.id}" checked><span>${esc(s.name)}<span class="muted" data-note hidden></span></span></label>`).join('');
     }
     const syncRound = () => {
       const r = active.find((x) => x.id === $('#camp-round').value);
       $('#camp-title').placeholder = r ? r.title : 'z. B. Herbst 2026';
-      $('#camp-round-hint').textContent = r ? 'Vom AVS vorgegeben. Jedes Schulhaus nimmt einmal teil. Der Titel ist freiwillig.' : 'Zusätzlich zur Vorgabe des AVS, zum Beispiel ein Jahr später zum Vergleich.';
+      $('#camp-round-hint').textContent = nothing
+        ? `Die Vorgabe AVS läuft. Eine eigene, zusätzliche Erhebung ist möglich, sobald die Erhebung «${vorgabeTitle()}» ${isRektorat() ? 'für ein Schulhaus' : 'für Ihr Schulhaus'} abgeschlossen ist.`
+        : r ? 'Vom AVS vorgegeben. Jedes Schulhaus nimmt einmal teil. Der Titel ist freiwillig.'
+        : 'Zusätzlich zur Vorgabe AVS, zum Beispiel ein Jahr später zum Vergleich. Möglich für Schulhäuser, die an der Vorgabe teilgenommen haben und deren Erhebung abgeschlossen ist.';
       const used = r ? schoolsInRound(r.id) : new Set();
       $$('#camp-schools input').forEach((i) => {
-        const u = used.has(i.value);
-        i.disabled = u; if (u) i.checked = false; else if (!i.dataset.touched) i.checked = true;
-        i.closest('label').querySelector('[data-inround]').hidden = !u;
+        const off = r ? used.has(i.value) : !ready.has(i.value);
+        i.disabled = off; if (off) i.checked = false; else if (!i.dataset.touched) i.checked = true;
+        const note = i.closest('label').querySelector('[data-note]');
+        note.hidden = !off;
+        note.textContent = r ? ' · nimmt bereits teil' : inVorgabe.has(i.value) ? ' · Vorgabe AVS noch offen' : ' · nimmt an der Vorgabe AVS noch nicht teil';
       });
     };
     $('#camp-round').onchange = syncRound;
@@ -511,6 +527,7 @@ ${signature()}`;
           <li><b>Zieldatum setzen:</b> «Ausfüllen bis» erscheint für die Lehrpersonen. Die Erhebung schliesst nicht automatisch.</li>
           <li><b>Eigene Fragen ergänzen:</b> Beliebig viele zusätzliche Fragen. Sobald die erste Person abgeschlossen hat, sind sie gesperrt.</li>
           <li><b>Schliessen:</b> Danach sind keine neuen Teilnahmen mehr möglich. Wieder öffnen geht jederzeit.</li>
+          <li><b>Eigene Erhebung:</b> Zusätzlich zur Vorgabe AVS, zum Beispiel ein Jahr später zum Vergleich. Möglich für Schulhäuser, die an der Vorgabe teilgenommen haben und deren Erhebung abgeschlossen ist.</li>
         </ul>
         <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p></details>`
       : `<p>Hier finden Sie die Erhebungen Ihres Schulhauses und den Teilnahmelink für Ihre Lehrpersonen. Die Ergebnisse sehen Sie unter «Auswertung».</p>
@@ -519,7 +536,7 @@ ${signature()}`;
           <li><b>Link weitergeben:</b> Ihr Schulhaus hat einen eigenen Teilnahmelink. Sie geben ihn den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code).</li>
           <li><b>Rücklauf verfolgen:</b> Tragen Sie die Anzahl Lehrpersonen Ihres Schulhauses ein. Dann sehen Sie, wie viele schon teilgenommen haben.</li>
           <li><b>Erhebungen von Rektorat/Hauptschulleitung:</b> Zieldatum, eigene Fragen und das Schliessen legt das Rektorat bzw. die Hauptschulleitung fest.</li>
-          <li><b>Eigene Erhebung:</b> Eröffnen Sie selbst eine, legen Sie Zieldatum und eigene Fragen fest und schliessen sie auch selbst. Bei einer späteren Erhebung sehen die Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</li>
+          <li><b>Eigene Erhebung:</b> Möglich, sobald Ihr Schulhaus an der Vorgabe AVS teilgenommen hat und diese Erhebung abgeschlossen ist. Zieldatum, eigene Fragen und das Schliessen legen Sie selbst fest. Bei einer späteren Erhebung sehen die Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</li>
         </ul>
         <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p></details>`;
     const im = $('#intro-more');

@@ -134,9 +134,9 @@
     <div class="tabpanel stack" id="tab-runden" style="gap:20px" hidden>
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stack" style="gap:6px"><h2>Vorgegebene Erhebung</h2>
-          <p class="muted small" style="max-width:72ch">Die Erhebung, die das AVS allen Schulträgern vorgibt. Rektorate und Hauptschulleitungen finden sie beim Eröffnen einer Erhebung vorausgewählt; jedes Schulhaus nimmt einmal teil. Zusätzliche Erhebungen legen die Schulen selbst fest. Die kantonale Auswertung bezieht sich immer auf eine vorgegebene Erhebung.</p></div>
+          <p class="muted small" style="max-width:72ch">Die Erhebung, die das AVS allen Schulträgern vorgibt. Rektorate und Hauptschulleitungen finden sie beim Eröffnen einer Erhebung vorausgewählt; jedes Schulhaus nimmt einmal teil. Eigene, zusätzliche Erhebungen sind für ein Schulhaus erst möglich, wenn es an der Vorgabe teilgenommen hat und diese Erhebung abgeschlossen ist. Die kantonale Auswertung bezieht sich immer auf eine vorgegebene Erhebung und nie auf eigene Erhebungen der Schulen.</p></div>
         <form class="row" id="form-round" style="align-items:flex-end">
-          <div class="field"><label for="round-new" class="small">Neue Vorgabe</label><input type="text" id="round-new" placeholder="z. B. Erhebung ICT Kompetenzen Lehrpersonen Schwyz" style="width:340px"></div>
+          <div class="field"><label for="round-new" class="small">Neue Vorgabe</label><input type="text" id="round-new" placeholder="z. B. Erhebung ICT-Kompetenzen Lehrpersonen Schwyz" style="width:340px"></div>
           <button class="btn" type="submit">Erfassen</button>
         </form>
       </div>
@@ -147,7 +147,7 @@
     <div class="tabpanel stack" id="tab-auswertung" style="gap:24px" hidden>
       <div class="row" style="justify-content:space-between;align-items:flex-end">
         <div class="stack" style="gap:6px"><h2>Kantonale Auswertung</h2>
-          <p class="muted small" style="max-width:72ch">Alle abgeschlossenen Selbsteinschätzungen des Kantons zusammen. Ohne Angaben zu Schulen oder Schulträgern, ohne eigene Fragen der Schulen und ohne Freitexte. Ausgewertet wird immer eine Runde; jede Lehrperson zählt darin einmal.</p></div>
+          <p class="muted small" style="max-width:72ch">Alle abgeschlossenen Selbsteinschätzungen des Kantons zusammen. Ohne Angaben zu Schulen oder Schulträgern, ohne eigene Fragen der Schulen und ohne Freitexte. Ausgewertet wird immer eine vorgegebene Erhebung; jede Lehrperson zählt darin einmal. Kantonswerte erscheinen erst, wenn Teilnahmen aus mindestens drei Schulträgern vorliegen; Filter und Vergleiche nur, wenn jede Gruppe aus mindestens drei Schulträgern stammt.</p></div>
         <div class="row">
           <div class="field"><label for="k-round" class="small">Erhebung</label><select id="k-round"></select></div>
           <div class="field"><label for="k-zyklus" class="small">Zyklus</label><select id="k-zyklus"></select></div>

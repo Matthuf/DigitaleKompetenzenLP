@@ -34,9 +34,9 @@
     const t = $('#tr-table');
     const shown = traeger.filter((x) => !filter || x.name.toLowerCase().includes(filter) || x.schools.some((s) => s.name.toLowerCase().includes(filter)));
     t.innerHTML = !traeger.length ? `<tbody><tr><td class="muted">Noch kein Schulträger erfasst.</td></tr></tbody>` : !shown.length ? `<tbody><tr><td class="muted">Nichts gefunden.</td></tr></tbody>`
-      : `<thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Schulen</th><th scope="col" class="num">Zugänge Rektorat/ Hauptschulleitung</th><th scope="col" class="num">Zugänge Schulleitung</th><th scope="col" class="num">Erhebungen</th><th scope="col" class="num">Teilnehmende</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
+      : `<thead><tr><th scope="col">Schulträger</th><th scope="col">Stufe</th><th scope="col">Schulen</th><th scope="col" class="num">Zugänge Rektorat/ Hauptschulleitung</th><th scope="col" class="num">Zugänge Schulleitung</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${shown.map((x) => `<tr><td><b>${esc(x.name)}</b></td><td>${KIND[x.kind]}</td><td class="small">${x.schools.map((s) => esc(s.name)).join(', ') || '–'}</td>
-        <td class="num">${x.rektorat}</td><td class="num">${x.schools.reduce((a, s) => a + s.users, 0)}</td><td class="num">${x.campaigns}</td><td class="num">${x.participants}</td>
+        <td class="num">${x.rektorat}</td><td class="num">${x.schools.reduce((a, s) => a + s.users, 0)}</td>
         <td><button class="btn ${current === x.id ? '' : 'secondary'}" type="button" data-tr="${x.id}">Verwalten</button></td></tr>`).join('')}</tbody>`;
     $$('[data-tr]').forEach((b) => b.addEventListener('click', () => {
       if (current !== b.dataset.tr) $('#pw-once').hidden = true;
@@ -199,9 +199,9 @@
   /* ---------- Vorgegebene Erhebung (technisch: «round») ---------- */
   async function loadRounds() {
     rounds = await api('GET', 'admin/rounds');
-    $('#round-table').innerHTML = rounds.length ? `<thead><tr><th scope="col">Erhebung</th><th scope="col">Status</th><th scope="col" class="num">Schulen</th><th scope="col" class="num">Abgeschlossen</th><th scope="col">Erfasst</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
+    $('#round-table').innerHTML = rounds.length ? `<thead><tr><th scope="col">Erhebung</th><th scope="col">Status</th><th scope="col" class="num">Schulträger dabei</th><th scope="col" class="num">mit Teilnahmen</th><th scope="col" class="num">Schulhäuser</th><th scope="col" class="num">Teilnahmen abgeschlossen</th><th scope="col">Erfasst</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
       <tbody>${rounds.map((r) => `<tr><td><b>${esc(r.title)}</b></td><td><span class="status ${r.active ? 'open' : 'closed'}">${r.active ? 'wählbar' : 'nicht mehr wählbar'}</span></td>
-        <td class="num">${r.schools}</td><td class="num">${r.submitted}</td><td>${date(r.created_at)}</td>
+        <td class="num" data-label="Schulträger dabei">${r.traeger} von ${r.traeger_total}</td><td class="num" data-label="mit Teilnahmen">${r.traeger_data}</td><td class="num" data-label="Schulhäuser">${r.schools}</td><td class="num" data-label="Teilnahmen abgeschlossen">${r.submitted}</td><td>${date(r.created_at)}</td>
         <td><div class="row" style="gap:6px"><button class="btn quiet" type="button" data-rtitle="${r.id}">Umbenennen</button><button class="btn quiet" type="button" data-round="${r.id}" data-active="${r.active ? 1 : 0}">${r.active ? 'Nicht mehr wählbar machen' : 'Wieder wählbar machen'}</button></div></td></tr>`).join('')}</tbody>`
       : `<tbody><tr><td class="muted">Noch keine Vorgabe. Die Erhebung für alle Schulträger hier erfassen.</td></tr></tbody>`;
     $$('[data-round]').forEach((b) => b.addEventListener('click', async () => { await api('PATCH', `admin/rounds/${b.dataset.round}`, { active: b.dataset.active !== '1' }); loadRounds(); }));
@@ -228,7 +228,7 @@
   async function openKanton() {
     rounds = await api('GET', 'admin/rounds');
     if (!rounds.length) { $('#k-round').innerHTML = ''; $('#k-out').innerHTML = '<div class="box box--info">Noch keine vorgegebene Erhebung erfasst (Reiter «Vorgabe AVS»). Die kantonale Auswertung bezieht sich immer auf eine vorgegebene Erhebung.</div>'; return; }
-    if (!k.round || !rounds.some((r) => r.id === k.round)) k.round = rounds[rounds.length - 1].id;
+    if (!k.round || !rounds.some((r) => r.id === k.round)) k.round = rounds[0].id; // neueste Vorgabe
     $('#k-round').innerHTML = rounds.map((r) => `<option value="${r.id}" ${r.id === k.round ? 'selected' : ''}>${esc(r.title)}</option>`).join('');
     loadKanton();
   }
@@ -247,7 +247,7 @@
       title: roundTitle,
       org: 'Kanton Schwyz · alle Schulen',
       filterText: k.zyklus,
-      extraText: data.tooFew ? '' : `aus ${data.schoolCount} Schule${data.schoolCount === 1 ? '' : 'n'} von ${data.traegerCount} Schulträger${data.traegerCount === 1 ? '' : 'n'}`,
+      extraText: data.tooFew || data.schoolCount === undefined ? '' : `aus ${data.schoolCount} Schule${data.schoolCount === 1 ? '' : 'n'} von ${data.traegerCount} Schulträger${data.traegerCount === 1 ? '' : 'n'}`,
       profileTitle: 'Profil des Kantons',
       reportTitle: 'Digitale Kompetenzen der Lehrpersonen im Kanton Schwyz',
       reportFoot: 'Zusammengefasste Selbsteinschätzungen nach DigCompEdu, ohne Angaben zu Schulen oder Schulträgern.',
