@@ -222,10 +222,11 @@
     const list = $('#camp-list');
     renderSteps();
     if (!campaigns.length) {
-      // Beim Rektorat führt der Assistent; das Formular bleibt als zweiter Weg zu, aber vorhanden
-      $('#create-box').open = !isRektorat();
+      // Beim Rektorat führt der Assistent. Die Schulleitung soll nicht vorschnell selbst eröffnen: Meist eröffnet das Rektorat
+      // für alle Schulhäuser, und an der Vorgabe des AVS nimmt jedes Schulhaus nur einmal teil. Das Formular bleibt darum zu.
+      $('#create-box').open = false;
       setCreateHint(0);
-      list.innerHTML = isRektorat() ? '' : `<p class="muted">Noch keine Erhebung. Unten mit «Neue Erhebung eröffnen» beginnen und den Link an die Lehrpersonen weitergeben.</p>`;
+      list.innerHTML = isRektorat() ? '' : `<p class="muted" style="max-width:74ch">Für Ihr Schulhaus läuft noch keine Erhebung. Eröffnet Rektorat bzw. Hauptschulleitung eine, erscheint sie hier mit dem Link für Ihre Lehrpersonen. Fragen Sie dort nach, bevor Sie selbst eine eröffnen: An der Vorgabe des AVS nimmt jedes Schulhaus nur einmal teil.</p>`;
       return;
     }
     const open = campaigns.filter((c) => c.status === 'open');
@@ -512,7 +513,15 @@ ${signature()}`;
           <li><b>Schliessen:</b> Danach sind keine neuen Teilnahmen mehr möglich. Wieder öffnen geht jederzeit.</li>
         </ul>
         <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p></details>`
-      : `<p>Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>`;
+      : `<p>Hier finden Sie die Erhebungen Ihres Schulhauses und den Teilnahmelink für Ihre Lehrpersonen. Die Ergebnisse sehen Sie unter «Auswertung».</p>
+        <details class="intro-more" id="intro-more" ${introOpen ? 'open' : ''}><summary>Das können Sie hier tun</summary>
+        <ul>
+          <li><b>Link weitergeben:</b> Ihr Schulhaus hat einen eigenen Teilnahmelink. Sie geben ihn den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code).</li>
+          <li><b>Rücklauf verfolgen:</b> Tragen Sie die Anzahl Lehrpersonen Ihres Schulhauses ein. Dann sehen Sie, wie viele schon teilgenommen haben.</li>
+          <li><b>Erhebungen von Rektorat/Hauptschulleitung:</b> Zieldatum, eigene Fragen und das Schliessen legt das Rektorat bzw. die Hauptschulleitung fest.</li>
+          <li><b>Eigene Erhebung:</b> Eröffnen Sie selbst eine, legen Sie Zieldatum und eigene Fragen fest und schliessen sie auch selbst. Bei einer späteren Erhebung sehen die Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</li>
+        </ul>
+        <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p></details>`;
     const im = $('#intro-more');
     if (im) im.addEventListener('toggle', () => { introOpen = im.open; });
   }
