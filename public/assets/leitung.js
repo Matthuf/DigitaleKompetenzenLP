@@ -133,13 +133,13 @@
     const who = c.byTraeger ? (isRektorat() ? '' : ' durch Rektorat/Hauptschulleitung') : ` durch Schulleitung ${esc(c.owner_school_name || '')}`;
     const missing = missingSchools(c);
     const early = c.status === 'open' && c.manageable !== false && !c.submitted; // Fragen sind noch änderbar
-    const qState = !c.manageable ? 'legt Rektorat/Hauptschulleitung fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
+    const qState = !c.manageable ? 'legt Rektorat/Hauptschulleitung fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : 'änderbar bis zur ersten Teilnahme';
     return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
       <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Vorgabe AVS</span>` : ''}</span>
         <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
       <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)}${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
       ${n || early ? `<details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
-        <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}${early ? ' · vor dem Verteilen der Links' : ''}</span></summary>
+        <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}</span></summary>
         <div class="q-box" id="q-box-${c.id}"></div>
       </details>` : ''}
       ${schoolsTable(c)}
