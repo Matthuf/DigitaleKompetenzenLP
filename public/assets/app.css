@@ -488,7 +488,7 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .due-note { font-size: 1.05rem; border-left: 4px solid var(--red); padding: 2px 0 2px 12px; max-width: 60ch; }
 .camp-meta .due.past { color: #8a1c1c; }
 .camp-meta .btn.quiet.small { padding: 0 2px; }
-.camp-questions { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 2px; }
+.camp-questions { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; margin-top: 2px; }
 .camp-questions > summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 .camp-questions > summary::-webkit-details-marker { display: none; }
 .camp-questions > summary::before { content: "▸"; color: var(--red); width: 1em; }

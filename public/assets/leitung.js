@@ -108,12 +108,17 @@
     const n = Block.count(c);
     const who = c.byTraeger ? 'durch Rektorat/Hauptschulleitung' : `durch Schulleitung ${esc(c.owner_school_name || '')}`;
     const missing = missingSchools(c);
+    const early = c.status === 'open' && c.manageable !== false && !c.submitted; // Fragen sind noch änderbar
     const qState = !c.manageable ? 'legt Rektorat/Hauptschulleitung fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
     return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
       <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Vorgabe AVS</span>` : ''}</span>
         <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
       <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)} ${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
       ${isRektorat() && c.links.length > 1 ? `<p class="small"><b>Total ${c.submitted}</b> abgeschlossen, ${c.drafts} in Bearbeitung · ${c.links.length} Schulen</p>` : ''}
+      <details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
+        <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}${early ? ' · vor dem Verteilen der Links' : ''}</span></summary>
+        <div class="q-box" id="q-box-${c.id}"></div>
+      </details>
       <div class="links">${c.links.map((l) => linkRow(c, l)).join('')}</div>
       ${missing.length ? `<div class="add-school" data-addschool="${c.id}"><button class="btn quiet small" type="button" data-addopen="${c.id}">Schulhaus aufnehmen</button>
         <span class="small muted">${missing.length === 1 ? esc(missing[0].name) + ' ist' : missing.length + ' Schulhäuser sind'} noch nicht dabei.</span></div>` : ''}
@@ -121,10 +126,6 @@
         <a class="btn" href="#auswertung/c:${c.id}">Auswertung ansehen</a>
         ${c.manageable ? `<span class="confirm" data-toggle="${c.id}"></span>` : ''}
       </div>
-      <details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
-        <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}</span></summary>
-        <div class="q-box" id="q-box-${c.id}"></div>
-      </details>
     </article>`;
   }
 
