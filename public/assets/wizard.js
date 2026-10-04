@@ -52,7 +52,7 @@ window.Wizard = (function () {
       <ol class="wz-dots" aria-label="Fortschritt">${p.map((k, i) =>
         `<li class="${i < st.idx ? 'done' : i === st.idx ? 'now' : ''}"><span class="sr-only">Schritt ${i + 1}: ${esc(TITEL[k])}${i < st.idx ? ' (erledigt)' : i === st.idx ? ' (aktuell)' : ''}</span></li>`).join('')}</ol>
     </div>`;
-  const kopfFertig = () => `<div class="wz-head"><p class="eyebrow">Einrichten · fertig</p><h2>Die Erhebung läuft</h2></div>`;
+  const kopfFertig = () => `<div class="wz-head"><p class="eyebrow">Einrichten · fertig</p><h2>Einrichtung abgeschlossen</h2></div>`;
 
   /* Schritt 1: nur die Grundsatzfrage. Beide Folgen stehen ausgeschrieben da,
    * inklusive dem, was mit der Gesamterhebung nicht mehr möglich ist. */
@@ -119,13 +119,11 @@ window.Wizard = (function () {
 
   const BILD = { rahmen: bildRahmen, haeuser: bildHaeuser, leitungen: bildLeitungen, eroeffnen: bildEroeffnen };
 
+  // Kein Linkverteilen im Assistenten: Die Einrichtung ist hier abgeschlossen.
+  // Die Teilnahmelinks stehen danach bei der Erhebung im Adminbereich.
   function fertig() {
-    return `<p class="wz-lead">Die Links sind bereit. Geben Sie sie an Ihre Lehrpersonen weiter – oder überlassen Sie das den Schulleitungen mit Zugang.</p>
-      <div class="stack" style="gap:10px">${st.links.map((l) => `
-        <div class="wz-link"><b>${esc(l.school_name)}</b>
-          <code>${esc(location.origin + '/t/' + l.token)}</code>
-          <button class="btn secondary small" type="button" data-copy="${esc(l.token)}">Link kopieren</button></div>`).join('')}</div>
-      <p class="small muted">Alles Weitere – E-Mail-Vorlagen, QR-Code, Rücklauf, eigene Fragen – finden Sie danach bei der Erhebung.</p>`;
+    return `<p class="wz-lead">Die Erhebung ist eingerichtet${st.rahmen === 'gesamt' ? '' : ` für ${schulhaeuser().length === 1 ? 'Ihr Schulhaus' : `Ihre ${schulhaeuser().length} Schulhäuser`}`}.</p>
+      <p class="wz-next"><b>Als Nächstes:</b> Im Adminbereich finden Sie bei der Erhebung die Teilnahmelinks für die Lehrpersonen, die E-Mail-Vorlagen, den QR-Code, den Rücklauf und die eigenen Fragen.</p>`;
   }
 
   function aktionen() {

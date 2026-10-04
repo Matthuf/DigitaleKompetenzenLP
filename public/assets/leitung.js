@@ -150,7 +150,7 @@
         was: 'Freiwillig. Mit eigenem Zugang verteilt die Schulleitung den Link selbst und sieht die Auswertung ihres Schulhauses. Dafür brauchen Sie deren E-Mail-Adressen.',
         stand: !n ? 'nach den Schulhäusern' : `${mitLeitung} von ${n} ${n === 1 ? 'Schulhaus' : 'Schulhäusern'}` },
       { fertig: false, titel: 'Erhebung eröffnen',
-        was: 'Danach erhalten Sie die Links und geben sie weiter.', stand: 'noch nicht eröffnet' },
+        was: 'Danach finden Sie die Teilnahmelinks für die Lehrpersonen bei der Erhebung.', stand: 'noch nicht eröffnet' },
     ];
     const jetzt = schritte.findIndex((x) => !x.fertig);
     const zeile = (x, i) =>
@@ -162,7 +162,7 @@
         <p class="eyebrow">Schritt ${jetzt + 1} von ${schritte.length}</p>
         <h3 id="h-steps">Selbsteinschätzung einrichten</h3>
         <p style="max-width:74ch">Zuerst entscheiden Sie, ob jedes Schulhaus eine eigene Auswertung erhalten soll oder ob Sie alle Lehrpersonen gemeinsam auswerten.
-          Danach führt Sie der Assistent Schritt für Schritt bis zu den Teilnahmelinks, die Sie weitergeben.</p></div>
+          Danach führt Sie der Assistent Schritt für Schritt bis zur eröffneten Erhebung.</p></div>
       <ul class="ck-list">${schritte.map(zeile).join('')}</ul>
       <div class="row" style="gap:14px;align-items:center">
         <button class="btn" type="button" id="btn-wizard">Jetzt einrichten</button>
