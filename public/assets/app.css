@@ -325,11 +325,6 @@ details.create[open] summary::before { content: "− "; }
 .camp-meta { font-size: 0.85rem; color: var(--ink-2); }
 .camp-stats { display: flex; flex-wrap: wrap; gap: 12px 36px; align-items: flex-end; }
 .camp-stats .stat b { font-size: 1.4rem; }
-.quote { min-width: 220px; flex: 1 1 220px; max-width: 360px; display: grid; gap: 4px; font-size: 0.85rem; color: var(--ink-2); }
-.quote .bar { height: 8px; background: var(--box); }
-.quote .bar span { display: block; height: 100%; background: var(--red); }
-.camp-link { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--box); padding: 10px 12px; }
-.camp-link code { font-size: 0.85rem; flex: 1 1 220px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .camp-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .share { border-left: 4px solid var(--red); padding: 4px 0 4px 16px; display: grid; gap: 12px; }
 .share textarea { min-height: 220px; font-size: 0.9rem; }
@@ -468,10 +463,6 @@ table.kv-table thead th:last-child { text-align: left; }
 
 /* Erhebungen mit einem Link pro Schule */
 .links { display: grid; gap: 10px; }
-.link-row { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
-.link-head { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
-.link-head .quote { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; max-width: none; flex: 1 1 260px; }
-.link-head .quote .bar { display: inline-block; width: 120px; height: 8px; }
 .status.round { background: #E8EEF6; color: #1d3b63; }
 .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 16px; margin-top: 6px; }
 fieldset.field { border: 0; padding: 0; margin: 0; }
@@ -488,7 +479,7 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .due-note { font-size: 1.05rem; border-left: 4px solid var(--red); padding: 2px 0 2px 12px; max-width: 60ch; }
 .camp-meta .due.past { color: #8a1c1c; }
 .camp-meta .btn.quiet.small { padding: 0 2px; }
-.camp-questions { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; margin-top: 2px; }
+.camp-questions { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; }
 .camp-questions > summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 .camp-questions > summary::-webkit-details-marker { display: none; }
 .camp-questions > summary::before { content: "▸"; color: var(--red); width: 1em; }
@@ -503,7 +494,7 @@ details.past .stack { gap: 16px; }
 .first-steps { border-left: 4px solid var(--red); }
 .first-steps .st { display: block; font-size: 0.9rem; color: var(--ink-2); margin-top: 2px; max-width: 80ch; }
 /* Grid-Kinder dürfen schmaler werden als ihr Inhalt (lange Links sonst breiter als der Bildschirm) */
-.camp-card > *, .links > *, .link-row > *, .camp-link { min-width: 0; }
+.camp-card > * { min-width: 0; }
 
 /* Schulhäuser mit Schulleitung pro Zeile */
 .school-list > li { display: grid; gap: 6px; justify-content: stretch; }
@@ -640,5 +631,71 @@ details.past .stack { gap: 16px; }
 .camp-intro { max-width: 72ch; display: grid; gap: 8px; }
 .camp-intro p, .camp-intro ul { margin: 0; }
 .camp-intro ul { padding-left: 20px; display: grid; gap: 6px; }
-.camp-intro .intro-head { margin-top: 4px; color: var(--ink); }
 .camp-intro li b { color: var(--ink); }
+
+/* Einleitung Erhebungen: Liste aufklappbar */
+.intro-more > summary { cursor: pointer; font-weight: 700; color: var(--ink); list-style: none; }
+.intro-more > summary::-webkit-details-marker { display: none; }
+.intro-more > summary::before { content: "▸ "; color: var(--red); }
+.intro-more[open] > summary::before { content: "▾ "; }
+.intro-more[open] > summary { margin-bottom: 8px; }
+.intro-more > p { margin-top: 8px; }
+
+/* Erhebungskarte: Schulhäuser als Übersicht */
+.schools { width: 100%; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.schools th, .schools td { text-align: left; padding: 10px 12px 10px 0; vertical-align: middle; }
+.schools thead th { font-size: 0.8rem; font-weight: 400; color: var(--ink-2); border-bottom: 1px solid var(--ink-3); padding-top: 0; }
+.schools .num { text-align: right; padding-right: 28px; white-space: nowrap; }
+.schools tbody th { font-weight: 700; }
+.schools .s-row > * { border-top: 1px solid var(--line); }
+.schools tbody .s-row:first-child > * { border-top: 0; }
+.schools .s-note td, .schools .s-share td { padding: 0 0 10px; }
+.schools .s-share td:has(.share[hidden]) { padding: 0; }
+.schools .s-share .share { margin: 4px 0 6px; }
+.schools tfoot > tr > * { border-top: 1px solid var(--ink-3); font-weight: 700; }
+.schools tfoot .muted { font-weight: 400; font-size: 0.85rem; }
+.schools .quote { min-width: 170px; color: var(--ink-2); }
+.schools .quote .q-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.schools .quote .q-line b { color: var(--ink); }
+.schools .quote .bar { display: block; width: 100%; max-width: 160px; height: 6px; background: var(--box); margin-top: 4px; }
+.schools .quote .bar span { display: block; height: 100%; background: var(--red); }
+.schools .quote .inline-edit { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.schools .quote .inline-edit input { width: 70px; }
+.schools .act { text-align: right; white-space: nowrap; padding-right: 0; }
+.schools .act > * { vertical-align: middle; }
+.schools .act .btn + .menu { margin-left: 6px; }
+.schools .quote .btn.quiet { padding-left: 0; }
+.menu > summary.btn.quiet { text-decoration: underline; }
+
+/* Menü «E-Mail oder QR-Code» */
+.menu { position: relative; display: inline-block; text-align: left; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu-list { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; width: 300px; background: var(--bg); border: 1px solid var(--ink-3); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); display: grid; padding: 4px 0; white-space: normal; }
+.menu-item { appearance: none; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; padding: 10px 14px; cursor: pointer; display: grid; gap: 2px; }
+.menu-item b { font-size: 0.92rem; }
+.menu-item span { font-size: 0.82rem; color: var(--ink-2); }
+.menu-item:hover, .menu-item:focus-visible { background: var(--box); }
+
+.camp-actions .camp-close { margin-left: auto; }
+
+@media (max-width: 720px) {
+  .schools thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .schools, .schools tbody, .schools tfoot { display: block; }
+  .schools tr { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+  .schools .s-row, .schools tfoot tr { padding: 12px 0; border-top: 1px solid var(--line); }
+  .schools tbody .s-row:first-child { border-top: 0; }
+  .schools .s-row > *, .schools tfoot tr > * { border-top: 0; padding: 0; }
+  .schools tr > th { grid-column: 1 / -1; }
+  .schools .num { text-align: left; padding: 0; }
+  .schools td.num::before, .schools td.quote::before { content: attr(data-label) ": "; color: var(--ink-2); font-weight: 400; }
+  .schools td.quote { grid-column: 1 / -1; }
+  .schools td.quote::before { display: block; }
+  .schools .act { grid-column: 1 / -1; text-align: left; white-space: normal; display: flex; flex-wrap: wrap; gap: 8px; }
+  .schools .act .btn + .menu { margin-left: 0; }
+  .schools tfoot tr > td:empty { display: none; }
+  .schools .s-note, .schools .s-share, .schools .s-note td, .schools .s-share td { display: block; }
+  .schools .act { position: relative; }
+  .schools .act .menu { position: static; }
+  .menu-list { left: 0; right: 0; width: auto; }
+}

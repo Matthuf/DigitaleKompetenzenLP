@@ -65,27 +65,50 @@
   }
 
   /* ---------- Erhebungen ---------- */
+  document.addEventListener('click', (e) => {
+    $$('details[data-menu][open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; });
+  });
   let openQ = null;       // Erhebung, deren eigene Fragen aufgeklappt sind
-  let pastOpen = false;   // Bereich «Frühere Erhebungen» aufgeklappt
+  let pastOpen = false;
+  let introOpen = false;  // Einleitung «Das können Sie hier tun» aufgeklappt   // Bereich «Frühere Erhebungen» aufgeklappt
 
-  function linkRow(c, l) {
-    const quote = l.expected ? Math.min(100, Math.round(100 * l.submitted / l.expected)) : null;
-    return `<div class="link-row" data-link="${l.id}">
-      <div class="link-head">
-        <b>${esc(l.school_name)}</b>
-        <span class="small"><b>${l.submitted}</b> abgeschlossen · ${l.drafts} in Bearbeitung</span>
-        <span class="quote small" data-quote="${l.id}">${quote !== null
-          ? `Rücklauf ${quote} % von ${l.expected} <button class="btn quiet small" type="button" data-expected="${l.id}">ändern</button><span class="bar"><span style="width:${quote}%"></span></span>`
-          : `<button class="btn quiet small" type="button" data-expected="${l.id}">Anzahl Lehrpersonen eintragen</button>`}</span>
-      </div>
-      ${l.expected && l.submitted + l.drafts > l.expected ? `<p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über die eigenen Lehrpersonen hinaus weitergegeben. Bei Bedarf die Erhebung abschliessen und eine neue eröffnen.</p>` : ''}
-      ${c.status === 'open' ? `<div class="camp-link"><code title="${esc(linkFor(l))}">${esc(linkFor(l))}</code>
-        <button class="btn secondary small" type="button" data-copy="${l.id}">Link kopieren</button>
-        ${isRektorat() ? `<button class="btn secondary small" type="button" data-slmail="${l.id}">E-Mail an Schulleitung</button>` : ''}
-        <button class="btn secondary small" type="button" data-mail="${l.id}">E-Mail an die Lehrpersonen</button>
-        <button class="btn secondary small" type="button" data-qr="${l.id}">QR-Code</button></div>
-        <div class="share" data-share="${l.id}" hidden></div>` : ''}
-    </div>`;
+  /* Schulhäuser einer Erhebung als Übersicht: eine Zeile pro Schulhaus mit Stand und Rücklauf.
+   * Die URL selbst wird nicht angezeigt (niemand liest oder tippt sie); sie steckt in «Link kopieren»,
+   * in den E-Mail-Vorlagen und beim QR-Code. Unter jeder Zeile liegt ein Bereich für die Vorlagen. */
+  function quoteHTML(l) {
+    if (!l.expected) return `<button class="btn quiet small" type="button" data-expected="${l.id}">Anzahl Lehrpersonen eintragen</button>`;
+    const quote = Math.min(100, Math.round(100 * l.submitted / l.expected));
+    return `<span class="q-line"><b>${quote} %</b> <span class="muted">von ${l.expected}</span> <button class="btn quiet small" type="button" data-expected="${l.id}" aria-label="Anzahl Lehrpersonen für ${esc(l.school_name)} ändern">ändern</button></span>
+      <span class="bar" aria-hidden="true"><span style="width:${quote}%"></span></span>`;
+  }
+  function menuHTML(l) {
+    const item = (attr, title, sub) => `<button class="menu-item" type="button" ${attr}="${l.id}"><b>${title}</b><span>${sub}</span></button>`;
+    return `<details class="menu" data-menu>
+        <summary class="btn quiet small">E-Mail oder QR-Code <span aria-hidden="true">▾</span></summary>
+        <div class="menu-list">
+          ${item('data-mail', 'E-Mail an die Lehrpersonen', 'Fertiger Text mit Link, zum Anpassen')}
+          ${isRektorat() ? item('data-slmail', 'E-Mail an die Schulleitung', 'Sie leitet den Link an ihre Lehrpersonen weiter') : ''}
+          ${item('data-qr', 'QR-Code', 'Zum Ausdrucken oder für eine Präsentation')}
+        </div></details>`;
+  }
+  function schoolsTable(c) {
+    const open = c.status === 'open';
+    const cols = open ? 5 : 4;
+    const rows = c.links.map((l) => `
+      <tr class="s-row" data-link="${l.id}">
+        <th scope="row">${esc(l.school_name)}</th>
+        <td class="num" data-label="Abgeschlossen">${l.submitted}</td>
+        <td class="num" data-label="In Bearbeitung">${l.drafts}</td>
+        <td class="quote" data-label="Rücklauf" data-quote="${l.id}">${quoteHTML(l)}</td>
+        ${open ? `<td class="act"><button class="btn secondary small" type="button" data-copy="${l.id}" aria-label="Link für ${esc(l.school_name)} kopieren">Link kopieren</button>${menuHTML(l)}</td>` : ''}
+      </tr>
+      ${l.expected && l.submitted + l.drafts > l.expected ? `<tr class="s-note"><td colspan="${cols}"><p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über die eigenen Lehrpersonen hinaus weitergegeben. Bei Bedarf die Anzahl anpassen oder die Erhebung schliessen und neu eröffnen.</p></td></tr>` : ''}
+      ${open ? `<tr class="s-share"><td colspan="${cols}"><div class="share" data-share="${l.id}" hidden></div></td></tr>` : ''}`).join('');
+    return `<table class="schools">
+      <caption class="sr-only">Schulhäuser dieser Erhebung</caption>
+      <thead><tr><th scope="col">Schulhaus</th><th scope="col" class="num">Abgeschlossen</th><th scope="col" class="num">In Bearbeitung</th><th scope="col">Rücklauf</th>${open ? '<th scope="col"><span class="sr-only">Link weitergeben</span></th>' : ''}</tr></thead>
+      <tbody>${rows}</tbody>
+      ${c.links.length > 1 ? `<tfoot><tr class="s-total"><th scope="row">Total <span class="muted">· ${c.links.length} Schulhäuser</span></th><td class="num" data-label="Abgeschlossen">${c.submitted}</td><td class="num" data-label="In Bearbeitung">${c.drafts}</td><td></td>${open ? '<td></td>' : ''}</tr></tfoot>` : ''}</table>`;
   }
 
   // Schulhäuser des Trägers, die noch in eine laufende Erhebung aufgenommen werden können
@@ -106,25 +129,25 @@
 
   function cardHTML(c) {
     const n = Block.count(c);
-    const who = c.byTraeger ? 'durch Rektorat/Hauptschulleitung' : `durch Schulleitung ${esc(c.owner_school_name || '')}`;
+    // «durch …» nur, wenn die Erhebung nicht von der angemeldeten Ebene selbst stammt
+    const who = c.byTraeger ? (isRektorat() ? '' : ' durch Rektorat/Hauptschulleitung') : ` durch Schulleitung ${esc(c.owner_school_name || '')}`;
     const missing = missingSchools(c);
     const early = c.status === 'open' && c.manageable !== false && !c.submitted; // Fragen sind noch änderbar
     const qState = !c.manageable ? 'legt Rektorat/Hauptschulleitung fest' : c.submitted > 0 ? 'nicht mehr änderbar (bereits Teilnahmen)' : n ? 'bearbeiten' : 'ergänzen';
     return `<article class="camp-card ${c.status}" id="camp-${c.id}" data-id="${c.id}">
       <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Vorgabe AVS</span>` : ''}</span>
         <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
-      <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)} ${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
-      ${isRektorat() && c.links.length > 1 ? `<p class="small"><b>Total ${c.submitted}</b> abgeschlossen, ${c.drafts} in Bearbeitung · ${c.links.length} Schulen</p>` : ''}
-      <details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
+      <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)}${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
+      ${n || early ? `<details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
         <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}${early ? ' · vor dem Verteilen der Links' : ''}</span></summary>
         <div class="q-box" id="q-box-${c.id}"></div>
-      </details>
-      <div class="links">${c.links.map((l) => linkRow(c, l)).join('')}</div>
+      </details>` : ''}
+      ${schoolsTable(c)}
       ${missing.length ? `<div class="add-school" data-addschool="${c.id}"><button class="btn quiet small" type="button" data-addopen="${c.id}">Schulhaus aufnehmen</button>
         <span class="small muted">${missing.length === 1 ? esc(missing[0].name) + ' ist' : missing.length + ' Schulhäuser sind'} noch nicht dabei.</span></div>` : ''}
       <div class="camp-actions">
         <a class="btn" href="#auswertung/c:${c.id}">Auswertung ansehen</a>
-        ${c.manageable ? `<span class="confirm" data-toggle="${c.id}"></span>` : ''}
+        ${c.manageable ? `<span class="confirm camp-close" data-toggle="${c.id}"></span>` : ''}
       </div>
     </article>`;
   }
@@ -181,6 +204,10 @@
 
   // Läuft bereits eine Erhebung, soll das Formular nicht zu einer zweiten verleiten
   function setCreateHint(openCount) {
+    const sum = $('#create-sum');
+    if (sum) sum.innerHTML = openCount
+      ? '<b>Weitere Erhebung eröffnen</b> <span class="small muted">· nur für einen anderen Zeitpunkt oder Zweck</span>'
+      : `<b>Neue Erhebung eröffnen</b>${isRektorat() && !campaigns.length ? ' <span class="small muted">· statt mit «Jetzt einrichten»</span>' : ''}`;
     const el = $('#create-hint');
     if (!el) return;
     el.hidden = !openCount;
@@ -213,6 +240,12 @@
     if (pb) pb.addEventListener('toggle', () => { pastOpen = pb.open; });
 
     $$('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(linkFor(linkById(b.dataset.copy)), b)));
+    // Menü «E-Mail oder QR-Code»: höchstens eines offen, schliesst nach der Auswahl
+    $$('details[data-menu]').forEach((d) => {
+      d.addEventListener('toggle', () => { if (d.open) $$('details[data-menu][open]').forEach((x) => { if (x !== d) x.open = false; }); });
+      d.addEventListener('keydown', (e) => { if (e.key === 'Escape' && d.open) { d.open = false; d.querySelector('summary').focus(); } });
+      d.querySelectorAll('.menu-item').forEach((b) => b.addEventListener('click', () => { d.open = false; }));
+    });
     $$('[data-mail]').forEach((b) => b.addEventListener('click', () => showMail(linkById(b.dataset.mail))));
     $$('[data-slmail]').forEach((b) => b.addEventListener('click', () => showLeaderMail(linkById(b.dataset.slmail))));
     $$('[data-qr]').forEach((b) => b.addEventListener('click', () => showQR(linkById(b.dataset.qr))));
@@ -470,7 +503,7 @@ ${signature()}`;
     // Der Text sagt, wozu die Seite da ist und was hier möglich ist (Beschriftungen wie in der Erhebungskarte)
     $('#camp-intro').innerHTML = isRektorat()
       ? `<p>Hier eröffnen und verwalten Sie Erhebungen. Die Ergebnisse sehen Sie unter «Auswertung».</p>
-        <p class="intro-head"><b>Das können Sie hier tun</b></p>
+        <details class="intro-more" id="intro-more" ${introOpen ? 'open' : ''}><summary>Das können Sie hier tun</summary>
         <ul>
           <li><b>Link weitergeben:</b> Jedes Schulhaus hat einen eigenen Teilnahmelink. Sie geben ihn den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code) oder der Schulleitung, die ihn weiterleitet.</li>
           <li><b>Rücklauf verfolgen:</b> Tragen Sie pro Schulhaus die Anzahl Lehrpersonen ein. Dann sehen Sie, wie viele schon teilgenommen haben.</li>
@@ -478,8 +511,10 @@ ${signature()}`;
           <li><b>Eigene Fragen ergänzen:</b> Beliebig viele zusätzliche Fragen. Sobald die erste Person abgeschlossen hat, sind sie gesperrt.</li>
           <li><b>Schliessen:</b> Danach sind keine neuen Teilnahmen mehr möglich. Wieder öffnen geht jederzeit.</li>
         </ul>
-        <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p>`
+        <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p></details>`
       : `<p>Mit einer Erhebung laden Sie Ihre Lehrpersonen zur Selbsteinschätzung ein. Sie bleibt offen, bis Sie sie schliessen. Erhebungen von Rektorat/Hauptschulleitung erscheinen hier ebenfalls, mit dem Link für diese Schule. Bei einer späteren Erhebung sehen Lehrpersonen mit ihrem Code den Vergleich zum letzten Mal.</p>`;
+    const im = $('#intro-more');
+    if (im) im.addEventListener('toggle', () => { introOpen = im.open; });
   }
   $('#create-box').addEventListener('toggle', () => { if (!$('#create-box').open) { formBuilt = false; fillCreateForm(); } });
 
