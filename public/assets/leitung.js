@@ -154,7 +154,7 @@
     ];
     const jetzt = schritte.findIndex((x) => !x.fertig);
     const zeile = (x, i) =>
-      `<li class="${x.fertig ? 'done' : ''}${i === jetzt ? ' now' : ''}"><span class="ck" aria-hidden="true">${x.fertig ? '✓' : ''}</span>
+      `<li class="${x.fertig ? 'done' : ''}${i === jetzt ? ' now' : ''}"><span class="ck" aria-hidden="true">${x.fertig ? '✓' : i + 1}</span>
         <span><b>${x.titel}</b>${i === jetzt ? ' <span class="now-tag">jetzt</span>' : ''}
           <span class="st">${x.was}</span><span class="st stand">Stand: ${x.stand}</span></span></li>`;
     box.innerHTML = `<section class="panel first-steps stack" style="gap:16px" aria-labelledby="h-steps">
@@ -162,8 +162,7 @@
         <p class="eyebrow">Schritt ${jetzt + 1} von ${schritte.length}</p>
         <h3 id="h-steps">Selbsteinschätzung einrichten</h3>
         <p style="max-width:74ch">Zuerst entscheiden Sie, ob jedes Schulhaus eine eigene Auswertung erhalten soll oder ob Sie alle Lehrpersonen gemeinsam auswerten.
-          Danach führt Sie der Assistent Schritt für Schritt bis zu den Teilnahmelinks, die Sie weitergeben.
-          <b>Sie selbst füllen keinen Fragebogen aus</b> – das tun die Lehrpersonen, in rund 20 Minuten.</p></div>
+          Danach führt Sie der Assistent Schritt für Schritt bis zu den Teilnahmelinks, die Sie weitergeben.</p></div>
       <ul class="ck-list">${schritte.map(zeile).join('')}</ul>
       <div class="row" style="gap:14px;align-items:center">
         <button class="btn" type="button" id="btn-wizard">Jetzt einrichten</button>

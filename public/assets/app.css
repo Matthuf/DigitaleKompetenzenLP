@@ -593,8 +593,8 @@ details.past .stack { gap: 16px; }
 /* Erste Schritte: Checkliste mit Stand */
 .ck-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .ck-list li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; }
-.ck-list .ck { display: inline-block; width: 22px; height: 22px; border: 1px solid var(--ink-3); border-radius: 50%; text-align: center; line-height: 20px; font-weight: 700; color: var(--bg); }
-.ck-list li.done .ck { background: var(--red); border-color: var(--red); }
+.ck-list .ck { display: inline-block; width: 22px; height: 22px; border: 1px solid var(--ink-3); border-radius: 50%; text-align: center; line-height: 20px; font-weight: 700; font-size: 0.8rem; color: var(--ink-2); }
+.ck-list li.done .ck { background: var(--red); border-color: var(--red); color: #fff; }
 .ck-list .st { display: block; color: var(--ink-2); font-size: 0.9rem; }
 
 /* Assistent «Erhebung starten» */
