@@ -144,7 +144,7 @@ window.Block = (function () {
       <div class="row">
         <label for="ed-newtype" class="small"><b>Frage hinzufügen</b></label>
         <select id="ed-newtype" style="width:auto">${Object.entries(TYPE_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
-        <button class="btn secondary" type="button" id="ed-add" ${b.questions.length >= 15 ? 'disabled' : ''}>Hinzufügen</button>
+        <button class="btn secondary" type="button" id="ed-add">Hinzufügen</button>
         ${others.length ? `<span class="muted small">oder</span><select id="ed-copy" style="width:auto" aria-label="Fragen aus anderer Erhebung übernehmen"><option value="">Fragen übernehmen aus …</option>${others.map((c) => `<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select>` : ''}
       </div>
       <div class="row" style="border-top:1px solid var(--line);padding-top:16px">
