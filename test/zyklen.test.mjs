@@ -39,5 +39,11 @@ export default async function (B) {
   for (const [i, n] of [[0, 'A'], [1, 'B']]) { const c2 = client(B); await c2('POST', 'invite/' + imp2.rows[i].token, { username: 'user.' + n.toLowerCase(), password: 'sicheres-pw-2026' }); await c2('POST', 'leitung/schools', { name: n }); }
   const all = await ad('GET', 'admin/traeger');
   ok(all.find((x) => x.name === 'Gemeinde X').schools[0].zyklen.join() === 'Zyklus 1,Zyklus 2' && all.find((x) => x.name === 'Bezirk Y').schools[0].zyklen.join() === 'Zyklus 3', 'Standard: Primar Zyklus 1–2, Sek Zyklus 3');
+  // Nur Zyklen, die zur Art des Trägers passen
+  const sekSchool = all.find((x) => x.name === 'Bezirk Y').schools[0].id, priSchool = all.find((x) => x.name === 'Gemeinde X').schools[0].id;
+  await expectErr(ad('PATCH', 'admin/schools/' + sekSchool, { zyklen: ['Zyklus 1'] }), 400, 'Sek-Träger: Zyklus 1 abgelehnt');
+  await expectErr(ad('PATCH', 'admin/schools/' + priSchool, { zyklen: ['Zyklus 2', 'Zyklus 3'] }), 400, 'Primar-Träger: Zyklus 3 abgelehnt');
+  await ad('PATCH', 'admin/schools/' + priSchool, { zyklen: ['Zyklus 2'] });
+  ok((await ad('GET', 'admin/traeger')).find((x) => x.name === 'Gemeinde X').schools[0].zyklen.join() === 'Zyklus 2', 'Primar-Träger: nur Zyklus 2 möglich');
   return res;
 }

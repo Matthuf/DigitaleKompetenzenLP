@@ -81,9 +81,12 @@ function participant(req) {
 const ALL_ZYKLEN = ['Zyklus 1', 'Zyklus 2', 'Zyklus 3'];
 const DEFAULT_ZYKLEN = { primar: ['Zyklus 1', 'Zyklus 2'], sek: ['Zyklus 3'], gesamt: ['Zyklus 1', 'Zyklus 2', 'Zyklus 3'] };
 const KINDS = ['primar', 'sek', 'gesamt'];
+// Zyklen, die für die Art des Schulträgers überhaupt in Frage kommen (Primar 1–2, Sek 3, gesamt 1–3)
+const allowedZyklen = (kind) => DEFAULT_ZYKLEN[kind] || DEFAULT_ZYKLEN.primar;
 function schoolZyklen(zyklen, kind) {
-  const z = Array.isArray(zyklen) ? ALL_ZYKLEN.filter((x) => zyklen.includes(x)) : [];
-  return z.length ? z : (DEFAULT_ZYKLEN[kind] || DEFAULT_ZYKLEN.primar);
+  const allowed = allowedZyklen(kind);
+  const z = Array.isArray(zyklen) ? allowed.filter((x) => zyklen.includes(x)) : [];
+  return z.length ? z : allowed;
 }
 // Auswahl für Lehrpersonen: ein Zyklus = fest; mehrere = Wahl inkl. «zyklusübergreifend»
 const zyklusChoices = (z) => (z.length > 1 ? [...z, 'Zyklusübergreifend'] : z);
@@ -699,7 +702,7 @@ on('GET', 'leitung/team', async ({ req }) => {
                              from invitations i left join schools s on s.id = i.school_id
                             where i.kind = 'invite' and i.used_at is null and coalesce(i.traeger_id, s.traeger_id) = $1 ${u.role === 'leitung' ? 'and i.school_id = $2' : ''}
                             order by i.created_at desc`, u.role === 'leitung' ? [u.tid, u.sid] : [u.tid]);
-  return { role: u.role, me: u.uid, schools, users: users.map((x) => ({ ...x, self: x.id === u.uid })), invites };
+  return { role: u.role, kind: tk, me: u.uid, schools, users: users.map((x) => ({ ...x, self: x.id === u.uid })), invites };
 });
 on('POST', 'leitung/schools', async ({ req, body }) => {
   const u = await lead(req);
@@ -727,6 +730,9 @@ async function updateSchool(id, body) {
   if ('zyklen' in body) {
     const z = ALL_ZYKLEN.filter((x) => Array.isArray(body.zyklen) && body.zyklen.includes(x));
     if (!z.length) fail(400, 'Bitte mindestens einen Zyklus wählen.');
+    const { kind } = await one(`select t.kind from schools s join traeger t on t.id = s.traeger_id where s.id = $1`, [id]);
+    const allowed = allowedZyklen(kind);
+    if (z.some((x) => !allowed.includes(x))) fail(400, `Für diesen Schulträger sind nur ${allowed.join(' und ')} möglich.`);
     await q(`update schools set zyklen = $1 where id = $2`, [JSON.stringify(z), id]);
   }
 }

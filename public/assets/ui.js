@@ -165,11 +165,11 @@
     el.hidden = false;
     el.innerHTML = `<div class="stack" style="gap:10px">
       <p><b>${o.reset ? 'Link für ein neues Passwort' : 'Einladungslink'}${o.email ? ' für ' + esc(o.email) : o.username ? ' für ' + esc(o.username) : ''}</b></p>
-      <p class="small"><code style="word-break:break-all">${esc(m.link)}</code></p>
       <div class="row"><button class="btn secondary small" type="button" data-inv-copy>Link kopieren</button>
         <a class="btn secondary small" href="mailto:${encodeURIComponent(o.email || '')}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}">E-Mail öffnen</a>
         <button class="btn quiet small" type="button" data-inv-close>Ausblenden</button></div>
-      <p class="small muted">Gilt bis ${o.reset ? dateTime(o.expires_at) : date(o.expires_at)} und nur einmal. Der Link wird nur jetzt angezeigt; bei Bedarf später «Neuer Link» wählen.</p></div>`;
+      <p class="small muted">Gilt bis ${o.reset ? dateTime(o.expires_at) : date(o.expires_at)} und nur einmal. Der Link ist nur jetzt verfügbar; bei Bedarf später ${o.reset ? '«Link für neues Passwort»' : '«Neuer Link»'} erneut wählen.</p>
+      <details class="small"><summary style="cursor:pointer">Link anzeigen</summary><p style="margin-top:6px"><code style="word-break:break-all">${esc(m.link)}</code></p></details></div>`;
     el.querySelector('[data-inv-copy]').addEventListener('click', (e) => copyText(m.link, e.currentTarget));
     el.querySelector('[data-inv-close]').addEventListener('click', () => { el.hidden = true; });
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -182,9 +182,9 @@
   }
   function inviteChip(i) {
     if (i.expired) return statusChip('chip-grey', 'Einladung abgelaufen', `Der Link ist am ${date(i.expires_at)} abgelaufen. Mit «Erneut senden» bzw. «Neuer Link» einen neuen Link erstellen.`);
-    if (i.mail_status === 'sent') return statusChip('chip-orange', 'Einladung verschickt', `Per E-Mail verschickt am ${dateTime(i.mail_sent_at)} an ${i.email}. Noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}.`);
+    if (i.mail_status === 'sent') return statusChip('chip-orange', 'Verschickt · gültig bis ' + date(i.expires_at), `Per E-Mail verschickt am ${dateTime(i.mail_sent_at)} an ${i.email}. Noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}.`);
     if (i.mail_status === 'failed') return statusChip('chip-red', 'Versand fehlgeschlagen', `${i.mail_error || 'Die E-Mail konnte nicht verschickt werden.'} Erneut senden oder einen neuen Link erstellen und selbst weitergeben.`);
-    return statusChip('chip-grey', 'Link erstellt', `Nicht per E-Mail verschickt${i.email ? '' : ' (keine E-Mail-Adresse angegeben)'}. Der Link muss selbst weitergegeben werden. Gültig bis ${date(i.expires_at)}.`);
+    return statusChip('chip-grey', 'Eingeladen · gültig bis ' + date(i.expires_at), `Nicht per E-Mail verschickt${i.email ? '' : ' (keine E-Mail-Adresse angegeben)'}. Der Link muss selbst weitergegeben werden. Gültig bis ${date(i.expires_at)}.`);
   }
   function userChip(u) {
     return statusChip('chip-green', 'Zugang aktiv', `Zugang eingerichtet am ${date(u.created_at)}. Letzte Anmeldung: ${u.last_login ? dateTime(u.last_login) : 'noch keine'}.`);
@@ -203,7 +203,7 @@
     if (m.status === 'sent') {
       el.hidden = false;
       el.innerHTML = `<div class="stack" style="gap:8px"><p><b>Einladung an ${esc(m.to)} verschickt.</b></p>
-        <p class="small">Der Status zeigt «Einladung verschickt» (orange). Sobald der Zugang eingerichtet ist, wechselt er auf «Zugang aktiv» (grün).</p>
+        <p class="small">Der Status zeigt «Verschickt» (orange). Sobald der Zugang eingerichtet ist, wechselt er auf «Zugang aktiv» (grün).</p>
         <details class="small"><summary style="cursor:pointer">Link zusätzlich anzeigen</summary><p style="margin-top:6px"><code style="word-break:break-all">${esc(inviteLink(r.token))}</code></p>
           <button class="btn secondary small" type="button" data-inv-copy>Link kopieren</button></details>
         <div><button class="btn quiet small" type="button" data-inv-close>Ausblenden</button></div></div>`;

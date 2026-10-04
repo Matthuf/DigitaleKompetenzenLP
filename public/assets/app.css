@@ -496,14 +496,30 @@ details.past .stack { gap: 16px; }
 /* Grid-Kinder dürfen schmaler werden als ihr Inhalt (lange Links sonst breiter als der Bildschirm) */
 .camp-card > * { min-width: 0; }
 
-/* Schulhäuser mit Schulleitung pro Zeile */
-.school-list > li { display: grid; gap: 6px; justify-content: stretch; }
-.school-main { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; align-items: center; }
-.school-lead { color: var(--ink-2); display: grid; gap: 4px; }
-.school-lead > div { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
-.school-lead .warn { color: #6b4e00; font-weight: 700; }
-.school-inv { padding: 8px 0 4px; align-items: flex-end; }
-.school-inv input { width: auto; }
+/* Schulhäuser mit Schulleitung pro Zeile; Aktionen immer rechts, auch bei langen Namen */
+.school-list > li { display: grid; gap: 6px; justify-content: stretch; padding: 14px 0; }
+.school-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: baseline; }
+.school-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+.school-lead { display: grid; gap: 4px; }
+.school-lead .lead-label { margin: 2px 0 0; }
+.school-lead .warn { color: #6b4e00; font-weight: 700; margin: 0; }
+.school-lead .person { border-bottom: 0; padding: 4px 0; }
+.school-inv { display: grid; gap: 8px; padding: 8px 0 4px; }
+.school-inv input { width: auto; max-width: 100%; }
+.school-inv p { margin: 0; }
+.zyk-edit { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+.zyk-edit p { margin: 0; }
+
+/* Personen mit Zugang und offene Einladungen: eine Zeile pro Person, Aktionen rechts */
+.person-list { display: grid; max-width: 820px; }
+.person { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.person-main { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; min-width: 0; }
+.person-meta, .person-main .chip-detail { flex-basis: 100%; overflow-wrap: anywhere; }
+.person-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+@media (max-width: 600px) {
+  .school-main, .person { grid-template-columns: minmax(0, 1fr); }
+  .school-acts, .person-acts { justify-content: flex-start; }
+}
 
 /* «hidden» gilt immer, auch bei Elementen mit display-Klassen (z. B. .inline-edit) */
 [hidden] { display: none !important; }

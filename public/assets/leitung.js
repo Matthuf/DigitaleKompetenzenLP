@@ -611,32 +611,54 @@ ${signature()}`;
   $('#an-zyklus').addEventListener('change', (e) => { an.zyklus = e.target.value; loadAnalysis(); });
 
   /* ---------- Schulen und Zugänge (Selbstverwaltung) ----------
-   * Rektorat/Hauptschulleitung: pro Schulhaus Zyklen, Name und Schulleitung (Status und Einladung in der Zeile).
-   * Das Formular unten lädt nur noch Personen für alle Schulhäuser ein (Stellvertretung, Verwaltung).
-   * Schulleitung: Personen für das eigene Schulhaus (z. B. Co-Leitung). */
+   * Rektorat/Hauptschulleitung: pro Schulhaus Zyklen, Name und Schulleitung. Die Schulleitungen werden nur dort
+   * verwaltet (Status, neues Passwort, Löschen, Einladung); darunter «Rektorat und Verwaltung» für die Trägerebene.
+   * Schulleitung: Personen für das eigene Schulhaus (z. B. Co-Leitung).
+   * Jede Person erscheint genau einmal, offene Einladungen stehen bei den Personen, nicht in einem eigenen Abschnitt. */
   const zyklenText = (z) => (z.length === 3 ? 'Zyklus 1–3' : z.length === 1 ? z[0] + ' (fest)' : z.join(', ').replace(/, Zyklus /g, ', '));
-  const ROLE_LABEL = (u) => (u.role === 'traeger' ? 'Alle Schulhäuser (Ebene Schulträger)' : 'Schulleitung ' + (u.school_name || ''));
-  const personName = (x) => x.display_name || x.name || x.email || x.username || 'ohne Namen';
+  const ZYKLEN_FOR = { primar: ['Zyklus 1', 'Zyklus 2'], sek: ['Zyklus 3'], gesamt: ['Zyklus 1', 'Zyklus 2', 'Zyklus 3'] };
 
   // «Erneut senden» verschickt einen neuen Link per E-Mail; ohne Versand (oder ohne Adresse) gibt es einen neuen Link zum Weitergeben
   const canMail = (i) => ctx.mail && i.email;
   const inviteActions = (i) => `<button class="btn quiet small" type="button" data-irenew="${i.id}">${canMail(i) ? 'Erneut senden' : 'Neuer Link'}</button><span class="confirm" data-idel="${i.id}"></span>`;
-  function schoolLead(s, t) {
+  const mailHint = () => (ctx.mail ? 'Die Einladung geht per E-Mail an die angegebene Adresse. Ohne Adresse erhalten Sie einen Link zum Weitergeben.' : 'Sie erhalten einen Link, den Sie der Person weitergeben.');
+
+  // Eine Zeile pro Person mit Zugang bzw. pro offener Einladung (gleich aufgebaut, damit Status und Aktionen untereinander stehen)
+  function personRow(u, manage) {
+    const name = u.display_name || u.username;
+    const meta = [u.display_name && u.display_name !== u.username ? 'Benutzername ' + u.username : '', u.email, u.last_login ? 'zuletzt angemeldet ' + date(u.last_login) : 'noch nie angemeldet'].filter(Boolean);
+    return `<li class="person"><div class="person-main"><b>${esc(name)}</b>${u.self ? '<span class="status open">Sie</span>' : UI.userChip(u)}
+        <span class="small muted person-meta">${meta.map(esc).join(' · ')}</span></div>
+      ${manage ? `<div class="person-acts"><button class="btn quiet small" type="button" data-ureset="${u.id}">Link für neues Passwort</button><span class="confirm" data-udel="${u.id}"></span></div>` : ''}</li>`;
+  }
+  function inviteRow(i) {
+    return `<li class="person"><div class="person-main"><span>${esc(i.name || i.email || 'Ohne Namen')}</span>${UI.inviteChip(i)}
+        ${i.name && i.email ? `<span class="small muted person-meta">${esc(i.email)}</span>` : ''}</div>
+      <div class="person-acts">${inviteActions(i)}</div></li>`;
+  }
+
+  function schoolItem(s, t, kind) {
     const leads = t.users.filter((u) => u.role === 'leitung' && u.school_id === s.id);
     const inv = t.invites.filter((i) => i.role === 'leitung' && i.school_id === s.id);
-    const lines = [];
-    leads.forEach((u) => lines.push(`<span>Schulleitung: <b>${esc(personName(u))}</b></span>${UI.userChip(u)}`));
-    inv.forEach((i) => lines.push(`<span>Einladung an ${esc(i.name || i.email || 'ohne Namen')}</span>${UI.inviteChip(i)}${inviteActions(i)}`));
-    if (!leads.length && !inv.length) lines.push('<span class="warn">Noch keine Schulleitung</span>');
     const any = leads.length || inv.length;
-    return `<div class="school-lead small">${lines.map((l) => `<div>${l}</div>`).join('')}
-        <div><button class="btn ${any ? 'quiet' : 'secondary'} small" type="button" data-slinv="${s.id}">${any ? 'Weitere Schulleitung einladen' : 'Schulleitung einladen'}</button></div></div>
-      <form class="school-inv inline-edit" data-slform="${s.id}" hidden>
-        <div class="field"><label for="sl-name-${s.id}" class="small">Name</label><input type="text" id="sl-name-${s.id}" style="width:220px"></div>
-        <div class="field"><label for="sl-mail-${s.id}" class="small">E-Mail</label><input type="text" id="sl-mail-${s.id}" inputmode="email" autocomplete="off" style="width:260px"></div>
-        <button class="btn small" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><button class="btn quiet small" type="button" data-slcancel="${s.id}">Abbrechen</button><span class="error small" role="alert"></span>
-      </form>
-      <div class="box box--success" data-sinv="${s.id}" hidden></div>`;
+    // Bei Sek-Trägern gibt es nur Zyklus 3: weder Angabe noch «Zyklen ändern»
+    const meta = [kind === 'sek' ? '' : zyklenText(s.zyklen), s.links ? 'an Erhebungen beteiligt, entfernen nur über das AVS' : ''].filter(Boolean).join(' · ');
+    return `<li data-school="${s.id}">
+      <div class="school-main"><span class="team-name">${esc(s.name)}${meta ? ` <span class="small muted">· ${esc(meta)}</span>` : ''}</span>
+        <span class="school-acts">${kind === 'sek' ? '' : `<button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen ändern</button>`}<button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></div>
+      <div class="school-lead">
+        ${any ? `<p class="small muted lead-label">Schulleitung</p><ul class="list-plain person-list">${leads.map((u) => personRow(u, true)).join('')}${inv.map(inviteRow).join('')}</ul>` : '<p class="small warn">Noch keine Schulleitung</p>'}
+        <div><button class="btn ${any ? 'quiet' : 'secondary'} small" type="button" data-slinv="${s.id}">${any ? 'Weitere Schulleitung einladen' : 'Schulleitung einladen'}</button></div>
+        <form class="school-inv" data-slform="${s.id}" hidden>
+          <div class="row" style="align-items:flex-end">
+            <div class="field"><label for="sl-name-${s.id}" class="small">Name</label><input type="text" id="sl-name-${s.id}" style="width:220px"></div>
+            <div class="field"><label for="sl-mail-${s.id}" class="small">E-Mail</label><input type="text" id="sl-mail-${s.id}" inputmode="email" autocomplete="off" style="width:260px"></div>
+          </div>
+          <p class="small muted">${mailHint()}</p>
+          <div class="row" style="gap:8px"><button class="btn small" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><button class="btn quiet small" type="button" data-slcancel="${s.id}">Abbrechen</button><span class="error small" role="alert"></span></div>
+        </form>
+        <div class="box box--success" data-sinv="${s.id}" hidden></div>
+      </div></li>`;
   }
 
   async function loadTeam() {
@@ -644,65 +666,62 @@ ${signature()}`;
     let t;
     try { t = await api('GET', 'leitung/team'); } catch (err) { box.innerHTML = `<p class="error">${esc(err.message)}</p>`; return; }
     const R = isRektorat();
-    const traegerInvites = t.invites.filter((i) => (R ? i.role === 'traeger' : true));
+    const kind = t.kind || 'gesamt';
+    const manage = (u) => !u.self && (R || u.role === 'leitung');
+    // Rektorat: unten nur die Trägerebene (Schulleitungen stehen beim Schulhaus); Schulleitung: alle Personen ihres Schulhauses
+    const people = R ? t.users.filter((u) => u.role === 'traeger') : t.users;
+    const peopleInv = R ? t.invites.filter((i) => i.role === 'traeger') : t.invites;
     box.innerHTML = `
       <div class="stack" style="gap:6px"><h2>${R ? 'Schulen und Zugänge' : 'Zugänge'}</h2>
         <p class="muted small" style="max-width:74ch">${R
-          ? `Hier verwalten Rektorat bzw. Hauptschulleitung die Schulhäuser und laden Personen ein. Eingeladene legen Benutzername und Passwort selbst fest.`
-          : `Hier lädt die Schulleitung weitere Personen für dieses Schulhaus ein, zum Beispiel eine Co-Leitung. Eingeladene legen Benutzername und Passwort selbst fest.`}</p></div>
+          ? 'Hier erfassen Sie die Schulhäuser und laden die Schulleitungen und weitere Personen ein. Eingeladene legen Benutzername und Passwort selbst fest.'
+          : 'Hier laden Sie weitere Personen für dieses Schulhaus ein, zum Beispiel eine Co-Leitung. Eingeladene legen Benutzername und Passwort selbst fest.'}</p></div>
 
       ${R ? `<section class="stack" style="gap:12px" aria-labelledby="h-schools">
         <h3 id="h-schools">Schulhäuser</h3>
-        <p class="small muted" style="max-width:74ch">Pro Schulhaus die Zyklen festlegen und die Schulleitung einladen${ctx.mail ? ' (die Einladung geht direkt per E-Mail)' : ''}. Wer keine Aufteilung nach Schulhaus braucht, erfasst nur einen Eintrag für die ganze Schule: ein Link, eine gemeinsame Auswertung. Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und verteilt den Link an ihre Lehrpersonen selbst. Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt; bei mehreren wählen sie selbst, inklusive «zyklusübergreifend».</p>
-        <ul class="list-plain team-list school-list">${t.schools.map((s) => `<li data-school="${s.id}">
-          <div class="school-main"><span class="team-name">${esc(s.name)} <span class="small muted">· ${esc(zyklenText(s.zyklen))}${s.links ? ' · an Erhebungen beteiligt' : ''}</span></span>
-            <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-zyk="${s.id}">Zyklen ändern</button><button class="btn quiet small" type="button" data-rename="${s.id}">Umbenennen</button>${s.links ? '' : `<span class="confirm" data-sdel="${s.id}"></span>`}</span></div>
-          ${schoolLead(s, t)}</li>`).join('')}</ul>
-        ${t.schools.some((s) => s.links) ? '<p class="small muted">Schulhäuser, die an einer Erhebung beteiligt sind, lassen sich hier nicht entfernen, damit keine Ergebnisse verloren gehen. Bei Bedarf entfernt sie das AVS.</p>' : ''}
-        <form class="row" id="form-team-school" style="align-items:flex-end">
-          <div class="field"><label for="team-school-new" class="small">Weiteres Schulhaus</label><input type="text" id="team-school-new" placeholder="z. B. Schulhaus Dorf" style="width:240px"></div>
-          <button class="btn secondary" type="submit">Hinzufügen</button><span class="error small" id="team-school-msg" role="alert"></span>
+        <p class="small muted" style="max-width:74ch">Mit eigenem Zugang sieht die Schulleitung Rücklauf und Auswertung ihres Schulhauses und gibt den Teilnahmelink selbst an ihre Lehrpersonen weiter. Wer keine Aufteilung nach Schulhaus braucht, erfasst nur einen Eintrag für die ganze Schule.</p>
+        <ul class="list-plain team-list school-list">${t.schools.map((s) => schoolItem(s, t, kind)).join('')}</ul>
+        <div><button class="btn secondary small" type="button" id="team-school-toggle" ${t.schools.length ? '' : 'hidden'}>Schulhaus hinzufügen</button></div>
+        <form class="school-inv" id="form-team-school" ${t.schools.length ? 'hidden' : ''}>
+          <div class="row" style="align-items:flex-end">
+            <div class="field"><label for="team-school-new" class="small">Name des Schulhauses</label><input type="text" id="team-school-new" placeholder="z. B. Schulhaus Dorf" style="width:260px"></div>
+            <button class="btn small" type="submit">Hinzufügen</button>${t.schools.length ? '<button class="btn quiet small" type="button" id="team-school-cancel">Abbrechen</button>' : ''}
+          </div><span class="error small" id="team-school-msg" role="alert"></span>
         </form>
       </section>` : ''}
 
       <section class="stack" style="gap:12px" aria-labelledby="h-users">
-        <h3 id="h-users">Personen mit Zugang</h3>
-        <div class="table-scroll" tabindex="0" role="region" aria-label="Tabelle der Personen mit Zugang"><table class="list">
-          <thead><tr><th scope="col">Person</th><th scope="col">Zugang für</th><th scope="col">E-Mail</th><th scope="col">Letzte Anmeldung</th><th scope="col"><span class="sr-only">Aktionen</span></th></tr></thead>
-          <tbody>${t.users.map((u) => `<tr><td><b>${esc(u.display_name || u.username)}</b>${u.display_name && u.display_name !== u.username ? `<br><span class="small muted">${esc(u.username)}</span>` : ''}${u.self ? ' <span class="status open">Sie</span>' : ''}</td>
-            <td>${esc(ROLE_LABEL(u))}</td><td class="small">${esc(u.email || '–')}</td><td>${u.last_login ? date(u.last_login) : '–'}</td>
-            <td>${u.self || (!R && u.role !== 'leitung') ? '' : `<div class="row" style="gap:4px"><button class="btn quiet small" type="button" data-ureset="${u.id}">Link für neues Passwort</button><span class="confirm" data-udel="${u.id}"></span></div>`}</td></tr>`).join('')}</tbody></table></div>
+        <h3 id="h-users">${R ? 'Rektorat und Verwaltung' : 'Personen mit Zugang'}</h3>
+        ${R ? '<p class="small muted" style="max-width:74ch">Personen mit Zugang für alle Schulhäuser. Sie haben dieselben Rechte wie Rektorat bzw. Hauptschulleitung.</p>' : ''}
+        <ul class="list-plain person-list team-people">${people.map((u) => personRow(u, manage(u))).join('')}${peopleInv.map(inviteRow).join('')}</ul>
         <div class="box box--success" id="team-inv-out" hidden></div>
-      </section>
-
-      <section class="stack" style="gap:12px" aria-labelledby="h-invite">
-        <h3 id="h-invite">${R ? 'Weitere Person für alle Schulhäuser einladen' : 'Weitere Person für dieses Schulhaus einladen'}</h3>
-        <p class="small muted" style="max-width:74ch">${R
-          ? 'Zum Beispiel eine Stellvertretung oder die Schulverwaltung. Sie erhalten dieselben Rechte wie Rektorat bzw. Hauptschulleitung. Schulleitungen oben beim jeweiligen Schulhaus einladen.'
-          : 'Zum Beispiel eine Co-Leitung. Sie erhält dieselben Rechte für dieses Schulhaus.'}</p>
-        <form class="stack" id="form-invite" style="gap:10px;max-width:760px">
-          <div class="row">
+        <div><button class="btn secondary small" type="button" id="inv-toggle">Person einladen</button></div>
+        <form class="stack school-inv" id="form-invite" style="gap:10px;max-width:760px" hidden>
+          <p class="small muted" style="max-width:74ch">${R
+            ? 'Zum Beispiel eine Stellvertretung oder die Schulverwaltung. Schulleitungen laden Sie oben beim jeweiligen Schulhaus ein.'
+            : 'Zum Beispiel eine Co-Leitung. Sie erhält dieselben Rechte für dieses Schulhaus.'}</p>
+          <div class="row" style="align-items:flex-end">
             <div class="field"><label for="inv-name" class="small">Name</label><input type="text" id="inv-name" style="width:240px"></div>
             <div class="field"><label for="inv-email" class="small">E-Mail</label><input type="text" id="inv-email" inputmode="email" autocomplete="off" style="width:280px"></div>
           </div>
-          <div class="row"><button class="btn" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><span class="error small" id="inv-msg" role="alert"></span></div>
-          ${ctx.mail ? '<p class="small muted">Die Einladung geht direkt per E-Mail an die angegebene Adresse. Ohne Adresse erscheint ein Link zum Weitergeben.</p>' : ''}
+          <p class="small muted">${mailHint()}</p>
+          <div class="row" style="gap:8px"><button class="btn small" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><button class="btn quiet small" type="button" id="inv-cancel">Abbrechen</button><span class="error small" id="inv-msg" role="alert"></span></div>
         </form>
-      </section>
-
-      ${traegerInvites.length ? `<section class="stack" style="gap:12px" aria-labelledby="h-open">
-        <h3 id="h-open">Offene Einladungen${R ? ' für alle Schulhäuser' : ''}</h3>
-        <ul class="list-plain team-list">${traegerInvites.map((i) => `<li><span class="row" style="gap:6px 10px"><span class="team-name">${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.role === 'traeger' ? 'Alle Schulhäuser' : 'Schulleitung ' + (i.school_name || ''))}</span></span>${UI.inviteChip(i)}</span>
-          <span class="row" style="gap:6px">${inviteActions(i)}</span></li>`).join('')}</ul>
-      </section>` : ''}`;
+      </section>`;
 
     UI.bindChips(box);
     const out = $('#team-inv-out');
     const from = () => signature();
     const roleText = (i) => (i.role === 'traeger' ? 'Person mit Zugang für alle Schulhäuser von ' + ctx.traeger.name : 'Schulleitung ' + (i.school_name || ''));
-    // Einladungs-Panel beim Schulhaus, sonst unter «Personen mit Zugang»
-    const panelFor = (i) => (i.role === 'leitung' && R && $(`[data-sinv="${i.school_id}"]`)) || out;
+    // Rückmeldung beim Schulhaus, wenn es um eine Schulleitung geht (Rektoratssicht), sonst unter der Personenliste
+    const panelFor = (x) => (x.role === 'leitung' && R && $(`[data-sinv="${x.school_id}"]`)) || out;
+    // Aufklappbare Formulare: Schaltfläche verschwindet, solange das Formular offen ist
+    const toggle = (btn, form, cancel) => {
+      btn.addEventListener('click', () => { form.hidden = false; btn.hidden = true; form.querySelector('input').focus(); });
+      if (cancel) cancel.addEventListener('click', () => { form.hidden = true; btn.hidden = false; btn.focus(); });
+    };
     if (R) {
+      toggle($('#team-school-toggle'), $('#form-team-school'), $('#team-school-cancel'));
       $('#form-team-school').addEventListener('submit', async (e) => {
         e.preventDefault(); $('#team-school-msg').textContent = '';
         try { await api('POST', 'leitung/schools', { name: $('#team-school-new').value }); await refreshCtx(); loadTeam(); }
@@ -710,7 +729,7 @@ ${signature()}`;
       });
       $$('[data-rename]').forEach((b) => b.addEventListener('click', () => {
         const main = b.closest('li').querySelector('.school-main'); const s = t.schools.find((x) => x.id === b.dataset.rename);
-        main.innerHTML = `<span class="inline-edit"><label class="sr-only" for="ren-${s.id}">Neuer Name</label><input type="text" id="ren-${s.id}" value="${esc(s.name)}" style="width:260px">
+        main.innerHTML = `<span class="inline-edit"><label class="sr-only" for="ren-${s.id}">Neuer Name</label><input type="text" id="ren-${s.id}" value="${esc(s.name)}" style="width:260px;max-width:100%">
           <button class="btn secondary small" type="button">Speichern</button><button class="btn quiet small" type="button">Abbrechen</button><span class="error small"></span></span>`;
         const [save, cancel] = main.querySelectorAll('button');
         main.querySelector('input').focus();
@@ -719,9 +738,10 @@ ${signature()}`;
       }));
       $$('[data-zyk]').forEach((b) => b.addEventListener('click', () => {
         const main = b.closest('li').querySelector('.school-main'); const s = t.schools.find((x) => x.id === b.dataset.zyk);
-        main.innerHTML = `<fieldset class="inline-edit" style="border:0;padding:0;margin:0"><legend class="small"><b>Zyklen ${esc(s.name)}</b></legend>
-          ${['Zyklus 1', 'Zyklus 2', 'Zyklus 3'].map((z) => `<label class="check small"><input type="checkbox" value="${z}" ${s.zyklen.includes(z) ? 'checked' : ''}><span>${z}</span></label>`).join('')}
-          <button class="btn secondary small" type="button">Speichern</button><button class="btn quiet small" type="button">Abbrechen</button><span class="error small"></span></fieldset>`;
+        main.innerHTML = `<fieldset class="zyk-edit"><legend class="small"><b>Zyklen ${esc(s.name)}</b></legend>
+          <div class="inline-edit">${(ZYKLEN_FOR[kind] || ZYKLEN_FOR.gesamt).map((z) => `<label class="check small"><input type="checkbox" value="${z}" ${s.zyklen.includes(z) ? 'checked' : ''}><span>${z}</span></label>`).join('')}
+          <button class="btn secondary small" type="button">Speichern</button><button class="btn quiet small" type="button">Abbrechen</button><span class="error small"></span></div>
+          <p class="small muted">Bei einem Zyklus ist er für die Lehrpersonen fest eingestellt. Bei mehreren wählen sie selbst, auch «zyklusübergreifend».</p></fieldset>`;
         const [save, cancel] = main.querySelectorAll('button');
         save.addEventListener('click', async () => {
           try { await api('PATCH', 'leitung/schools/' + s.id, { zyklen: [...main.querySelectorAll('input:checked')].map((i) => i.value) }); await refreshCtx(); loadTeam(); }
@@ -731,13 +751,7 @@ ${signature()}`;
       }));
       $$('[data-sdel]').forEach((el) => confirmButton(el, 'Entfernen', 'Schulhaus entfernen?', 'Ja, entfernen', async () => { await api('DELETE', 'leitung/schools/' + el.dataset.sdel); await refreshCtx(); loadTeam(); }, 'btn quiet small'));
       // Schulleitung direkt beim Schulhaus einladen
-      $$('[data-slinv]').forEach((b) => b.addEventListener('click', () => {
-        const f = $(`[data-slform="${b.dataset.slinv}"]`);
-        f.hidden = false; b.hidden = true; f.querySelector('input').focus();
-      }));
-      $$('[data-slcancel]').forEach((b) => b.addEventListener('click', () => {
-        $(`[data-slform="${b.dataset.slcancel}"]`).hidden = true; $(`[data-slinv="${b.dataset.slcancel}"]`).hidden = false;
-      }));
+      $$('[data-slinv]').forEach((b) => toggle(b, $(`[data-slform="${b.dataset.slinv}"]`), $(`[data-slcancel="${b.dataset.slinv}"]`)));
       $$('[data-slform]').forEach((f) => f.addEventListener('submit', async (e) => {
         e.preventDefault();
         const sid = f.dataset.slform, school = t.schools.find((x) => x.id === sid);
@@ -752,18 +766,21 @@ ${signature()}`;
       }));
     }
     $$('[data-ureset]').forEach((b) => b.addEventListener('click', async () => {
-      const u = t.users.find((x) => x.id === b.dataset.ureset);
-      try { const r = await api('POST', `leitung/users/${u.id}/reset`); UI.invitePanel(out, { ...r, reset: true, name: u.display_name, from: from() }); }
-      catch (err) { out.hidden = false; out.textContent = err.message; }
+      const u = t.users.find((x) => x.id === b.dataset.ureset), panel = panelFor(u);
+      try { const r = await api('POST', `leitung/users/${u.id}/reset`); UI.invitePanel(panel, { ...r, reset: true, name: u.display_name, from: from() }); }
+      catch (err) { panel.hidden = false; panel.textContent = err.message; }
     }));
     $$('[data-udel]').forEach((el) => confirmButton(el, 'Löschen', 'Zugang löschen?', 'Ja, löschen', async () => { await api('DELETE', 'leitung/users/' + el.dataset.udel); await refreshCtx(); loadTeam(); }, 'btn quiet small'));
     $$('[data-irenew]').forEach((b) => b.addEventListener('click', async () => {
       const i = t.invites.find((x) => x.id === b.dataset.irenew);
-      const r = await api('POST', `leitung/invitations/${i.id}/renew`);
-      await loadTeam();
-      UI.inviteResult(panelFor(i), r, { email: i.email, name: i.name, roleText: roleText(i), from: from() });
+      try {
+        const r = await api('POST', `leitung/invitations/${i.id}/renew`);
+        await loadTeam();
+        UI.inviteResult(panelFor(i), r, { email: i.email, name: i.name, roleText: roleText(i), from: from() });
+      } catch (err) { const p = panelFor(i); p.hidden = false; p.textContent = err.message; }
     }));
     $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', 'leitung/invitations/' + el.dataset.idel); loadTeam(); }, 'btn quiet small'));
+    toggle($('#inv-toggle'), $('#form-invite'), $('#inv-cancel'));
     $('#form-invite').addEventListener('submit', async (e) => {
       e.preventDefault(); $('#inv-msg').textContent = '';
       const body = R ? { name: $('#inv-name').value, email: $('#inv-email').value, role: 'traeger' }
