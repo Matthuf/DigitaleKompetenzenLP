@@ -474,7 +474,7 @@ ${signature()}`;
           <li><b>Link weitergeben:</b> Jedes Schulhaus hat einen eigenen Teilnahmelink. Sie geben ihn den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code) oder der Schulleitung, die ihn weiterleitet.</li>
           <li><b>Rücklauf verfolgen:</b> Tragen Sie pro Schulhaus die Anzahl Lehrpersonen ein. Dann sehen Sie, wie viele schon teilgenommen haben.</li>
           <li><b>Zieldatum setzen:</b> «Ausfüllen bis» erscheint für die Lehrpersonen. Die Erhebung schliesst nicht automatisch.</li>
-          <li><b>Eigene Fragen ergänzen:</b> Beliebig viele zusätzliche Fragen. Bedenken Sie, dass jede die Ausfüllzeit verlängert. Sobald die erste Person abgeschlossen hat, sind sie gesperrt.</li>
+          <li><b>Eigene Fragen ergänzen:</b> Beliebig viele zusätzliche Fragen. Sobald die erste Person abgeschlossen hat, sind sie gesperrt.</li>
           <li><b>Schliessen:</b> Danach sind keine neuen Teilnahmen mehr möglich. Wieder öffnen geht jederzeit.</li>
         </ul>
         <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p>`
