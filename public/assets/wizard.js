@@ -143,7 +143,7 @@ window.Wizard = (function () {
     on('[name=wz-rahmen]', 'change', (e) => { st.rahmen = e.target.value; st.fehler = ''; draw(); });
     on('[data-nr]', 'input', (e) => { st.neue[+e.target.dataset.nr] = e.target.value; });
     on('[data-weg]', 'click', (e) => { lesen(); st.neue.splice(+e.target.dataset.weg, 1); draw(); });
-    on('[data-mehr]', 'click', () => { lesen(); st.neue.push(''); draw(); });
+    on('[data-mehr]', 'click', () => { lesen(); st.neue.push(''); draw(); const f = $$('[data-nr]', dlg); if (f.length) f[f.length - 1].focus(); });
     on('[data-inv-name]', 'input', (e) => { const id = e.target.dataset.invName; st.invites[id] = { ...(st.invites[id] || {}), name: e.target.value }; });
     on('[data-inv-mail]', 'input', (e) => { const id = e.target.dataset.invMail; st.invites[id] = { ...(st.invites[id] || {}), email: e.target.value }; });
     on('[data-copy]', 'click', (e) => copyText(location.origin + '/t/' + e.currentTarget.dataset.copy, e.currentTarget));
