@@ -719,6 +719,12 @@ details.past .stack { gap: 16px; }
 /* Editor eigene Fragen */
 .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .ed-main { display: grid; gap: 16px; min-width: 0; }
+.ed-part { display: grid; gap: 12px; }
+.ed-part + .ed-part { margin-top: 8px; }
+.ed-part-head { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; }
+.ed-part-head h4 { margin: 0; font-size: 1rem; }
+.ed-part-head p { margin: 0; }
+.ed-part--meta { background: var(--box); padding: 16px 18px; }
 .ed-meta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 20px; align-items: start; }
 .ed-split .ed-meta { grid-template-columns: 1fr; }
 @media (max-width: 860px) { .ed-meta { grid-template-columns: 1fr; } }
