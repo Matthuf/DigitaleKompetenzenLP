@@ -764,3 +764,8 @@ details.past .stack { gap: 16px; }
 .addq-btn:hover { background: var(--box); border-color: var(--ink); }
 .ed-actions { border-top: 1px solid var(--line); padding-top: 16px; }
 .ed-actions .ed-remove { margin-left: auto; }
+
+/* Weg zurück zur Linkseite der Erhebung (nav.js) */
+.back-link { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin: 0 0 24px; }
+.back-link p { margin: 0; }
+.stack > .back-link { margin-bottom: 0; }

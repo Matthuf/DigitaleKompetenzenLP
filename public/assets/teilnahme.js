@@ -97,6 +97,7 @@
       try { camp = await api('GET', 'c/' + encodeURIComponent(TOKEN)); }
       catch (e) { return showError('Dieser Link funktioniert nicht', e.message); }
       $('#school-name').textContent = camp.school.name;
+      if (window.DigLink) DigLink.remember(camp.campaign.title); // für «Zurück zur Selbsteinschätzung»
       setZyklen(camp.school && camp.school.zyklen);
       // Titel als eigener Block: beim Umbruch bleibt er zusammen statt mitten im Namen zu brechen
       $('#campaign-name').innerHTML = 'Selbsteinschätzung · <span class="nowrap-part">' + esc(camp.campaign.title) + '</span>';
