@@ -192,10 +192,11 @@
     return `<button type="button" class="chip-status ${cls}" title="${esc(tip)}" aria-expanded="false" data-chip>${esc(label)}</button><span class="chip-detail small" hidden>${esc(tip)}</span>`;
   }
   function inviteChip(i) {
-    if (i.expired) return statusChip('chip-grey', 'Einladung abgelaufen', `Der Link ist am ${date(i.expires_at)} abgelaufen. Mit «Erneut senden» einen neuen Link erstellen und verschicken.`);
+    // Farbe nach Handlungsbedarf: orange = noch kein Zugang, rot = abgelaufen (neuer Link nötig), grün = Zugang aktiv
+    if (i.expired) return statusChip('chip-red', 'Einladung abgelaufen', `Der Link ist am ${date(i.expires_at)} abgelaufen. Mit «Erneut senden» einen neuen Link erstellen und verschicken.`);
     if (i.mail_status === 'sent') return statusChip('chip-orange', 'Verschickt · gültig bis ' + date(i.expires_at), `Per E-Mail verschickt am ${dateTime(i.mail_sent_at)} an ${i.email}. Noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}.`);
     if (i.mail_status === 'failed') return statusChip('chip-red', 'Versand fehlgeschlagen', `${i.mail_error || 'Die E-Mail konnte nicht verschickt werden.'} Erneut senden oder einen neuen Link erstellen und selbst weitergeben.`);
-    return statusChip('chip-grey', 'Eingeladen · gültig bis ' + date(i.expires_at), `Einladung erstellt am ${date(i.created_at)}, noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}. Ist die E-Mail nicht angekommen, mit «Erneut senden» einen neuen Link verschicken; der bisherige wird damit ungültig.`);
+    return statusChip('chip-orange', 'Eingeladen · noch kein Zugang', `Einladung erstellt am ${date(i.created_at)}, noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}. Ist die E-Mail nicht angekommen, mit «Erneut senden» einen neuen Link verschicken; der bisherige wird damit ungültig.`);
   }
   function userChip(u) {
     return statusChip('chip-green', 'Zugang aktiv', `Zugang eingerichtet am ${date(u.created_at)}. Letzte Anmeldung: ${u.last_login ? dateTime(u.last_login) : 'noch keine'}.`);

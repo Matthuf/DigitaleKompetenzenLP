@@ -500,13 +500,19 @@ details.past .stack { gap: 16px; }
 .camp-card > * { min-width: 0; }
 
 /* Schulhäuser mit Schulleitung pro Zeile; Aktionen immer rechts, auch bei langen Namen */
-.school-list > li { display: grid; gap: 6px; justify-content: stretch; padding: 14px 0; }
-.school-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: baseline; }
-.school-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
-.school-lead { display: grid; gap: 4px; }
-.school-lead .lead-label { margin: 2px 0 0; }
-.school-lead .warn { color: #6b4e00; font-weight: 700; margin: 0; }
-.school-lead .person { border-bottom: 0; padding: 4px 0; }
+.school-list { display: grid; gap: 12px; max-width: 760px; }
+.school-card { border: 1px solid var(--line); border-left: 3px solid var(--line); padding: 12px 16px 14px; display: grid; gap: 8px; }
+.school-card.needs { border-left-color: #D97A00; }
+.school-main { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; }
+.school-title { min-width: 0; overflow-wrap: anywhere; }
+.school-title .team-name { font-size: 1.05rem; }
+.school-acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.school-empty { margin: 0; color: var(--ink-2); }
+.school-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.school-card .person-list .person { border-bottom: 0; padding: 4px 0; }
+.team-sum { margin: 0; max-width: 74ch; }
+.menu-item.is-off { cursor: default; color: var(--ink-3); }
+.menu-item.is-off:hover { background: none; }
 .school-inv { display: grid; gap: 8px; padding: 8px 0 4px; }
 .school-inv input { width: auto; max-width: 100%; }
 .school-inv p { margin: 0; }
@@ -515,10 +521,13 @@ details.past .stack { gap: 16px; }
 
 /* Personen mit Zugang und offene Einladungen: eine Zeile pro Person, Aktionen rechts */
 .person-list { display: grid; max-width: 820px; }
-.person { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.person { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .person-main { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; min-width: 0; }
 .person-meta, .person-main .chip-detail { flex-basis: 100%; overflow-wrap: anywhere; }
-.person-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+.person-acts { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+/* Auf schmalen Bildschirmen öffnen die Menüs über die ganze Breite des Kastens bzw. der Zeile */
+.school-card, .person { position: relative; }
+@media (max-width: 600px) { .school-card .menu, .person .menu { position: static; } }
 @media (max-width: 600px) {
   .school-main, .person { grid-template-columns: minmax(0, 1fr); }
   .school-acts, .person-acts { justify-content: flex-start; }
@@ -769,3 +778,6 @@ details.past .stack { gap: 16px; }
 .back-link { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin: 0 0 24px; }
 .back-link p { margin: 0; }
 .stack > .back-link { margin-bottom: 0; }
+/* Textlinks im Schulhaus-Kasten bündig (sonst wirken sie wegen des Button-Innenabstands eingerückt) */
+.school-card .btn.quiet, .school-card .menu > summary.btn.quiet, .team-people .menu > summary.btn.quiet { padding-left: 0; padding-right: 0; }
+.school-card .person-acts, .team-people .person-acts { gap: 6px 18px; }
