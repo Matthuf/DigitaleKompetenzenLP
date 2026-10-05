@@ -92,7 +92,9 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 - «Rektorat und Verwaltung» ebenfalls im Kasten (ohne farbigen Rand), damit der Bereich nicht lose unter den Schulhäusern steht.
 - Geprüft bei 1280 und 390 Pixel, axe ohne Befund.
 
-Insgesamt 150 automatisierte Tests.
+**Eigene Stufenaussagen entfernt (5.10., Entscheid):** Bei den eigenen Fragen gibt es nur noch Zustimmungsskala, Auswahl und Freitext. Der Server lehnt neue Fragen dieser Form ab (Test). Bestehende Fragen dieser Form bleiben anzeig- und auswertbar; vor dem Pilot wird die Testdatenbank ohnehin geleert, danach liesse sich der Code dafür ganz entfernen.
+
+Insgesamt 151 automatisierte Tests.
 
 **Offline-Version:** nur noch persönliche Selbsteinschätzung (Profil, Drucken/PDF, Datei für den eigenen Gebrauch). Keine Schulauswertung und keine eigenen Fragen mehr.
 
@@ -149,7 +151,7 @@ Insgesamt 150 automatisierte Tests.
 - [x] `TESTMODUS` und `MIN_GROUP_SIZE` entfallen (30.9.). In Vercel können beide Variablen gelöscht werden; sie werden nicht mehr gelesen.
 - [ ] Für den Echtbetrieb neue Secrets (`SESSION_SECRET`, `CODE_PEPPER`) und ein neues Admin-Passwort. `CODE_PEPPER` danach nie mehr ändern.
 - [x] Rate Limits für Anmeldung, Codes, Einladungs- und Erhebungslinks, mit Warnung bei mehr Teilnahmen als erwartet (29.9.)
-- [x] Automatisierte Tests im Repository (`npm test`, 150 Prüfungen) (29./30.9., 4./5.10.)
+- [x] Automatisierte Tests im Repository (`npm test`, 151 Prüfungen) (29./30.9., 4./5.10.)
 - [x] Protokoll (Reiter «Protokoll» im Admin) (29.9.)
 - [x] **Mailversand vom Server:** verworfen (5.10.), bleibt unkonfiguriert
 - [x] **Einladungen ohne Mailserver** (umgesetzt 5.10., Ergebnis siehe «Stand in Kürze»). Konzept zur Nachvollziehbarkeit:

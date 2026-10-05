@@ -62,6 +62,9 @@ export default async function (B) {
   const blk = await rek('PUT', `leitung/campaigns/${cA.id}/block`, { block: { title: 'Fragen', questions: [
     { type: 'scale', text: 'Alle beantworten' }, { type: 'scale', text: 'Wenige beantworten' }, { type: 'text', text: 'Freitext' }] } });
   const [q1, q2, q3] = blk.block.questions.map((q) => q.id);
+  // Eigene Stufenaussagen werden nicht mehr angeboten (Entscheid 5.10.2026)
+  await expectErr(rek('PUT', `leitung/campaigns/${cB.id}/block`, { block: { title: 'Fragen', questions: [
+    { type: 'levels', text: 'Stufen', options: ['eins', 'zwei', 'drei'] }] } }), 400, 'Frageform «Eigene Stufenaussagen» lässt sich nicht mehr speichern');
 
   // Kontextangaben: nur vorgegebene Werte
   const odd = await teacher(B, cA.links[0].token, { context: { funktion: '<b>Frei erfunden</b>', erfahrung: '5 bis 15 Jahre' }, custom: { [q1]: 3, [q2]: 2, [q3]: 'Ein Satz' } });

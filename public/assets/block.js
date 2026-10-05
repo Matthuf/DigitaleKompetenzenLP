@@ -107,6 +107,9 @@ window.Block = (function () {
     text: 'Offene Antwort. Sichtbar erst ab zehn Antworten.',
   };
   const RANGE = { levels: [3, 6], choice: [2, 10] };
+  // «Eigene Stufenaussagen» wird nicht mehr angeboten (Entscheid 5.10.2026); bestehende Fragen dieser Art
+  // lassen sich weiterhin anzeigen und auswerten, aber nicht neu erfassen oder speichern.
+  const ADD_TYPES = ['scale', 'choice', 'text'];
   const emptyQ = (type) => ({ type, text: '', options: RANGE[type] ? [] : undefined, multiple: false });
   const box = () => ctx && ctx.box;
   // Gleiche Prüfung wie lib/customblock.js, damit Fehler direkt an der Frage erscheinen
@@ -179,7 +182,7 @@ window.Block = (function () {
     const add = `
       <div class="addq">
         <h4 class="addq-title">${has ? 'Weitere Frage hinzufügen' : 'Erste Frage hinzufügen'}</h4>
-        <div class="addq-grid">${Object.keys(TYPE_LABEL).map((k) => `<button class="addq-btn" type="button" data-add="${k}"><b>${TYPE_LABEL[k]}</b><span>${TYPE_HINT[k]}</span></button>`).join('')}</div>
+        <div class="addq-grid">${ADD_TYPES.map((k) => `<button class="addq-btn" type="button" data-add="${k}"><b>${TYPE_LABEL[k]}</b><span>${TYPE_HINT[k]}</span></button>`).join('')}</div>
         ${others.length ? `<div class="row" style="gap:8px"><label for="ed-copy" class="small">oder Fragen übernehmen aus</label><select id="ed-copy" style="width:auto"><option value="">Erhebung wählen …</option>${others.map((c) => `<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select></div>` : ''}
       </div>`;
     const actions = has || ed.saved ? `
