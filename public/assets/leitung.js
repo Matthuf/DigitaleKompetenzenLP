@@ -375,7 +375,7 @@ ${signature()}`;
       <p class="small muted">${l.campaign.due_date ? 'Text bei Bedarf anpassen' : 'Text anpassen (zum Beispiel das Datum)'}, dann kopieren oder im E-Mail-Programm öffnen.</p>
       <div class="field"><label for="mail-subj-${l.id}" class="small">Betreff</label><input type="text" id="mail-subj-${l.id}" value="${esc(subject)}"></div>
       <div class="field"><label for="mail-body-${l.id}" class="small">Text</label><textarea id="mail-body-${l.id}">${esc(mailText(l))}</textarea></div>
-      <div class="row"><button class="btn secondary" type="button" data-copytext>Text kopieren</button><a class="btn secondary" data-mailto href="#">Im E-Mail-Programm öffnen</a></div>`;
+      <div class="row"><a class="btn" data-mailto href="#">Im E-Mail-Programm öffnen</a><button class="btn quiet" type="button" data-copytext>Text kopieren</button></div>`;
     const upd = () => { p.querySelector('[data-mailto]').href = 'mailto:?subject=' + encodeURIComponent($(`#mail-subj-${l.id}`).value) + '&body=' + encodeURIComponent($(`#mail-body-${l.id}`).value); };
     upd();
     p.querySelectorAll('input, textarea').forEach((x) => x.addEventListener('input', upd));
@@ -428,7 +428,7 @@ ${signature()}`;
       <div class="field"><label for="slm-to-${l.id}" class="small">An</label><input type="text" id="slm-to-${l.id}" value="${esc(to)}" placeholder="E-Mail der Schulleitung"></div>
       <div class="field"><label for="slm-subj-${l.id}" class="small">Betreff</label><input type="text" id="slm-subj-${l.id}" value="${esc(subject)}"></div>
       <div class="field"><label for="slm-body-${l.id}" class="small">Text</label><textarea id="slm-body-${l.id}">${esc(leaderMailText(l, leaders, all))}</textarea></div>
-      <div class="row"><button class="btn secondary" type="button" data-copytext>Text kopieren</button><a class="btn secondary" data-mailto href="#">Im E-Mail-Programm öffnen</a></div>`;
+      <div class="row"><a class="btn" data-mailto href="#">Im E-Mail-Programm öffnen</a><button class="btn quiet" type="button" data-copytext>Text kopieren</button></div>`;
     const upd = () => {
       const rcpt = $(`#slm-to-${l.id}`).value.split(/[,;\s]+/).filter(Boolean).map((a) => a.replace(/[?&#%]/g, encodeURIComponent)).join(',');
       p.querySelector('[data-mailto]').href = 'mailto:' + rcpt + '?subject=' + encodeURIComponent($(`#slm-subj-${l.id}`).value) + '&body=' + encodeURIComponent($(`#slm-body-${l.id}`).value);
