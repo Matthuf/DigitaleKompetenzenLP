@@ -81,13 +81,14 @@
     return `<span class="q-line"><b>${quote} %</b> <span class="muted">von ${l.expected}</span> <button class="btn quiet small" type="button" data-expected="${l.id}" aria-label="Anzahl Lehrpersonen für ${esc(l.school_name)} ändern">ändern</button></span>
       <span class="bar" aria-hidden="true"><span style="width:${quote}%"></span></span>`;
   }
+  // Rektorat: «E-Mail an die Schulleitung» zuerst, weil meist die Schulleitung den Link weitergibt
   function menuHTML(l) {
     const item = (attr, title, sub) => `<button class="menu-item" type="button" ${attr}="${l.id}"><b>${title}</b><span>${sub}</span></button>`;
     return `<details class="menu" data-menu>
         <summary class="btn quiet small">E-Mail oder QR-Code <span aria-hidden="true">▾</span></summary>
         <div class="menu-list">
-          ${item('data-mail', 'E-Mail an die Lehrpersonen', 'Fertiger Text mit Link, zum Anpassen')}
           ${isRektorat() ? item('data-slmail', 'E-Mail an die Schulleitung', 'Sie leitet den Link an ihre Lehrpersonen weiter') : ''}
+          ${item('data-mail', 'E-Mail an die Lehrpersonen', 'Fertiger Text mit Link, zum Anpassen')}
           ${item('data-qr', 'QR-Code', 'Zum Ausdrucken oder für eine Präsentation')}
         </div></details>`;
   }
