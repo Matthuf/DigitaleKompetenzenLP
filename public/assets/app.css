@@ -489,6 +489,13 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .camp-questions[open] > summary::before { content: "▾"; }
 .camp-questions > summary .muted { font-weight: 400; }
 .camp-questions .q-box { display: grid; gap: 16px; margin-top: 14px; }
+/* Noch keine eigenen Fragen und noch änderbar: als Hinweis mit Schaltfläche, damit es vor dem Verteilen nicht übersehen wird */
+.camp-questions.prompt { border: 1px solid var(--line); border-left: 3px solid var(--red); padding: 12px 14px; margin: 4px 0; }
+.camp-questions.prompt > summary { justify-content: space-between; align-items: center; gap: 10px 16px; }
+.camp-questions.prompt > summary::before { display: none; }
+.cq-prompt { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: baseline; flex: 1 1 280px; }
+.cq-prompt-sub { flex-basis: 100%; font-weight: 400; }
+.camp-questions.prompt[open] .cq-prompt-btn { display: none; }
 .small.warn { color: #6b4e00; font-weight: 700; }
 .add-school { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
 details.past > summary { cursor: pointer; font-weight: 700; padding: 10px 0; }

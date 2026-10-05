@@ -94,6 +94,8 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 
 **Eigene Stufenaussagen entfernt (5.10., Entscheid):** Bei den eigenen Fragen gibt es nur noch Zustimmungsskala, Auswahl und Freitext. Der Server lehnt neue Fragen dieser Form ab (Test). Bestehende Fragen dieser Form bleiben anzeig- und auswertbar; vor dem Pilot wird die Testdatenbank ohnehin geleert, danach liesse sich der Code dafür ganz entfernen.
 
+**Eigene Fragen sichtbarer (5.10.):** Beim Testen übersehen. Solange keine eigenen Fragen erfasst und sie noch änderbar sind, steht in der Erhebungskarte ein Kasten mit rotem Rand: «Eigene Fragen (freiwillig) · Nur möglich, bevor die erste Lehrperson abschliesst, also am besten vor dem Verteilen der Links» und «Eigene Fragen hinzufügen». Danach wieder die ruhige Zeile. Im Pilot beobachten, ob der Bereich gefunden wird.
+
 Insgesamt 153 automatisierte Tests.
 
 **Offline-Version:** nur noch persönliche Selbsteinschätzung (Profil, Drucken/PDF, Datei für den eigenen Gebrauch). Keine Schulauswertung und keine eigenen Fragen mehr.

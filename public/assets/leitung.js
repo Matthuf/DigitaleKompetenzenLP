@@ -144,8 +144,13 @@
       <div class="camp-head"><span class="row" style="gap:10px"><h3>${esc(c.title)}</h3>${c.round_id ? `<span class="status round">Vorgabe AVS</span>` : ''}</span>
         <span class="status ${c.status}">${c.status === 'open' ? 'offen' : 'geschlossen'}</span></div>
       <div class="camp-meta" data-meta="${c.id}">Eröffnet am ${date(c.created_at)}${who}${c.closed_at ? ' · geschlossen am ' + date(c.closed_at) : ''}${dueHTML(c)}</div>
-      ${n || early ? `<details class="camp-questions" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
-        <summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}</span></summary>
+      ${n || early ? `<details class="camp-questions${!n && early ? ' prompt' : ''}" data-q="${c.id}" ${openQ === c.id ? 'open' : ''}>
+        ${!n && early
+          // Noch keine Fragen und noch änderbar: auffälliger, weil es nur vor der ersten abgeschlossenen Teilnahme geht
+          ? `<summary><span class="cq-prompt"><b>Eigene Fragen</b> <span class="muted small">(freiwillig)</span>
+              <span class="small muted cq-prompt-sub">Nur möglich, bevor die erste Lehrperson abschliesst, also am besten vor dem Verteilen der Links.</span></span>
+              <span class="btn secondary small cq-prompt-btn">Eigene Fragen hinzufügen</span></summary>`
+          : `<summary>Eigene Fragen <span class="muted small">· ${n ? n + (n === 1 ? ' Frage' : ' Fragen') : 'keine'} · ${qState}</span></summary>`}
         <div class="q-box" id="q-box-${c.id}"></div>
       </details>` : ''}
       ${schoolsTable(c)}
