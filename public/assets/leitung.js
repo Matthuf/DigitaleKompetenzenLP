@@ -757,6 +757,7 @@ ${signature()}`;
       <section class="stack" style="gap:12px" aria-labelledby="h-users">
         <h3 id="h-users">${R ? 'Rektorat und Verwaltung' : 'Personen mit Zugang'}</h3>
         ${R ? '<p class="small muted" style="max-width:74ch">Personen mit Zugang für alle Schulhäuser. Sie haben dieselben Rechte wie Rektorat bzw. Hauptschulleitung.</p>' : ''}
+        <div class="school-card team-card">
         <ul class="list-plain person-list team-people">${people.map((u) => personRow(u, manage(u))).join('')}${peopleInv.map(inviteRow).join('')}</ul>
         <div class="box box--success" id="team-inv-out" hidden></div>
         <div><button class="btn secondary small" type="button" id="inv-toggle">Person einladen</button></div>
@@ -771,6 +772,7 @@ ${signature()}`;
           <p class="small muted">${mailHint()}</p>
           <div class="row" style="gap:8px"><button class="btn small" type="submit">${ctx.mail ? 'Einladung senden' : 'Einladung erstellen'}</button><button class="btn quiet small" type="button" id="inv-cancel">Abbrechen</button><span class="error small" id="inv-msg" role="alert"></span></div>
         </form>
+        </div>
       </section>`;
 
     // Menüs: höchstens eines offen, Escape schliesst, Auswahl schliesst

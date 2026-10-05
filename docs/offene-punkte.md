@@ -89,6 +89,7 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 - Aktionen direkt hinter dem Status statt am rechten Rand; «Erneut senden» sichtbar, Zurückziehen, Link für neues Passwort und Zugang löschen im Menü «Mehr», Rückfrage an Ort und Stelle.
 - Status nach Handlungsbedarf: orange «Eingeladen · noch kein Zugang» (Gültigkeit in der Zeile darunter), rot «Einladung abgelaufen», grün «Zugang aktiv». Gilt auch im AVS-Bereich.
 - Zweiter Einleitungsabsatz nur, solange noch kein Schulhaus erfasst ist; Zwischenlabel «Schulleitung» entfällt.
+- «Rektorat und Verwaltung» ebenfalls im Kasten (ohne farbigen Rand), damit der Bereich nicht lose unter den Schulhäusern steht.
 - Geprüft bei 1280 und 390 Pixel, axe ohne Befund.
 
 Insgesamt 150 automatisierte Tests.

@@ -510,6 +510,8 @@ details.past .stack { gap: 16px; }
 .school-empty { margin: 0; color: var(--ink-2); }
 .school-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .school-card .person-list .person { border-bottom: 0; padding: 4px 0; }
+.team-card { max-width: 760px; }
+.team-card .person-list { max-width: none; }
 .team-sum { margin: 0; max-width: 74ch; }
 .menu-item.is-off { cursor: default; color: var(--ink-3); }
 .menu-item.is-off:hover { background: none; }
