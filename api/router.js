@@ -386,7 +386,18 @@ on('GET', 'leitung/context', async ({ req }) => {
   if (u.role === 'traeger') {
     const leaders = await q(`select u.school_id, coalesce(u.display_name, u.username) as name, u.email from users u
                                join schools s on s.id = u.school_id where s.traeger_id = $1 and u.role = 'leitung' order by u.created_at`, [u.tid]);
-    schools.forEach((x) => { x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email })); });
+    // Offene Einladungen zählen für die Adresse mit (z. B. aus dem Assistenten), aber nicht als Zugang
+    const invited = await q(`select i.school_id, i.name, i.email from invitations i join schools s on s.id = i.school_id
+                               where s.traeger_id = $1 and i.kind = 'invite' and i.role = 'leitung' and i.used_at is null and i.email is not null
+                               order by i.created_at`, [u.tid]);
+    schools.forEach((x) => {
+      x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email }));
+      const known = new Set(x.leaders.map((l) => (l.email || '').toLowerCase()));
+      invited.filter((l) => l.school_id === x.id && !known.has(l.email.toLowerCase())).forEach(({ name, email }) => {
+        known.add(email.toLowerCase());
+        x.leaders.push({ name, email, invited: true });
+      });
+    });
   }
   const rounds = await q(`select id, title, active from rounds order by created_at desc`);
   const cur = await currentRound();

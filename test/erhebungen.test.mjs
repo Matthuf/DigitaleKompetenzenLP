@@ -16,6 +16,10 @@ export default async function (B) {
   const rc = await rek('GET', 'leitung/context');
   const b = rc.schools.find((x) => x.id === S['Schulhaus B']), a = rc.schools.find((x) => x.id === S['Schulhaus A']);
   ok(b.leaders.length === 1 && b.leaders[0].email === 'sl.b@example.ch' && a.leaders.length === 0, 'Rektorat: Schulleitung pro Schulhaus bekannt');
+  // Offene Einladung: Adresse für die E-Mail-Vorlage bekannt, aber als «eingeladen» markiert
+  await rek('POST', 'leitung/invitations', { role: 'leitung', schoolId: S['Schulhaus A'], name: 'Anna Aebi', email: 'sl.a@example.ch' });
+  const a2 = (await rek('GET', 'leitung/context')).schools.find((x) => x.id === S['Schulhaus A']);
+  ok(a2.leaders.length === 1 && a2.leaders[0].email === 'sl.a@example.ch' && a2.leaders[0].invited === true, 'Rektorat: offene Einladung liefert Adresse der Schulleitung');
   const sc0 = await sl('GET', 'leitung/context');
   ok(sc0.schools.length === 1 && !('leaders' in sc0.schools[0]), 'Schulleitung erhält keine Kontaktliste');
 

@@ -384,9 +384,10 @@ ${signature()}`;
   }
   /* E-Mail des Rektorats an die Schulleitung eines Schulhauses.
    * Mit Zugang: Hinweis auf Anmeldung (dort Rücklauf, Vorlagen, Auswertung). Ohne Zugang: Link zum Weiterleiten. */
-  function leaderMailText(l, leaders) {
+  // leaders: Schulleitungen mit Zugang (bestimmt den Text); all: dazu offene Einladungen (nur für die Anrede)
+  function leaderMailText(l, leaders, all = leaders) {
     const due = l.campaign.due_date ? UI.dueLong(l.campaign.due_date) : '';
-    const greet = leaders.length === 1 && leaders[0].name && !/^[a-z0-9._-]+$/.test(leaders[0].name) ? `Guten Tag ${leaders[0].name}` : 'Guten Tag';
+    const greet = all.length === 1 && all[0].name && !/^[a-z0-9._-]+$/.test(all[0].name) ? `Guten Tag ${all[0].name}` : 'Guten Tag';
     const intro = `Für die Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» ist die Erhebung «${l.campaign.title}» eröffnet. ${l.school_name} nimmt mit einem eigenen Link teil.`;
     const privacy = 'Die Teilnahme dauert etwa 20 Minuten und erfolgt ohne Namen. Schulleitung sowie Rektorat/Hauptschulleitung sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.';
     const body = leaders.length
@@ -414,16 +415,19 @@ ${signature()}`;
   function showLeaderMail(l) {
     const p = sharePanel(l);
     const school = ctx.schools.find((s) => s.id === l.school_id) || {};
-    const leaders = school.leaders || [];
-    const to = leaders.map((x) => x.email).filter(Boolean).join(', ');
+    const all = school.leaders || [];
+    const leaders = all.filter((x) => !x.invited); // mit eigenem Zugang
+    const to = all.map((x) => x.email).filter(Boolean).join(', '); // auch offene Einladungen
     const subject = `Erhebung «${l.campaign.title}» eröffnet: ${l.school_name}`;
     p.innerHTML = `<div class="row" style="justify-content:space-between"><h4 style="margin:0">E-Mail an die Schulleitung von ${esc(l.school_name)}</h4><button class="btn quiet small" type="button" data-close>Schliessen</button></div>
       <p class="small muted">${leaders.length
         ? `Die Schulleitung hat einen eigenen Zugang und findet den Link auch nach dem Anmelden. Text bei Bedarf anpassen, dann kopieren oder im E-Mail-Programm öffnen.`
-        : `Für ${esc(l.school_name)} ist noch kein Zugang für eine Schulleitung eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten. Empfänger selbst eintragen oder die Schulleitung unter <a href="#team">Schulen und Zugänge</a> einladen.`}</p>
+        : all.length
+          ? `Die Schulleitung von ${esc(l.school_name)} ist eingeladen, hat ihren Zugang aber noch nicht eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten. Die hinterlegte Adresse ist bereits eingetragen.`
+          : `Für ${esc(l.school_name)} ist noch kein Zugang für eine Schulleitung eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten. Empfänger selbst eintragen oder die Schulleitung unter <a href="#team">Schulen und Zugänge</a> einladen.`}</p>
       <div class="field"><label for="slm-to-${l.id}" class="small">An</label><input type="text" id="slm-to-${l.id}" value="${esc(to)}" placeholder="E-Mail der Schulleitung"></div>
       <div class="field"><label for="slm-subj-${l.id}" class="small">Betreff</label><input type="text" id="slm-subj-${l.id}" value="${esc(subject)}"></div>
-      <div class="field"><label for="slm-body-${l.id}" class="small">Text</label><textarea id="slm-body-${l.id}">${esc(leaderMailText(l, leaders))}</textarea></div>
+      <div class="field"><label for="slm-body-${l.id}" class="small">Text</label><textarea id="slm-body-${l.id}">${esc(leaderMailText(l, leaders, all))}</textarea></div>
       <div class="row"><button class="btn secondary" type="button" data-copytext>Text kopieren</button><a class="btn secondary" data-mailto href="#">Im E-Mail-Programm öffnen</a></div>`;
     const upd = () => {
       const rcpt = $(`#slm-to-${l.id}`).value.split(/[,;\s]+/).filter(Boolean).map((a) => a.replace(/[?&#%]/g, encodeURIComponent)).join(',');
