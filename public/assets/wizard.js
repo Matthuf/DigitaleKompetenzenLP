@@ -96,8 +96,8 @@ window.Wizard = (function () {
       <div class="stack" style="gap:14px">${offen.map((x) => `
         <div class="wz-inv"><b>${esc(x.name)}</b>
           <div class="row" style="gap:10px">
-            <div class="field"><label class="small" for="wz-n-${x.id}">Name</label><input type="text" id="wz-n-${x.id}" data-inv-name="${x.id}" value="${esc((st.invites[x.id] || {}).name || '')}" style="width:180px"></div>
-            <div class="field"><label class="small" for="wz-m-${x.id}">E-Mail</label><input type="text" id="wz-m-${x.id}" data-inv-mail="${x.id}" inputmode="email" value="${esc((st.invites[x.id] || {}).email || '')}" style="width:230px"></div>
+            <div class="field"><label class="small" for="wz-n-${x.id}">Name Schulleitung</label><input type="text" id="wz-n-${x.id}" data-inv-name="${x.id}" value="${esc((st.invites[x.id] || {}).name || '')}" style="width:180px"></div>
+            <div class="field"><label class="small" for="wz-m-${x.id}">E-Mail Schulleitung</label><input type="text" id="wz-m-${x.id}" data-inv-mail="${x.id}" inputmode="email" value="${esc((st.invites[x.id] || {}).email || '')}" style="width:230px"></div>
           </div></div>`).join('')}</div>`;
   }
 
