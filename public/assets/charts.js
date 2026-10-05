@@ -59,7 +59,9 @@
     for (let v = from; v <= 6; v++) {
       const x = xf(v).toFixed(1);
       g += `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="${COL.grid}" stroke-width="1"/>`;
-      if (v >= 1) g += `<text x="${x}" y="${top - 8}" font-size="12" text-anchor="middle" fill="${COL.ink2}"><tspan font-weight="700">${LV[v - 1].roman}</tspan></text>`;
+      // Stufe als Ziffer und darunter klein ausgeschrieben (Einsteigen … Weitergeben)
+      if (v >= 1) g += `<text x="${x}" y="${top - 22}" font-size="12" text-anchor="middle" fill="${COL.ink2}" font-weight="700">${LV[v - 1].roman}</text>`
+        + `<text x="${x}" y="${top - 8}" font-size="10.5" text-anchor="middle" fill="${COL.ink2}">${esc(LV[v - 1].label)}</text>`;
     }
     return g;
   }
@@ -72,7 +74,7 @@
   /* A1: Balken – Mittelwerte, optional mit Vergleich */
   function bars(agg, level, cagg, names = {}) {
     const rows = rowsFor(level);
-    const top = 34, bottom = layout(rows, top);
+    const top = 48, bottom = layout(rows, top);
     const xf = (v) => X0 + (v / 6) * (X1 - X0);
     let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
     g += `<line x1="${X0}" y1="${top}" x2="${X0}" y2="${bottom}" stroke="${COL.ink2}" stroke-width="1"/>`;
@@ -146,7 +148,7 @@
   /* A4: Boxplot wie im Beurteilungstool – Box = mittlere 50 %, Antennen = 10.–90. Perzentil */
   function boxplot(agg, level) {
     const rows = rowsFor(level);
-    const top = 34, bottom = layout(rows, top);
+    const top = 48, bottom = layout(rows, top);
     const xf = (v) => X0 + ((v - 1) / 5) * (X1 - X0);
     let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
     rows.filter((r) => r.type === 'item').forEach((r) => {
@@ -172,7 +174,7 @@
     const items = DKCore.allSubareas(ITEMS).map((s) => ({ id: s.id, label: s.title, a: agg.bySub[s.id].mean, b: cagg.bySub[s.id].mean }))
       .filter((r) => r.a !== null && r.b !== null).map((r) => ({ ...r, d: r.a - r.b })).sort((x, y) => y.d - x.d);
     const rows = items.map((r) => ({ type: 'item', ...r }));
-    const top = 34, bottom = layout(rows, top);
+    const top = 48, bottom = layout(rows, top);
     const xe = X1 - 40, xf = (v) => X0 + ((v - 1) / 5) * (xe - X0);
     let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
     g += `<text x="${W - 6}" y="${top - 8}" font-size="12" text-anchor="end" fill="${COL.ink2}">Δ</text>`;
@@ -244,7 +246,7 @@
   };
   function stufen(byStufe) {
     const rows = rowsFor('areas');
-    const top = 34, bottom = layout(rows, top);
+    const top = 48, bottom = layout(rows, top);
     const xf = (v) => X0 + ((v - 1) / 5) * (X1 - X0);
     let g = rowBackground(rows) + levelAxis(xf, top, bottom, 1);
     rows.forEach((r) => {
