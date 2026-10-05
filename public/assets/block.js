@@ -165,13 +165,13 @@ window.Block = (function () {
     const split = ed.preview && has;
     const others = ctx.campaigns().filter((c) => c.id !== ed.id && count(c));
     const head = `<p class="small muted" style="max-width:75ch">Eigene Fragen erscheinen am Schluss des Fragebogens und fliessen nicht ins Kompetenzprofil ein. Sobald die erste Lehrperson abgeschlossen hat, lassen sich die Fragen nicht mehr ändern.</p>`;
-    // Zwei klar getrennte Teile: der Abschnitt (Überschrift, Einleitung) steht einmal über allen Fragen,
+    // Zwei klar getrennte Teile: Titel und Einleitung stehen einmal über allen Fragen (keine einzelnen Abschnitte),
     // darunter die Liste der Fragen. Sonst wirken Überschrift und Einleitung wie Felder der ersten Frage.
     const fields = has ? `
       <section class="ed-part ed-part--meta" aria-labelledby="ed-meta-h">
-        <div class="ed-part-head"><h4 id="ed-meta-h">Abschnitt im Fragebogen</h4><p class="small muted">Steht einmal über allen eigenen Fragen.</p></div>
+        <div class="ed-part-head"><h4 id="ed-meta-h">Titel der eigenen Fragen</h4><p class="small muted">Erscheint im Fragebogen einmal über allen eigenen Fragen.</p></div>
         <div class="ed-meta">
-          <div class="field"><label for="ed-title">Überschrift des Abschnitts</label><input type="text" id="ed-title" maxlength="80" value="${esc(b.title)}"></div>
+          <div class="field"><label for="ed-title">Titel</label><input type="text" id="ed-title" maxlength="80" value="${esc(b.title)}"></div>
           <div class="field"><label for="ed-intro">Einleitung <span class="small muted">(freiwillig)</span></label><textarea id="ed-intro" rows="2" maxlength="500">${esc(b.intro || '')}</textarea></div>
         </div>
       </section>
@@ -226,7 +226,7 @@ window.Block = (function () {
     if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Sie erscheinen erst ab zehn Antworten und in zufälliger Reihenfolge. Offene Fragen sparsam einsetzen.</p>`;
     return `<div class="qedit${err ? ' has-error' : ''}">${head}
       <div class="qedit-body" id="qe-${i}-body">
-        <div class="field"><label for="qe-${i}-type" class="small">Frageform</label><select id="qe-${i}-type" data-i="${i}" style="width:auto;align-self:start">${Object.entries(TYPE_LABEL).map(([k, l]) => `<option value="${k}" ${k === q.type ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+        <div class="field"><label for="qe-${i}-type" class="small">Frageform</label><select id="qe-${i}-type" data-i="${i}" style="width:auto;align-self:start">${Object.entries(TYPE_LABEL).filter(([k]) => ADD_TYPES.includes(k) || k === q.type).map(([k, l]) => `<option value="${k}" ${k === q.type ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         <div class="field"><label for="qe-${i}-text" class="small">${q.type === 'scale' ? 'Aussage' : 'Frage'}</label><textarea id="qe-${i}-text" rows="1" maxlength="300" data-i="${i}" data-f="text" ${inv('text')}>${esc(q.text)}</textarea>${errP('text')}</div>
         ${extra}</div></div>`;
   }
