@@ -226,7 +226,6 @@ window.Block = (function () {
     if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Sie erscheinen erst ab zehn Antworten und in zufälliger Reihenfolge. Offene Fragen sparsam einsetzen.</p>`;
     return `<div class="qedit${err ? ' has-error' : ''}">${head}
       <div class="qedit-body" id="qe-${i}-body">
-        <div class="field"><label for="qe-${i}-type" class="small">Frageform</label><select id="qe-${i}-type" data-i="${i}" style="width:auto;align-self:start">${Object.entries(TYPE_LABEL).filter(([k]) => ADD_TYPES.includes(k) || k === q.type).map(([k, l]) => `<option value="${k}" ${k === q.type ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         <div class="field"><label for="qe-${i}-text" class="small">${q.type === 'scale' ? 'Aussage' : 'Frage'}</label><textarea id="qe-${i}-text" rows="1" maxlength="300" data-i="${i}" data-f="text" ${inv('text')}>${esc(q.text)}</textarea>${errP('text')}</div>
         ${extra}</div></div>`;
   }
@@ -256,13 +255,7 @@ window.Block = (function () {
       }
       markDirty(); refresh();
     }));
-    q$$('#ed-questions select[id$="-type"]').forEach((s) => s.addEventListener('change', () => {
-      const i = +s.dataset.i, q = b.questions[i];
-      q.type = s.value;
-      if (RANGE[q.type] && !q.options) q.options = []; // Optionen bleiben erhalten, wenn zwischen Stufen und Auswahl gewechselt wird
-      changed();
-      q$(`#qe-${i}-type`).focus();
-    }));
+    // Keine nachträgliche Wahl der Frageform (Entscheid 5.10.2026): die Form steht im Kopf der Frage; wer sie ändern will, erfasst die Frage neu.
     q$$('#ed-questions [data-toggle]').forEach((btn) => btn.addEventListener('click', () => {
       const i = +btn.dataset.toggle;
       ed.open = ed.open === i ? null : i;
