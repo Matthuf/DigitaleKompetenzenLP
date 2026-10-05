@@ -84,7 +84,7 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 - Bekannte Grenze: Wer den Assistenten schliesst, ohne die Einladungen zu öffnen, verliert die Links. Weg zurück: «Erneut senden» unter «Schulen und Zugänge» (steht im Block).
 
 **Schulen und Zugänge, Umbau (5.10.):** nach kritischer UX-Durchsicht:
-- Übersicht oben (z. B. «4 Schulhäuser · 1 mit Zugang · 2 eingeladen, noch kein Zugang · 1 ohne Schulleitung»); Schulhäuser mit Handlungsbedarf zuerst, mit orangem Rand.
+- Übersicht oben (z. B. «4 Schulhäuser · 1 mit Zugang · 2 eingeladen, noch kein Zugang · 1 ohne Schulleitung»); Schulhäuser alphabetisch (Entscheid 5.10., kein Springen nach dem Einladen), solche mit Handlungsbedarf mit orangem Rand.
 - Ein Kasten pro Schulhaus mit fettem Namen; Umbenennen, Zyklen ändern, Entfernen im Menü «Bearbeiten». «an Erhebungen beteiligt, entfernen nur über das AVS» steht nur noch dort (Entfernen ausgegraut).
 - Aktionen direkt hinter dem Status statt am rechten Rand; «Erneut senden» sichtbar, Zurückziehen, Link für neues Passwort und Zugang löschen im Menü «Mehr», Rückfrage an Ort und Stelle.
 - Status nach Handlungsbedarf: orange «Eingeladen · noch kein Zugang» (Gültigkeit in der Zeile darunter), rot «Einladung abgelaufen», grün «Zugang aktiv». Gilt auch im AVS-Bereich.

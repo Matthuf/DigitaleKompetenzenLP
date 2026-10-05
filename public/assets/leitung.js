@@ -650,8 +650,8 @@ ${signature()}`;
   /* ---------- Schulen und Zugänge (Selbstverwaltung) ----------
    * Rektorat/Hauptschulleitung: ein Kasten pro Schulhaus (fetter Name, Zyklen, Menü «Bearbeiten»), darin die
    * Schulleitung mit Status und den häufigen Aktionen direkt dahinter; Seltenes (Umbenennen, Zyklen, Entfernen,
-   * Zurückziehen, neues Passwort, Löschen) steht in Menüs. Oben eine Übersicht; Schulhäuser, bei denen etwas
-   * fehlt, kommen zuerst. Darunter «Rektorat und Verwaltung» für die Trägerebene.
+   * Zurückziehen, neues Passwort, Löschen) steht in Menüs. Oben eine Übersicht; Schulhäuser alphabetisch,
+   * solche mit Handlungsbedarf orange markiert. Darunter «Rektorat und Verwaltung» für die Trägerebene.
    * Schulleitung: Personen für das eigene Schulhaus (z. B. Co-Leitung).
    * Jede Person erscheint genau einmal, offene Einladungen stehen bei den Personen. */
   const zyklenText = (z) => (z.length === 3 ? 'Zyklus 1–3' : z.length === 1 ? z[0] + ' (fest)' : z.join(', ').replace(/, Zyklus /g, ', '));
@@ -688,7 +688,6 @@ ${signature()}`;
     const inv = t.invites.filter((i) => i.role === 'leitung' && i.school_id === s.id);
     return inv.some((i) => !i.expired) ? 'eingeladen' : inv.length ? 'abgelaufen' : 'keine';
   }
-  const ORDER = { keine: 0, abgelaufen: 1, eingeladen: 2, aktiv: 3 };
   function summaryHTML(t) {
     const n = { aktiv: 0, eingeladen: 0, abgelaufen: 0, keine: 0 };
     t.schools.forEach((s) => { n[leadState(s, t)]++; });
@@ -734,7 +733,7 @@ ${signature()}`;
     // Rektorat: unten nur die Trägerebene (Schulleitungen stehen beim Schulhaus); Schulleitung: alle Personen ihres Schulhauses
     const people = R ? t.users.filter((u) => u.role === 'traeger') : t.users;
     const peopleInv = R ? t.invites.filter((i) => i.role === 'traeger') : t.invites;
-    const schools = [...t.schools].sort((a, b) => ORDER[leadState(a, t)] - ORDER[leadState(b, t)] || a.name.localeCompare(b.name, 'de'));
+    const schools = [...t.schools].sort((a, b) => a.name.localeCompare(b.name, 'de')); // alphabetisch (Entscheid 5.10.): kein Springen nach dem Einladen
     box.innerHTML = `
       <div class="stack" style="gap:6px"><h2>${R ? 'Schulen und Zugänge' : 'Zugänge'}</h2>
         <p class="muted small" style="max-width:74ch">${R
