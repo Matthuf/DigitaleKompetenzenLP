@@ -34,7 +34,7 @@ Claude-Session: <aktuelle Session-URL>
 ## Befehle
 
 ```bash
-npm test                      # 151 Prüfungen, müssen alle grün sein
+npm test                      # 153 Prüfungen, müssen alle grün sein
 python3 build.py              # erzeugt dist/, public/assets/core.js, items.js, lib/items.json
 python3 data/excel_to_json.py # Excel-Masterdatei -> data/items.json (danach build.py)
 python3 docs/build_handout.py # Handout für Rektorate als PDF
@@ -67,7 +67,7 @@ Keine Fremdbibliotheken im Frontend. Die Inhaltssicherheitsregel erlaubt nur eig
   «Lehrpersonen», nie «Kollegium». «Schulrat», nie «Schulpflege» (das ist Zürich).
 - **Keine Mindestgruppe** mehr: Auswertungen ab der ersten abgeschlossenen Teilnahme
   (Entscheid 30.9.2026 nach Rücksprache mit dem Datenschutz). Einzige Ausnahme: Freitexte
-  bei eigenen Fragen erst ab zehn Antworten (`TEXT_MIN` in `lib/customblock.js`).
+  bei eigenen Fragen erst ab drei Antworten (`TEXT_MIN` in `lib/customblock.js`).
 - **Das AVS lädt nur Rektorate und Hauptschulleitungen ein.** Schulhäuser erfasst es nur
   auf Anfrage der Schule.
 - **Datenschutz:** Teilnahme ohne Namen und E-Mail, persönlicher Code. Niemand sieht einzelne

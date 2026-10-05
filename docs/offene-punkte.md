@@ -59,7 +59,7 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 - Der Knopf «Meine Daten löschen» ist aus der Auswertung entfernt. Die Funktion steht neu in der Hilfe unter «Kann ich meine Daten löschen?» und erscheint dort nur, wenn die Person mit ihrem Code angemeldet ist.
 - Beim Drucken des Profils erscheinen die Farben automatisch, auch ohne «Hintergrundgrafiken» im Druckdialog.
 
-**Mindestgruppe (30.9., Entscheid):** Die Schwelle von fünf abgeschlossenen Teilnahmen ist vollständig entfernt. Auswertungen erscheinen ab der ersten abgeschlossenen Teilnahme, ebenso Filter und Gruppenvergleiche. Grundlage: Rückmeldung des Datenschutzes, dass dies aktuell nicht nötig ist. Weggefallen sind damit auch die Variablen `MIN_GROUP_SIZE` und `TESTMODUS` sowie die Regel gegen Differenzbildung zwischen Runde und einzelner Erhebung. **Einzige verbleibende Schwelle:** Freitexte bei eigenen Fragen erscheinen erst ab zehn Antworten, weil sie wörtlich wiedergegeben werden (`TEXT_MIN` in `lib/customblock.js`). Rückgängig machen wäre ein kleiner Eingriff.
+**Mindestgruppe (30.9., Entscheid):** Die Schwelle von fünf abgeschlossenen Teilnahmen ist vollständig entfernt. Auswertungen erscheinen ab der ersten abgeschlossenen Teilnahme, ebenso Filter und Gruppenvergleiche. Grundlage: Rückmeldung des Datenschutzes, dass dies aktuell nicht nötig ist. Weggefallen sind damit auch die Variablen `MIN_GROUP_SIZE` und `TESTMODUS` sowie die Regel gegen Differenzbildung zwischen Runde und einzelner Erhebung. **Einzige verbleibende Schwelle:** Freitexte bei eigenen Fragen erscheinen erst ab drei Antworten (bis 5.10.: zehn), weil sie wörtlich wiedergegeben werden (`TEXT_MIN` in `lib/customblock.js`). Rückgängig machen wäre ein kleiner Eingriff.
 
 **Eigene Fragen ohne Obergrenze (4.10., Entscheid):** Die frühere Grenze von 15 Fragen war eine unbegründete Setzung und ist entfernt. Rektorate legen den Umfang selbst fest. Server, Editor, Einleitung, Hilfe, README und Handout (inkl. PDF) sind nachgeführt.
 
@@ -94,7 +94,7 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 
 **Eigene Stufenaussagen entfernt (5.10., Entscheid):** Bei den eigenen Fragen gibt es nur noch Zustimmungsskala, Auswahl und Freitext. Der Server lehnt neue Fragen dieser Form ab (Test). Bestehende Fragen dieser Form bleiben anzeig- und auswertbar; vor dem Pilot wird die Testdatenbank ohnehin geleert, danach liesse sich der Code dafür ganz entfernen.
 
-Insgesamt 151 automatisierte Tests.
+Insgesamt 153 automatisierte Tests.
 
 **Offline-Version:** nur noch persönliche Selbsteinschätzung (Profil, Drucken/PDF, Datei für den eigenen Gebrauch). Keine Schulauswertung und keine eigenen Fragen mehr.
 
@@ -111,7 +111,7 @@ Insgesamt 151 automatisierte Tests.
 | 1 | **Hosting:** Beim AFI anfragen: Betrieb möglich? Welche Technik (Node.js + PostgreSQL)? Adresse, z. B. digitalekompetenzen.sz.ch? | Vercel/Neon sind US-Anbieter (Frankfurt) und nur für den Prototyp gedacht. Die Anwendung ist ohne Umbau portierbar. |
 | 2 | **Betriebsverantwortung:** Wer übernimmt Updates, Sicherheit und Backups? | Ein «kleines PHP-Script» (Idee aus der Teammail) unterschätzt den Umfang. |
 | 3 | **Datenschutz:** Die kantonale Datenschutzstelle früh einbeziehen. | Daten sind pseudonym, nicht anonym (Kontextangaben, Code verknüpft Erhebungen). Die kantonale Auswertung braucht eine klare Information an die Lehrpersonen. |
-| 4 | **Freitext** bei eigenen Fragen behalten oder streichen? | In Abklärung mit dem Datenschutz. Heute: möglich, erscheint nur bei der Schule und erst ab zehn Antworten. Streichen wäre ein kleiner Eingriff. |
+| 4 | **Freitext** bei eigenen Fragen behalten oder streichen? Schwelle 3 bestätigen? | In Abklärung mit dem Datenschutz. Heute: möglich, erscheint nur bei der Schule und **seit 5.10. ab drei Antworten** (vorher zehn; `TEXT_MIN`). Risiko: In kleinen Schulhäusern lassen sich drei wörtliche Antworten eher einer Person zuordnen (Schreibstil, Inhalt). Streichen oder Ändern wäre ein kleiner Eingriff. |
 | 5 | **Aufbewahrung und Löschung:** Wie lange bleiben Erhebungen, Protokoll und Zähler gespeichert? Wer löscht? | In Abklärung mit dem Datenschutz. Danach automatische Löschung einbauen. |
 | 6 | **Ansprache** Du oder Sie? | Der Webguide verlangt «Sie». Die Texte sind heute teils neutral formuliert. |
 | 7 | **Lizenz der Itemtexte** (DigCompEdu Bavaria / ALP Dillingen) klären | Gilt auch für die Kurzfassung, weil sie auf den Originaltexten aufbaut. |
@@ -151,7 +151,7 @@ Insgesamt 151 automatisierte Tests.
 - [x] `TESTMODUS` und `MIN_GROUP_SIZE` entfallen (30.9.). In Vercel können beide Variablen gelöscht werden; sie werden nicht mehr gelesen.
 - [ ] Für den Echtbetrieb neue Secrets (`SESSION_SECRET`, `CODE_PEPPER`) und ein neues Admin-Passwort. `CODE_PEPPER` danach nie mehr ändern.
 - [x] Rate Limits für Anmeldung, Codes, Einladungs- und Erhebungslinks, mit Warnung bei mehr Teilnahmen als erwartet (29.9.)
-- [x] Automatisierte Tests im Repository (`npm test`, 151 Prüfungen) (29./30.9., 4./5.10.)
+- [x] Automatisierte Tests im Repository (`npm test`, 153 Prüfungen) (29./30.9., 4./5.10.)
 - [x] Protokoll (Reiter «Protokoll» im Admin) (29.9.)
 - [x] **Mailversand vom Server:** verworfen (5.10.), bleibt unkonfiguriert
 - [x] **Einladungen ohne Mailserver** (umgesetzt 5.10., Ergebnis siehe «Stand in Kürze»). Konzept zur Nachvollziehbarkeit:

@@ -104,7 +104,7 @@ window.Block = (function () {
     scale: 'Eine Aussage mit vier Stufen von «trifft nicht zu» bis «trifft voll zu».',
     levels: 'Drei bis sechs Aussagen, die eine Entwicklung beschreiben, wie im Kompetenzteil.',
     choice: 'Zwei bis zehn Antwortoptionen, eine oder mehrere wählbar.',
-    text: 'Offene Antwort. Sichtbar erst ab zehn Antworten.',
+    text: 'Offene Antwort. Sichtbar erst ab drei Antworten.',
   };
   const RANGE = { levels: [3, 6], choice: [2, 10] };
   // «Eigene Stufenaussagen» wird nicht mehr angeboten (Entscheid 5.10.2026); bestehende Fragen dieser Art
@@ -223,7 +223,7 @@ window.Block = (function () {
       <p class="small muted">Zusätzlich gibt es immer die Option «Dazu hatte ich bisher keine Gelegenheit».</p>`;
     if (q.type === 'choice') extra = `<div class="field"><label for="qe-${i}-opts" class="small">Antwortoptionen: eine pro Zeile (2 bis 10)</label><textarea id="qe-${i}-opts" rows="3" data-i="${i}" data-f="options" ${inv('opts')}>${esc((q.options || []).join('\n'))}</textarea>${errP('opts')}</div>
       <label class="check small"><input type="checkbox" id="qe-${i}-multi" data-i="${i}" data-f="multiple" ${q.multiple ? 'checked' : ''}><span>Mehrere Antworten erlaubt</span></label>`;
-    if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Sie erscheinen erst ab zehn Antworten und in zufälliger Reihenfolge. Offene Fragen sparsam einsetzen.</p>`;
+    if (q.type === 'text') extra = `<p class="small muted">Freitexte können Lehrpersonen erkennbar machen. Sie erscheinen erst ab drei Antworten und in zufälliger Reihenfolge. Offene Fragen sparsam einsetzen.</p>`;
     return `<div class="qedit${err ? ' has-error' : ''}">${head}
       <div class="qedit-body" id="qe-${i}-body">
         <div class="field"><label for="qe-${i}-text" class="small">${q.type === 'scale' ? 'Aussage' : 'Frage'}</label><textarea id="qe-${i}-text" rows="1" maxlength="300" data-i="${i}" data-f="text" ${inv('text')}>${esc(q.text)}</textarea>${errP('text')}</div>

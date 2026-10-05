@@ -1,7 +1,8 @@
 import { client, checker, invitedClient, teacher, ADMIN } from './lib.mjs';
+import { aggregateCustom } from '../lib/customblock.js';
 
 // Sicherheit und Datenschutz. Ohne Mindestgruppe: Auswertungen ab der ersten Teilnahme,
-// Freitexte bei eigenen Fragen weiterhin erst ab 10 Antworten.
+// Freitexte bei eigenen Fragen erst ab 3 Antworten.
 export default async function (B) {
   const { ok, expectErr, res } = checker('Sicherheit');
 
@@ -73,13 +74,16 @@ export default async function (B) {
   for (let i = 0; i < 5; i++) await teacher(B, cA.links[0].token, { custom: { [q1]: 2 + (i % 3), [q3]: 'Antwort ' + i, ...(i === 0 ? { [q2]: 4 } : {}) } });
   for (let i = 0; i < 2; i++) await teacher(B, cB.links[0].token);
 
-  // Eigene Fragen: keine Mindestanzahl, Freitexte erst ab 10
+  // Eigene Fragen: keine Mindestanzahl, Freitexte erst ab 3
   const aA = await rek('GET', 'leitung/aggregate?source=c:' + cA.id);
   const cq = Object.fromEntries(aA.custom.questions.map((q) => [q.id, q]));
   ok(aA.n === 6 && !aA.tooFew, 'Erhebung A mit 6 Teilnahmen ausgewertet');
   ok(cq[q1].answered === 6 && !cq[q1].suppressed, 'Frage von allen beantwortet: ausgewiesen');
   ok(cq[q2].answered === 2 && !cq[q2].suppressed, 'Frage von 2 beantwortet: ausgewiesen (keine Mindestanzahl)');
-  ok(cq[q3].suppressed && cq[q3].texts === undefined, 'Freitexte von 6 Personen: nicht ausgewiesen (mindestens 10)');
+  ok(!cq[q3].suppressed && cq[q3].texts.length === 6, 'Freitexte von 6 Personen: ausgewiesen (ab 3)');
+  const tb = { questions: [{ id: 'qtext01', type: 'text', text: 'T' }] };
+  ok(aggregateCustom(tb, [{ qtext01: 'a' }, { qtext01: 'b' }]).questions[0].suppressed, 'Freitexte von 2 Personen: nicht ausgewiesen');
+  ok(!aggregateCustom(tb, [{ qtext01: 'a' }, { qtext01: 'b' }, { qtext01: 'c' }]).questions[0].suppressed, 'Freitexte von 3 Personen: ausgewiesen');
 
   // Ohne Mindestgruppe: auch kleine Erhebungen und die ganze Runde werden ausgewertet
   const aR = await rek('GET', 'leitung/aggregate?source=r:' + round);
