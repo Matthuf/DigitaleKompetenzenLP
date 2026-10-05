@@ -533,12 +533,12 @@ ${signature()}`;
       ? `<p>Hier eröffnen und verwalten Sie Erhebungen. Die Ergebnisse sehen Sie unter «Auswertung».</p>
         <details class="intro-more" id="intro-more" ${introOpen ? 'open' : ''}><summary>Das können Sie hier tun</summary>
         <ul>
-          <li><b>Link weitergeben:</b> Jedes Schulhaus hat einen eigenen Teilnahmelink. Sie geben ihn den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code) oder der Schulleitung, die ihn weiterleitet.</li>
+          <li><b>Link weitergeben:</b> Sie können für jedes Schulhaus einen eigenen Teilnahmelink erstellen. Sie oder die Schulleitungen geben diesen den Lehrpersonen weiter (Link kopieren, E-Mail-Vorlage oder QR-Code).</li>
           <li><b>Rücklauf verfolgen:</b> Tragen Sie pro Schulhaus die Anzahl Lehrpersonen ein. Dann sehen Sie, wie viele schon teilgenommen haben.</li>
-          <li><b>Zieldatum setzen:</b> «Ausfüllen bis» erscheint für die Lehrpersonen. Die Erhebung schliesst nicht automatisch.</li>
-          <li><b>Eigene Fragen ergänzen:</b> Beliebig viele zusätzliche Fragen. Sobald die erste Person abgeschlossen hat, sind sie gesperrt.</li>
-          <li><b>Schliessen:</b> Danach sind keine neuen Teilnahmen mehr möglich. Wieder öffnen geht jederzeit.</li>
-          <li><b>Eigene Erhebung:</b> Zusätzlich zur Vorgabe AVS, zum Beispiel ein Jahr später zum Vergleich. Möglich für Schulhäuser, die an der Vorgabe teilgenommen haben und deren Erhebung abgeschlossen ist.</li>
+          <li><b>Zieldatum setzen:</b> «Ausfüllen bis» erscheint für die Lehrpersonen. Die Erhebung schliesst jedoch nicht automatisch. Dies muss in jedem Fall manuell geschehen.</li>
+          <li><b>Eigene Fragen ergänzen:</b> Sie können beliebig viele zusätzliche Fragen erstellen. Sobald die erste Person die Erhebung abgeschlossen hat, ist das Erstellen neuer Fragen für die jeweilige Erhebung gesperrt.</li>
+          <li><b>Schliessen:</b> Nach dem Schliessen einer Erhebung sind keine neuen Teilnahmen mehr möglich. Wieder öffnen ist allerdings jederzeit möglich.</li>
+          <li><b>Eigene Erhebung:</b> Zusätzlich zur durch das AVS vorgegebenen Erhebung ist es möglich, in Zukunft weitere Erhebungen vorzunehmen. So können Veränderungen über die Zeit nachverfolgt werden.</li>
         </ul>
         <p>Die Teilnahme dauert rund 20 Minuten und ist ohne Namen. Sie sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.</p></details>`
       : `<p>Hier finden Sie die Erhebungen Ihres Schulhauses und den Teilnahmelink für Ihre Lehrpersonen. Die Ergebnisse sehen Sie unter «Auswertung».</p>
