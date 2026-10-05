@@ -31,7 +31,7 @@ Claude-Session: <aktuelle Session-URL>
 ## Befehle
 
 ```bash
-npm test                      # 147 Prüfungen, müssen alle grün sein
+npm test                      # 150 Prüfungen, müssen alle grün sein
 python3 build.py              # erzeugt dist/, public/assets/core.js, items.js, lib/items.json
 python3 data/excel_to_json.py # Excel-Masterdatei -> data/items.json (danach build.py)
 python3 docs/build_handout.py # Handout für Rektorate als PDF

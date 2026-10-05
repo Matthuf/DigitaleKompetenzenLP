@@ -150,25 +150,36 @@
       }).join('')).join('')}</tbody></table></div>`;
   }
 
-  // Einladungs- bzw. Passwort-Link anzeigen, mit E-Mail-Vorlage (keine Mails vom Server)
+  /* Einladungs- bzw. Passwort-Link mit E-Mail-Vorlage. Der Server verschickt keine Mails (Entscheid 5.10.2026):
+   * Die Person verschickt die Einladung selbst über ihr E-Mail-Programm (mailto mit eingesetzten Angaben).
+   * Einladungslink und Teilnahmelink stehen bewusst nie in derselben Mail: Die Erhebungs-Mail wird weitergeleitet,
+   * und wer einen mitgeschickten Einladungslink einlöst, übernimmt den Zugang. */
   const inviteLink = (token) => `${location.origin}/einladung/${token}`;
   function inviteMail(o) {
     const link = inviteLink(o.token);
-    const subject = o.reset ? 'Neues Passwort: Selbsteinschätzung digitale Kompetenzen' : 'Einladung: Selbsteinschätzung digitale Kompetenzen';
+    const leader = /^Schulleitung\b/.test(o.roleText || '');
+    // Betreff klar anders als die Erhebungs-Mail («Erhebung … eröffnet»), weil beide kurz nacheinander ankommen können
+    const subject = o.reset ? 'Neues Passwort: Selbsteinschätzung digitale Kompetenzen'
+      : `Ihr persönlicher Zugang: Selbsteinschätzung digitale Kompetenzen${o.roleText ? ' (' + o.roleText.trim() + ')' : ''}`;
+    const personal = 'Der Link ist persönlich. Bitte leiten Sie diese E-Mail nicht weiter: Wer den Link öffnet, richtet damit den Zugang für sich ein.';
     const body = o.reset
-      ? `Guten Tag${o.name ? ' ' + o.name : ''}\n\nÜber den folgenden Link legen Sie für den Zugang «${o.username}» ein neues Passwort fest:\n\n${link}\n\nDer Link gilt 24 Stunden (bis ${dateTime(o.expires_at)}) und nur einmal.\n\nFreundliche Grüsse\n${o.from || ''}`
-      : `Guten Tag${o.name ? ' ' + o.name : ''}\n\nSie erhalten einen Zugang zur Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» des Kantons Schwyz, als ${o.roleText}. Über den folgenden Link legen Sie Benutzername und Passwort selbst fest:\n\n${link}\n\nDer Link gilt bis ${date(o.expires_at)} und nur einmal. Danach melden Sie sich unter ${location.origin}/leitung an.\n\nFreundliche Grüsse\n${o.from || ''}`;
+      ? `Guten Tag${o.name ? ' ' + o.name : ''}\n\nÜber den folgenden Link legen Sie für den Zugang «${o.username}» ein neues Passwort fest:\n\n${link}\n\nDer Link gilt 24 Stunden (bis ${dateTime(o.expires_at)}) und nur einmal. ${personal}\n\nFreundliche Grüsse\n${o.from || ''}`
+      : `Guten Tag${o.name ? ' ' + o.name : ''}\n\nSie erhalten einen persönlichen Zugang zur Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» des Kantons Schwyz, als ${o.roleText}. Über den folgenden Link legen Sie Benutzername und Passwort selbst fest:\n\n${link}\n\nDer Link gilt bis ${date(o.expires_at)} und nur einmal. Danach melden Sie sich unter ${location.origin}/leitung an.${leader ? ' Dort finden Sie unter «Erhebungen» den Link für Ihre Lehrpersonen, den Rücklauf und später die Auswertung Ihres Schulhauses.' : ''}\n\n${personal}\n\nFreundliche Grüsse\n${o.from || ''}`;
     return { link, subject, body };
   }
+  const mailtoHref = (to, m) => `mailto:${encodeURIComponent(to || '')}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}`;
+  // Hauptaktion: im E-Mail-Programm öffnen (Empfänger, Betreff, Text eingesetzt). «Link kopieren» als Nebenweg.
   function invitePanel(el, o) {
     const m = inviteMail(o);
+    const who = o.name || o.email || o.username || '';
     el.hidden = false;
     el.innerHTML = `<div class="stack" style="gap:10px">
-      <p><b>${o.reset ? 'Link für ein neues Passwort' : 'Einladungslink'}${o.email ? ' für ' + esc(o.email) : o.username ? ' für ' + esc(o.username) : ''}</b></p>
-      <div class="row"><button class="btn secondary small" type="button" data-inv-copy>Link kopieren</button>
-        <a class="btn secondary small" href="mailto:${encodeURIComponent(o.email || '')}?subject=${encodeURIComponent(m.subject)}&body=${encodeURIComponent(m.body)}">E-Mail öffnen</a>
+      <p><b>${o.reset ? 'Link für ein neues Passwort' : 'Einladung'}${who ? ' für ' + esc(who) : ''} bereit</b></p>
+      <p class="small">${o.reset ? 'Jetzt' : 'Jetzt die Einladung'} im E-Mail-Programm verschicken: ${o.email ? 'Empfänger, Betreff und Text sind eingesetzt.' : 'Betreff und Text sind eingesetzt, die Adresse tragen Sie selbst ein.'}${o.renewed ? ' Der bisherige Link ist ab sofort ungültig.' : ''}</p>
+      <div class="row"><a class="btn small" data-inv-mail href="${esc(mailtoHref(o.email, m))}">Im E-Mail-Programm öffnen</a>
+        <button class="btn quiet small" type="button" data-inv-copy>Link kopieren</button>
         <button class="btn quiet small" type="button" data-inv-close>Ausblenden</button></div>
-      <p class="small muted">Gilt bis ${o.reset ? dateTime(o.expires_at) : date(o.expires_at)} und nur einmal. Der Link ist nur jetzt verfügbar; bei Bedarf später ${o.reset ? '«Link für neues Passwort»' : '«Neuer Link»'} erneut wählen.</p>
+      <p class="small muted">Gilt bis ${o.reset ? dateTime(o.expires_at) : date(o.expires_at)} und nur einmal. Der Link ist nur jetzt verfügbar. Ist die E-Mail nicht angekommen, später ${o.reset ? '«Link für neues Passwort»' : '«Erneut senden»'} wählen.</p>
       <details class="small"><summary style="cursor:pointer">Link anzeigen</summary><p style="margin-top:6px"><code style="word-break:break-all">${esc(m.link)}</code></p></details></div>`;
     el.querySelector('[data-inv-copy]').addEventListener('click', (e) => copyText(m.link, e.currentTarget));
     el.querySelector('[data-inv-close]').addEventListener('click', () => { el.hidden = true; });
@@ -181,10 +192,10 @@
     return `<button type="button" class="chip-status ${cls}" title="${esc(tip)}" aria-expanded="false" data-chip>${esc(label)}</button><span class="chip-detail small" hidden>${esc(tip)}</span>`;
   }
   function inviteChip(i) {
-    if (i.expired) return statusChip('chip-grey', 'Einladung abgelaufen', `Der Link ist am ${date(i.expires_at)} abgelaufen. Mit «Erneut senden» bzw. «Neuer Link» einen neuen Link erstellen.`);
+    if (i.expired) return statusChip('chip-grey', 'Einladung abgelaufen', `Der Link ist am ${date(i.expires_at)} abgelaufen. Mit «Erneut senden» einen neuen Link erstellen und verschicken.`);
     if (i.mail_status === 'sent') return statusChip('chip-orange', 'Verschickt · gültig bis ' + date(i.expires_at), `Per E-Mail verschickt am ${dateTime(i.mail_sent_at)} an ${i.email}. Noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}.`);
     if (i.mail_status === 'failed') return statusChip('chip-red', 'Versand fehlgeschlagen', `${i.mail_error || 'Die E-Mail konnte nicht verschickt werden.'} Erneut senden oder einen neuen Link erstellen und selbst weitergeben.`);
-    return statusChip('chip-grey', 'Eingeladen · gültig bis ' + date(i.expires_at), `Nicht per E-Mail verschickt${i.email ? '' : ' (keine E-Mail-Adresse angegeben)'}. Der Link muss selbst weitergegeben werden. Gültig bis ${date(i.expires_at)}.`);
+    return statusChip('chip-grey', 'Eingeladen · gültig bis ' + date(i.expires_at), `Einladung erstellt am ${date(i.created_at)}, noch nicht angenommen. Der Link gilt bis ${date(i.expires_at)}. Ist die E-Mail nicht angekommen, mit «Erneut senden» einen neuen Link verschicken; der bisherige wird damit ungültig.`);
   }
   function userChip(u) {
     return statusChip('chip-green', 'Zugang aktiv', `Zugang eingerichtet am ${date(u.created_at)}. Letzte Anmeldung: ${u.last_login ? dateTime(u.last_login) : 'noch keine'}.`);
@@ -216,5 +227,5 @@
     if (m.status === 'failed') el.insertAdjacentHTML('afterbegin', `<p class="small" style="margin-bottom:10px"><b>Die E-Mail an ${esc(m.to || o.email || '')} konnte nicht verschickt werden.</b> ${esc(m.error || '')} Bitte den Link selbst weitergeben oder später «Erneut senden».</p>`);
   }
 
-  window.UI = { inviteChip, userChip, bindChips, inviteResult, ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, richText, introHTML, levelTag, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel };
+  window.UI = { inviteChip, userChip, bindChips, inviteResult, ITEMS, LV, $, $$, esc, fmt, date, dueShort, dueLong, duePast, api, levelsStrip, richText, introHTML, levelTag, radarSVG, meter, badge, download, today, confirmButton, copyText, heatTable, inviteLink, inviteMail, invitePanel, mailtoHref };
 })();

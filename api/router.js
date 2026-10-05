@@ -387,15 +387,16 @@ on('GET', 'leitung/context', async ({ req }) => {
     const leaders = await q(`select u.school_id, coalesce(u.display_name, u.username) as name, u.email from users u
                                join schools s on s.id = u.school_id where s.traeger_id = $1 and u.role = 'leitung' order by u.created_at`, [u.tid]);
     // Offene Einladungen zählen für die Adresse mit (z. B. aus dem Assistenten), aber nicht als Zugang
-    const invited = await q(`select i.school_id, i.name, i.email from invitations i join schools s on s.id = i.school_id
-                               where s.traeger_id = $1 and i.kind = 'invite' and i.role = 'leitung' and i.used_at is null and i.email is not null
+    const invited = await q(`select i.school_id, i.name, i.email, i.expires_at < now() as expired from invitations i join schools s on s.id = i.school_id
+                               where s.traeger_id = $1 and i.kind = 'invite' and i.role = 'leitung' and i.used_at is null
                                order by i.created_at`, [u.tid]);
     schools.forEach((x) => {
       x.leaders = leaders.filter((l) => l.school_id === x.id).map(({ name, email }) => ({ name, email }));
       const known = new Set(x.leaders.map((l) => (l.email || '').toLowerCase()));
-      invited.filter((l) => l.school_id === x.id && !known.has(l.email.toLowerCase())).forEach(({ name, email }) => {
-        known.add(email.toLowerCase());
-        x.leaders.push({ name, email, invited: true });
+      // Auch Einladungen ohne Adresse: Die Erhebungs-Mail verweist dann auf die separate Einladung (Empfänger trägt man selbst ein)
+      invited.filter((l) => l.school_id === x.id && !(l.email && known.has(l.email.toLowerCase()))).forEach(({ name, email, expired }) => {
+        if (email) known.add(email.toLowerCase());
+        x.leaders.push({ name, email, invited: true, expired });
       });
     });
   }
@@ -640,19 +641,21 @@ async function mailInvite(id, token, actor, req) {
     const until = new Date(i.expires_at).toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich' });
     const text = `Guten Tag${i.name ? ' ' + i.name : ''}
 
-Sie erhalten einen Zugang zur Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» des Kantons Schwyz, als ${roleText(i)}. ${what}
+Sie erhalten einen persönlichen Zugang zur Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» des Kantons Schwyz, als ${roleText(i)}. ${what}
 
 Über den folgenden Link legen Sie Benutzername und Passwort selbst fest:
 ${base}/einladung/${token}
 
 Der Link gilt bis ${until} und nur einmal. Danach melden Sie sich unter ${base}/leitung an.
+
+Der Link ist persönlich. Bitte leiten Sie diese E-Mail nicht weiter: Wer den Link öffnet, richtet damit den Zugang für sich ein.
 ${i.creator_email ? '\nBei Fragen antworten Sie einfach auf diese E-Mail.\n' : byAvs ? '\nBei Fragen: avs@sz.ch\n' : ''}
 Freundliche Grüsse
 ${sender}
 
 --
 Automatisch verschickt über die Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen», Amt für Volksschulen und Sport, Kanton Schwyz.`;
-    r = await sendMail({ to: i.email, subject: `Einladung: Selbsteinschätzung digitale Kompetenzen (${roleText(i)})`, text, replyTo: i.creator_email });
+    r = await sendMail({ to: i.email, subject: `Ihr persönlicher Zugang: Selbsteinschätzung digitale Kompetenzen (${roleText(i)})`, text, replyTo: i.creator_email });
   }
   await q(`update invitations set mail_status = $1, mail_sent_at = case when $1 = 'sent' then now() else mail_sent_at end, mail_error = $2 where id = $3`,
     [r.ok ? 'sent' : 'failed', r.ok ? null : r.error, id]);

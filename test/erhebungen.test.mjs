@@ -17,9 +17,16 @@ export default async function (B) {
   const b = rc.schools.find((x) => x.id === S['Schulhaus B']), a = rc.schools.find((x) => x.id === S['Schulhaus A']);
   ok(b.leaders.length === 1 && b.leaders[0].email === 'sl.b@example.ch' && a.leaders.length === 0, 'Rektorat: Schulleitung pro Schulhaus bekannt');
   // Offene Einladung: Adresse für die E-Mail-Vorlage bekannt, aber als «eingeladen» markiert
-  await rek('POST', 'leitung/invitations', { role: 'leitung', schoolId: S['Schulhaus A'], name: 'Anna Aebi', email: 'sl.a@example.ch' });
+  const invA = await rek('POST', 'leitung/invitations', { role: 'leitung', schoolId: S['Schulhaus A'], name: 'Anna Aebi', email: 'sl.a@example.ch' });
+  // Ohne Mailserver: Der Klartext-Link kommt nur bei der Erzeugung zurück (für das E-Mail-Programm, z. B. am Ende des Assistenten)
+  ok(/^[\w-]{20,}$/.test(invA.token) && invA.expires_at && invA.mail.status === null, 'Einladung ohne Mailserver: Link und Ablaufdatum zurück, nichts verschickt');
   const a2 = (await rek('GET', 'leitung/context')).schools.find((x) => x.id === S['Schulhaus A']);
-  ok(a2.leaders.length === 1 && a2.leaders[0].email === 'sl.a@example.ch' && a2.leaders[0].invited === true, 'Rektorat: offene Einladung liefert Adresse der Schulleitung');
+  ok(a2.leaders.length === 1 && a2.leaders[0].email === 'sl.a@example.ch' && a2.leaders[0].invited === true && a2.leaders[0].expired === false,
+    'Rektorat: offene, gültige Einladung liefert Adresse der Schulleitung');
+  await rek('POST', 'leitung/invitations', { role: 'leitung', schoolId: S['Schulhaus A'], name: 'Co-Leitung ohne Adresse' });
+  const a3 = (await rek('GET', 'leitung/context')).schools.find((x) => x.id === S['Schulhaus A']);
+  ok(a3.leaders.length === 2 && a3.leaders.some((l) => l.invited && !l.email && l.name === 'Co-Leitung ohne Adresse'), 'Einladung ohne Adresse zählt für die Erhebungs-Mail mit');
+  ok(!JSON.stringify(a2).includes(invA.token), 'Kontext enthält den Einladungslink nicht (sonst könnte er in die Erhebungs-Mail gelangen)');
   const sc0 = await sl('GET', 'leitung/context');
   ok(sc0.schools.length === 1 && !('leaders' in sc0.schools[0]), 'Schulleitung erhält keine Kontaktliste');
 

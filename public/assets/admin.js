@@ -81,7 +81,7 @@
         <td><div class="row" style="gap:4px"><button class="btn quiet" type="button" data-reset="${u.id}">Link für neues Passwort</button><span class="confirm" data-del="${u.id}"></span></div></td></tr>`).join('')}</tbody>`
       : `<tbody><tr><td class="muted">Noch kein Zugang für diesen Schulträger.</td></tr></tbody>`;
     $('#inv-open').innerHTML = invs.length ? `<h3>Offene Einladungen</h3><ul class="list-plain team-list">${invs.map((i) => `<li><span class="row" style="gap:6px 10px"><span>${esc(i.name || i.email || 'Ohne Namen')} <span class="small muted">· ${esc(i.email || '')} · ${i.role === 'traeger' ? 'Rektorat/Hauptschulleitung' : 'Schulleitung ' + esc(i.school_name || '')}</span></span>${UI.inviteChip(i)}</span>
-      <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">${i.can_mail ? 'Erneut senden' : 'Neuer Link'}</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>` : '';
+      <span class="row" style="gap:6px"><button class="btn quiet small" type="button" data-irenew="${i.id}">Erneut senden</button><span class="confirm" data-idel="${i.id}"></span></span></li>`).join('')}</ul>` : '';
     UI.bindChips($('#inv-open'));
     const roleText = (i) => (i.role === 'traeger' || !i.school_name ? 'Rektorat/Hauptschulleitung ' + t.name : 'Schulleitung ' + i.school_name);
     $$('[data-reset]').forEach((b) => b.addEventListener('click', async () => {
@@ -94,7 +94,7 @@
       const i = invs.find((x) => x.id === b.dataset.irenew);
       const r = await api('POST', `admin/invitations/${i.id}/renew`);
       await renderPanel();
-      UI.inviteResult($('#pw-once'), r, { email: i.email, name: i.name, roleText: roleText(i), from: 'Amt für Volksschulen und Sport' });
+      UI.inviteResult($('#pw-once'), r, { email: i.email, name: i.name, roleText: roleText(i), from: 'Amt für Volksschulen und Sport', renewed: true });
     }));
     $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', `admin/invitations/${el.dataset.idel}`); renderPanel(); }, 'btn quiet small'));
     confirmButton($('#tr-delete'), 'Schulträger löschen', `«${t.name}» mit allen Schulen, Erhebungen und Antworten endgültig löschen?`, 'Ja, endgültig löschen', async () => {

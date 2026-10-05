@@ -205,6 +205,7 @@
       vorgabe: () => ctx.rounds.find((r) => r.active) || null,
       refresh: async () => { await refreshCtx(); try { t = await api('GET', 'leitung/team'); } catch { /* ohne Zahlen weiter */ } },
       reload: () => loadCampaigns(),
+      from: () => signature(),
     }));
   }
 
@@ -389,6 +390,9 @@ ${signature()}`;
     const due = l.campaign.due_date ? UI.dueLong(l.campaign.due_date) : '';
     const greet = all.length === 1 && all[0].name && !/^[a-z0-9._-]+$/.test(all[0].name) ? `Guten Tag ${all[0].name}` : 'Guten Tag';
     const intro = `Für die Selbsteinschätzung «Digitale Kompetenzen von Lehrpersonen» ist die Erhebung «${l.campaign.title}» eröffnet. ${l.school_name} nimmt mit einem eigenen Link teil.`;
+    // Eingeladen, Zugang noch nicht eingerichtet: Hinweis auf die separate Einladung. Der Einladungslink selbst steht nie
+    // in dieser Mail, weil sie an die Lehrpersonen weitergeleitet wird (wer ihn einlöst, übernähme den Zugang).
+    const pending = !leaders.length && all.some((x) => x.invited && !x.expired);
     const privacy = 'Die Teilnahme dauert etwa 20 Minuten und erfolgt ohne Namen. Schulleitung sowie Rektorat/Hauptschulleitung sehen nur zusammengefasste Ergebnisse, keine einzelnen Profile.';
     const body = leaders.length
       ? `${intro}
@@ -403,7 +407,9 @@ ${privacy}`
 
 Bitte leiten Sie den folgenden Link an Ihre Lehrpersonen weiter${due ? `, mit der Bitte um Teilnahme bis ${due}` : ''}:
 ${linkFor(l)}
-
+${pending ? `
+Für Ihren persönlichen Zugang erhalten Sie eine separate E-Mail mit einer Einladung (Betreff «Ihr persönlicher Zugang …»). Damit sehen Sie den Rücklauf und später die Auswertung Ihres Schulhauses.
+` : ''}
 ${privacy}`;
     return `${greet}
 
@@ -423,7 +429,7 @@ ${signature()}`;
       <p class="small muted">${leaders.length
         ? `Die Schulleitung hat einen eigenen Zugang und findet den Link auch nach dem Anmelden. Text bei Bedarf anpassen, dann kopieren oder im E-Mail-Programm öffnen.`
         : all.length
-          ? `Die Schulleitung von ${esc(l.school_name)} ist eingeladen, hat ihren Zugang aber noch nicht eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten. Die hinterlegte Adresse ist bereits eingetragen.`
+          ? `Die Schulleitung von ${esc(l.school_name)} ist eingeladen, hat ihren Zugang aber noch nicht eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten${all.some((x) => x.invited && !x.expired) ? ' und verweist auf die separate Einladung' : ''}.${to ? ' Die hinterlegte Adresse ist bereits eingetragen.' : ' Die Adresse tragen Sie selbst ein.'} Die Einladung selbst verschicken Sie unter <a href="#team">Schulen und Zugänge</a>, nie in dieser Mail, weil sie weitergeleitet wird.`
           : `Für ${esc(l.school_name)} ist noch kein Zugang für eine Schulleitung eingerichtet. Die Vorlage enthält darum den Link zum Weiterleiten. Empfänger selbst eintragen oder die Schulleitung unter <a href="#team">Schulen und Zugänge</a> einladen.`}</p>
       <div class="field"><label for="slm-to-${l.id}" class="small">An</label><input type="text" id="slm-to-${l.id}" value="${esc(to)}" placeholder="E-Mail der Schulleitung"></div>
       <div class="field"><label for="slm-subj-${l.id}" class="small">Betreff</label><input type="text" id="slm-subj-${l.id}" value="${esc(subject)}"></div>
@@ -649,10 +655,11 @@ ${signature()}`;
   const zyklenText = (z) => (z.length === 3 ? 'Zyklus 1–3' : z.length === 1 ? z[0] + ' (fest)' : z.join(', ').replace(/, Zyklus /g, ', '));
   const ZYKLEN_FOR = { primar: ['Zyklus 1', 'Zyklus 2'], sek: ['Zyklus 3'], gesamt: ['Zyklus 1', 'Zyklus 2', 'Zyklus 3'] };
 
-  // «Erneut senden» verschickt einen neuen Link per E-Mail; ohne Versand (oder ohne Adresse) gibt es einen neuen Link zum Weitergeben
-  const canMail = (i) => ctx.mail && i.email;
-  const inviteActions = (i) => `<button class="btn quiet small" type="button" data-irenew="${i.id}">${canMail(i) ? 'Erneut senden' : 'Neuer Link'}</button><span class="confirm" data-idel="${i.id}"></span>`;
-  const mailHint = () => (ctx.mail ? 'Die Einladung geht per E-Mail an die angegebene Adresse. Ohne Adresse erhalten Sie einen Link zum Weitergeben.' : 'Sie erhalten einen Link, den Sie der Person weitergeben.');
+  /* «Erneut senden» erzeugt einen neuen Link (der bisherige wird ungültig). Ohne Mailserver (Normalfall, Entscheid 5.10.2026)
+   * öffnet sich danach die Einladung im eigenen E-Mail-Programm; mit eingerichtetem SMTP verschickt der Server sie. */
+  const inviteActions = (i) => `<button class="btn quiet small" type="button" data-irenew="${i.id}">Erneut senden</button><span class="confirm" data-idel="${i.id}"></span>`;
+  const mailHint = () => (ctx.mail ? 'Die Einladung geht per E-Mail an die angegebene Adresse. Ohne Adresse erhalten Sie einen Link zum Weitergeben.'
+    : 'Danach öffnen Sie die Einladung in Ihrem E-Mail-Programm und verschicken sie selbst. Die Person legt Benutzername und Passwort selbst fest.');
 
   // Eine Zeile pro Person mit Zugang bzw. pro offener Einladung (gleich aufgebaut, damit Status und Aktionen untereinander stehen)
   function personRow(u, manage) {
@@ -807,7 +814,7 @@ ${signature()}`;
       try {
         const r = await api('POST', `leitung/invitations/${i.id}/renew`);
         await loadTeam();
-        UI.inviteResult(panelFor(i), r, { email: i.email, name: i.name, roleText: roleText(i), from: from() });
+        UI.inviteResult(panelFor(i), r, { email: i.email, name: i.name, roleText: roleText(i), from: from(), renewed: true });
       } catch (err) { const p = panelFor(i); p.hidden = false; p.textContent = err.message; }
     }));
     $$('[data-idel]').forEach((el) => confirmButton(el, 'Zurückziehen', 'Einladung zurückziehen?', 'Ja, zurückziehen', async () => { await api('DELETE', 'leitung/invitations/' + el.dataset.idel); loadTeam(); }, 'btn quiet small'));

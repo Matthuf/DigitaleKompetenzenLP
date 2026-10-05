@@ -10,7 +10,7 @@ window.Wizard = (function () {
 
   function open(h) {
     host = h;
-    st = { rahmen: null, idx: 0, erledigt: 0, neue: [''], gesamtName: '', invites: {}, due: '', title: '', busy: false, fehler: '', links: null };
+    st = { rahmen: null, idx: 0, erledigt: 0, neue: [''], gesamtName: '', invites: {}, versand: [], due: '', title: '', busy: false, fehler: '', links: null };
     // Wer schon Schulhäuser erfasst hat, hat den Rahmen bereits gewählt: nicht nochmals danach fragen
     if (host.schools().length) { st.rahmen = 'getrennt'; st.idx = 2; st.erledigt = 2; }
     if (!dlg) {
@@ -119,11 +119,30 @@ window.Wizard = (function () {
 
   const BILD = { rahmen: bildRahmen, haeuser: bildHaeuser, leitungen: bildLeitungen, eroeffnen: bildEroeffnen };
 
-  // Kein Linkverteilen im Assistenten: Die Einrichtung ist hier abgeschlossen.
-  // Die Teilnahmelinks stehen danach bei der Erhebung im Adminbereich.
+  /* Abschluss. Keine Teilnahmelinks im Assistenten: Diese stehen bei der Erhebung im Adminbereich.
+   * Wohl aber die Einladungen aus Schritt 3: Der Einladungslink existiert nur jetzt im Klartext (gespeichert ist nur
+   * ein Hash), und es gibt keinen Mailserver. Darum hier pro Schulleitung «Im E-Mail-Programm öffnen». */
   function fertig() {
-    return `<p class="wz-lead">Die Erhebung ist eingerichtet${st.rahmen === 'gesamt' ? '' : ` für ${schulhaeuser().length === 1 ? 'Ihr Schulhaus' : `Ihre ${schulhaeuser().length} Schulhäuser`}`}.</p>
-      <p class="wz-next"><b>Als Nächstes:</b> Im Adminbereich finden Sie bei der Erhebung die Teilnahmelinks für die Lehrpersonen, die E-Mail-Vorlagen, den QR-Code, den Rücklauf und die eigenen Fragen.</p>`;
+    const n = schulhaeuser().length;
+    return `<p class="wz-lead">Die Erhebung ist eingerichtet${st.rahmen === 'gesamt' ? '' : ` für ${n === 1 ? 'Ihr Schulhaus' : `Ihre ${n} Schulhäuser`}`}.</p>
+      ${st.versand.length ? versandBlock() : ''}
+      <p class="wz-next"><b>${st.versand.length ? 'Danach' : 'Als Nächstes'}:</b> Im Adminbereich finden Sie bei der Erhebung die Teilnahmelinks für die Lehrpersonen, die E-Mail-Vorlagen (an die Lehrpersonen und an die Schulleitung), den QR-Code, den Rücklauf und die eigenen Fragen.</p>`;
+  }
+  const mailOf = (v) => UI.inviteMail({ token: v.token, expires_at: v.expires_at, name: v.name, roleText: 'Schulleitung ' + v.school, from: host.from ? host.from() : '' });
+  function versandBlock() {
+    const mehr = st.versand.length > 1;
+    return `<section class="wz-send" aria-labelledby="wz-send-h">
+        <h3 id="wz-send-h">Einladung${mehr ? 'en' : ''} verschicken</h3>
+        <p class="small">Jede Schulleitung erhält ihre persönliche Einladung über Ihr E-Mail-Programm. Empfänger, Betreff und Text sind eingesetzt.
+          Die Links sind nur jetzt verfügbar; später lässt sich unter «Schulen und Zugänge» mit «Erneut senden» ein neuer Link verschicken.</p>
+        <ul class="list-plain wz-send-list">${st.versand.map((v, i) => `<li>
+          <div class="wz-send-who"><span><b>${esc(v.name || 'Schulleitung')}</b> <span class="muted">· ${esc(v.school)}</span></span>
+            <span class="small muted">${v.email ? esc(v.email) : 'keine Adresse angegeben'}</span></div>
+          <div class="row wz-send-acts" style="gap:8px">
+            <a class="btn ${v.offen ? 'quiet' : 'secondary'} small" data-send="${i}" href="${esc(UI.mailtoHref(v.email, mailOf(v)))}">Im E-Mail-Programm öffnen${mehr ? `<span class="sr-only"> (${esc(v.school)})</span>` : ''}</a>
+            <button class="btn quiet small" type="button" data-sendcopy="${i}">Link kopieren${mehr ? `<span class="sr-only"> (${esc(v.school)})</span>` : ''}</button>
+            ${v.offen ? '<span class="small wz-sent">✓ geöffnet</span>' : ''}</div></li>`).join('')}</ul>
+      </section>`;
   }
 
   function aktionen() {
@@ -145,6 +164,16 @@ window.Wizard = (function () {
     on('[data-inv-name]', 'input', (e) => { const id = e.target.dataset.invName; st.invites[id] = { ...(st.invites[id] || {}), name: e.target.value }; });
     on('[data-inv-mail]', 'input', (e) => { const id = e.target.dataset.invMail; st.invites[id] = { ...(st.invites[id] || {}), email: e.target.value }; });
     on('[data-copy]', 'click', (e) => copyText(location.origin + '/t/' + e.currentTarget.dataset.copy, e.currentTarget));
+    // Nach dem Öffnen markieren (ob tatsächlich verschickt wurde, lässt sich nicht feststellen). Kein neues Zeichnen
+    // im selben Klick, sonst bricht der Browser das Öffnen des mailto-Links ab.
+    on('[data-send]', 'click', (e) => {
+      const a = e.currentTarget, v = st.versand[+a.dataset.send];
+      if (v.offen) return;
+      v.offen = true;
+      a.classList.replace('secondary', 'quiet');
+      a.parentElement.insertAdjacentHTML('beforeend', '<span class="small wz-sent">✓ geöffnet</span>');
+    });
+    on('[data-sendcopy]', 'click', (e) => copyText(UI.inviteLink(st.versand[+e.currentTarget.dataset.sendcopy].token), e.currentTarget));
     on('[data-zurueck]', 'click', () => { lesen(); st.idx--; st.fehler = ''; draw(); });
     on('[data-abbruch]', 'click', () => dlg.close());
     on('[data-fertig]', 'click', () => dlg.close());
@@ -191,7 +220,13 @@ window.Wizard = (function () {
       .filter((x) => x.name || x.email);
     st.busy = true; draw();
     try {
-      for (const a of auftraege) await api('POST', 'leitung/invitations', { role: 'leitung', schoolId: a.id, name: a.name, email: a.email });
+      const namen = Object.fromEntries(schulhaeuser().map((x) => [x.id, x.name]));
+      for (const a of auftraege) {
+        const r = await api('POST', 'leitung/invitations', { role: 'leitung', schoolId: a.id, name: a.name, email: a.email });
+        // Vom Server verschickt (nur mit eingerichtetem SMTP): nicht nochmals anbieten
+        if (!(r.mail && r.mail.status === 'sent')) st.versand.push({ ...a, school: namen[a.id] || '', token: r.token, expires_at: r.expires_at });
+      }
+      st.invites = {};
       await host.refresh();
       st.busy = false; st.idx++; draw();
     } catch (err) { st.busy = false; st.fehler = err.message; draw(); }
