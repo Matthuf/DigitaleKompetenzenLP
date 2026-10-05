@@ -647,7 +647,7 @@ Sie erhalten einen persönlichen Zugang zur Selbsteinschätzung «Digitale Kompe
 ${base}/einladung/${token}
 
 Der Link gilt bis ${until} und nur einmal. Danach melden Sie sich unter ${base}/leitung an.
-
+${i.role === 'traeger' ? `\nKurzanleitung für Rektorate und Hauptschulleitungen (PDF, drei Seiten):\n${base}/kurzanleitung-rektorate.pdf\n` : ''}
 Der Link ist persönlich. Bitte leiten Sie diese E-Mail nicht weiter: Wer den Link öffnet, richtet damit den Zugang für sich ein.
 ${i.creator_email ? '\nBei Fragen antworten Sie einfach auf diese E-Mail.\n' : byAvs ? '\nBei Fragen: avs@sz.ch\n' : ''}
 Freundliche Grüsse

@@ -96,6 +96,8 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 
 **Eigene Fragen sichtbarer (5.10.):** Beim Testen übersehen. Solange keine eigenen Fragen erfasst und sie noch änderbar sind, steht in der Erhebungskarte ein Kasten mit rotem Rand: «Eigene Fragen (freiwillig) · Nur möglich, bevor die erste Lehrperson abschliesst, also am besten vor dem Verteilen der Links» und «Eigene Fragen hinzufügen». Danach wieder die ruhige Zeile. Im Pilot beobachten, ob der Bereich gefunden wird.
 
+**Kurzanleitung für Rektorate (5.10.):** auf den aktuellen Stand gebracht (Einladungen über das eigene E-Mail-Programm, eigene Fragen vor dem Verteilen der Links, «Erneut senden», Bericht (PDF), Freitexte ab drei; Überschrift «In zwei Schritten»). Weiterhin drei Seiten. Neu öffentlich unter `/kurzanleitung-rektorate.pdf` und in der Einladung an Rektorate verlinkt (mailto kann keine Anhänge). Für den Serienbrief des AVS den Link in den Mailtext aufnehmen. Nach jeder Änderung `python3 docs/build_handout.py`, das aktualisiert beide Dateien.
+
 Insgesamt 153 automatisierte Tests.
 
 **Offline-Version:** nur noch persönliche Selbsteinschätzung (Profil, Drucken/PDF, Datei für den eigenen Gebrauch). Keine Schulauswertung und keine eigenen Fragen mehr.

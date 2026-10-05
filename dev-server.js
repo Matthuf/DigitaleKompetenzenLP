@@ -9,7 +9,7 @@ const { default: handler } = await import('./api/router.js');
 
 const PORT = +process.env.PORT || 3000;
 const PUB = path.resolve('public');
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml', '.pdf': 'application/pdf' };
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');

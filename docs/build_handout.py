@@ -8,6 +8,7 @@ import asyncio, base64, datetime, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'docs/handout-rektorate.html'
 OUT = ROOT / 'docs/Handout_Rektorate_DigKomp_SZ.pdf'
+PUB = ROOT / 'public/kurzanleitung-rektorate.pdf'  # öffentlich, verlinkt in der Einladung an Rektorate
 LOGO = ROOT / 'src/logo-kanton-schwyz.png'
 MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
 
@@ -28,7 +29,8 @@ async def main() -> None:
         await page.pdf(path=str(OUT), format='A4', print_background=True,
                        margin={'top': '14mm', 'right': '15mm', 'bottom': '12mm', 'left': '15mm'})
         await browser.close()
-    print('PDF:', OUT)
+    import shutil; shutil.copyfile(OUT, PUB)
+    print('PDF:', OUT, '+', PUB)
 
 
 if __name__ == '__main__':
