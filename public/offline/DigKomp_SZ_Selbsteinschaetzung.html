@@ -114,7 +114,10 @@ select { padding: 10px 12px; border: 1px solid var(--ink-3); border-radius: 2px;
 .progressbar span { display: block; height: 100%; background: var(--red); width: 0; transition: width .3s; }
 .area-head { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
 .q { border: 0; margin: 0; padding: 28px 0; border-bottom: 1px solid var(--line); min-width: 0; }
-.q legend { padding: 0; font-size: 1.15rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+/* Titel als normales Element: Ohne float sitzt die legend auf der Oberkante des fieldset und das Padding
+   wirkt nur darunter (Titel klebte an der Trennlinie der vorherigen Frage). */
+.q legend { float: left; width: 100%; margin-bottom: 14px; padding: 0; font-size: 1.15rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.q legend + * { clear: both; }
 .q legend .qid { color: var(--red); font-variant-numeric: tabular-nums; }
 .q .hint { margin: 6px 0 14px; color: var(--ink-2); }
 .opts { display: flex; flex-direction: column; gap: 8px; }
