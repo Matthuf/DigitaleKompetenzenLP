@@ -5,8 +5,11 @@ und Sport (AVS). Umsetzung von Kapitel 4.4 der Strategie «Digitaler Wandel im B
 Grundlage: DigCompEdu. Prototyp, noch nicht im Echtbetrieb.
 
 **Vor der Arbeit lesen:** `README.md` (Aufbau, Rollen, Auswertungen, Betrieb).
-Offene Entscheide und der aktuelle Stand stehen im Projektdokument
-`claude/Offene_Punkte_DigKomp_SZ.md` (claude.ai-Projekt, über das Projects-Werkzeug).
+Offene Entscheide und der aktuelle Stand stehen in `docs/offene-punkte.md`.
+Nach jedem Arbeitspaket dort **gezielt mit Edit nachführen** (betroffene Zeilen, nicht die
+ganze Datei neu schreiben) und mit dem Code committen. Das Projektdokument
+`claude/Offene_Punkte_DigKomp_SZ.md` im claude.ai-Projekt verweist nur noch hierher und wird
+nicht mehr gepflegt.
 
 ## Zusammenarbeit
 
