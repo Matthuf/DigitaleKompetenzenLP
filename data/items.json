@@ -45,7 +45,7 @@
      "id": "1.1",
      "title": "Berufliche Kommunikation",
      "ki": false,
-     "intro": "Beispiele: E-Mail, Schulportal, Messenger der Schule, Elternkommunikation, Videokonferenz",
+     "intro": "Beispiele für berufliche Kommunikation: E-Mail, Schulportal, Messenger der Schule, Elternkommunikation, Videokonferenz",
      "levels": [
       {
        "level": 1,
@@ -111,7 +111,7 @@
      "id": "1.2",
      "title": "Kollegiale Zusammenarbeit",
      "ki": false,
-     "intro": "Beispiele: gemeinsame Ablage, Online-Plattform, Videokonferenz, Online-Communities für Lehrpersonen",
+     "intro": "Beispiele für kollegiale Zusammenarbeit: gemeinsame Ablage, Online-Plattform, Videokonferenz, Online-Communities für Lehrpersonen",
      "levels": [
       {
        "level": 1,
@@ -243,7 +243,7 @@
      "id": "1.4",
      "title": "Kontinuierliche Weiterentwicklung",
      "ki": false,
-     "intro": "Beispiele: Online-Kurse, Webinare, Erklärvideos, Fachblogs, Bildungsportale",
+     "intro": "Beispiele für kontinuierliche Weiterentwicklung: Online-Kurse, Webinare, Erklärvideos, Fachblogs, Bildungsportale",
      "levels": [
       {
        "level": 1,
@@ -317,7 +317,7 @@
      "id": "2.1",
      "title": "Auswählen digitaler Ressourcen",
      "ki": false,
-     "intro": "Beispiele: Arbeitsblätter, Lernvideos, Online-Quiz, Bildungsplattformen, offene Lernmaterialien (OER)",
+     "intro": "Beispiele für Auswählen digitaler Ressourcen: Arbeitsblätter, Lernvideos, Online-Quiz, Bildungsplattformen, offene Lernmaterialien (OER)",
      "levels": [
       {
        "level": 1,
@@ -383,7 +383,7 @@
      "id": "2.2",
      "title": "Erstellen und Anpassen digitaler Ressourcen",
      "ki": false,
-     "intro": "Beispiele: Präsentationen, interaktive Übungen, Erklärvideos, Lernpfade, digitale Lernumgebungen",
+     "intro": "Beispiele für Erstellen und Anpassen digitaler Ressourcen: Präsentationen, interaktive Übungen, Erklärvideos, Lernpfade, digitale Lernumgebungen",
      "levels": [
       {
        "level": 1,
@@ -449,7 +449,7 @@
      "id": "2.3",
      "title": "Organisieren, Schützen und Teilen digitaler Ressourcen",
      "ki": false,
-     "intro": "Beispiele: Ablage in der Cloud, Links teilen, Lernplattform, Urheberrecht, Schutz von Personendaten",
+     "intro": "Beispiele für Organisieren, Schützen und Teilen digitaler Ressourcen: Ablage in der Cloud, Links teilen, Lernplattform, Urheberrecht, Schutz von Personendaten",
      "levels": [
       {
        "level": 1,
@@ -523,7 +523,7 @@
      "id": "3.1",
      "title": "Lehren",
      "ki": false,
-     "intro": "Beispiele: Apps, Lernplattform, interaktive Wandtafel, Simulationen, Tools für die Zusammenarbeit",
+     "intro": "Beispiele für Lehren: Apps, Lernplattform, interaktive Wandtafel, Simulationen, Tools für die Zusammenarbeit",
      "levels": [
       {
        "level": 1,
@@ -589,7 +589,7 @@
      "id": "3.2",
      "title": "Lernbegleitung",
      "ki": false,
-     "intro": "Beispiele: automatisches Feedback, Chat, Umfrage, gemeinsames Online-Dokument, Lernverlauf auf der Plattform",
+     "intro": "Beispiele für Lernbegleitung: automatisches Feedback, Chat, Umfrage, gemeinsames Online-Dokument, Lernverlauf auf der Plattform",
      "levels": [
       {
        "level": 1,
@@ -655,7 +655,7 @@
      "id": "3.3",
      "title": "Kollaboratives Lernen",
      "ki": false,
-     "intro": "Beispiele: gemeinsame Online-Dokumente, Forum, Wiki, Projektplattform, virtueller Austausch",
+     "intro": "Beispiele für kollaboratives Lernen: gemeinsame Online-Dokumente, Forum, Wiki, Projektplattform, virtueller Austausch",
      "levels": [
       {
        "level": 1,
@@ -721,7 +721,7 @@
      "id": "3.4",
      "title": "Selbstgesteuertes Lernen",
      "ki": false,
-     "intro": "Beispiele: digitaler Lernplan, Lernjournal, Fortschrittsanzeige, E-Portfolio, Lernplattform",
+     "intro": "Beispiele für selbstgesteuertes Lernen: digitaler Lernplan, Lernjournal, Fortschrittsanzeige, E-Portfolio, Lernplattform",
      "levels": [
       {
        "level": 1,
@@ -795,7 +795,7 @@
      "id": "4.1",
      "title": "Lernstandserhebung",
      "ki": false,
-     "intro": "Beispiele: Quiz, Online-Umfrage, digitaler Test, Bewertungsraster, E-Portfolio, Peer-Feedback",
+     "intro": "Beispiele für Lernstandserhebung: Quiz, Online-Umfrage, digitaler Test, Bewertungsraster, E-Portfolio, Peer-Feedback",
      "levels": [
       {
        "level": 1,
@@ -861,7 +861,7 @@
      "id": "4.2",
      "title": "Analyse der Lernevidenz",
      "ki": false,
-     "intro": "Beispiele: Quiz, Bearbeitungsstand auf der Lernplattform, Umfrage, Auswertung in Tabellen, Learning Analytics",
+     "intro": "Beispiele für Analyse der Lernevidenz: Quiz, Bearbeitungsstand auf der Lernplattform, Umfrage, Auswertung in Tabellen, Learning Analytics",
      "levels": [
       {
        "level": 1,
@@ -927,7 +927,7 @@
      "id": "4.3",
      "title": "Feedback und Planung",
      "ki": false,
-     "intro": "Beispiele: Online-Übungen mit automatischer Rückmeldung, digitale Kommentare, Peer-Feedback, Umfragen",
+     "intro": "Beispiele für Feedback und Planung: Online-Übungen mit automatischer Rückmeldung, digitale Kommentare, Peer-Feedback, Umfragen",
      "levels": [
       {
        "level": 1,
@@ -1001,7 +1001,7 @@
      "id": "5.1",
      "title": "Barrierefreiheit und digitale Teilhabe",
      "ki": false,
-     "intro": "Beispiele: Zugang zu Geräten und Internet, Vorlesefunktion, einfache Sprache, barrierefreie Dokumente",
+     "intro": "Beispiele für Barrierefreiheit und digitale Teilhabe: Zugang zu Geräten und Internet, Vorlesefunktion, einfache Sprache, barrierefreie Dokumente",
      "levels": [
       {
        "level": 1,
@@ -1067,7 +1067,7 @@
      "id": "5.2",
      "title": "Differenzierung",
      "ki": false,
-     "intro": "Beispiele: Aufgaben auf verschiedenen Niveaus, adaptive Übungsprogramme, Lernpfade, individuelle Lernpläne",
+     "intro": "Beispiele für Differenzierung: Aufgaben auf verschiedenen Niveaus, adaptive Übungsprogramme, Lernpfade, individuelle Lernpläne",
      "levels": [
       {
        "level": 1,
@@ -1133,7 +1133,7 @@
      "id": "5.3",
      "title": "Schüleraktivierung",
      "ki": false,
-     "intro": "Beispiele: Lernspiele, interaktive Übungen, Erklärvideos der Lernenden, Simulationen, Robotik",
+     "intro": "Beispiele für Schüleraktivierung: Lernspiele, interaktive Übungen, Erklärvideos der Lernenden, Simulationen, Robotik",
      "levels": [
       {
        "level": 1,
@@ -1273,7 +1273,7 @@
      "id": "6.2",
      "title": "Suchen und Verarbeiten",
      "ki": false,
-     "intro": "Beispiele: Suchmaschinen und Suchfilter, Quellen vergleichen und zitieren, Diagramme lesen, Falschinformationen erkennen",
+     "intro": "Beispiele für Suchen und Verarbeiten: Suchmaschinen und Suchfilter, Quellen vergleichen und zitieren, Diagramme lesen, Falschinformationen erkennen",
      "levels": [
       {
        "level": 1,
@@ -1339,7 +1339,7 @@
      "id": "6.3",
      "title": "Kommunizieren und Kooperieren",
      "ki": false,
-     "intro": "Beispiele: Klassenchat, Online-Meeting, gemeinsame Dokumente, Netiquette, Peer-Feedback, Online-Diskussion",
+     "intro": "Beispiele für Kommunizieren und Kooperieren: Klassenchat, Online-Meeting, gemeinsame Dokumente, Netiquette, Peer-Feedback, Online-Diskussion",
      "levels": [
       {
        "level": 1,
@@ -1405,7 +1405,7 @@
      "id": "6.4",
      "title": "Produzieren und Präsentieren",
      "ki": false,
-     "intro": "Beispiele: Texte, Fotos, Präsentationen, Audio und Video, digitale Geschichten, Blog, E-Portfolio",
+     "intro": "Beispiele für Produzieren und Präsentieren: Texte, Fotos, Präsentationen, Audio und Video, digitale Geschichten, Blog, E-Portfolio",
      "levels": [
       {
        "level": 1,
@@ -1471,7 +1471,7 @@
      "id": "6.5",
      "title": "Analysieren und Reflektieren",
      "ki": false,
-     "intro": "Beispiele: Datenschutz, Urheberrecht, App-Berechtigungen, Fake News, digitaler Fussabdruck",
+     "intro": "Beispiele für Analysieren und Reflektieren: Datenschutz, Urheberrecht, App-Berechtigungen, Fake News, digitaler Fussabdruck",
      "levels": [
       {
        "level": 1,

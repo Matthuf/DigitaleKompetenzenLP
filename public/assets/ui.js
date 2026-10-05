@@ -34,12 +34,12 @@
 
   // Kurzfassung mit **Fettdruck** (aus der Excel) sicher als HTML
   const richText = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // Einleitung pro Teilbereich: «Worum es geht: …» und «Beispiele: …» je auf eigener Zeile
+  // Einleitung pro Teilbereich: «Worum es geht: …» und «Beispiele für …: …» je auf eigener Zeile
   function introHTML(s) {
     if (!s.intro) return '';
-    const parts = s.intro.split(/\s*(?=Beispiele:)/).filter(Boolean);
+    const parts = s.intro.split(/\s*(?=Beispiele(?: für [^:]+)?:)/).filter(Boolean);
     return `<div class="q-intro">${parts.map((p) => {
-      const m = p.match(/^(Worum es geht:|Beispiele:)\s*(.*)$/);
+      const m = p.match(/^(Worum es geht:|Beispiele(?: für [^:]+)?:)\s*(.*)$/);
       return `<p>${m ? `<span class="q-intro-label">${esc(m[1])}</span> ${esc(m[2])}` : esc(p)}</p>`;
     }).join('')}</div>`;
   }
