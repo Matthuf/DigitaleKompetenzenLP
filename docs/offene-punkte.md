@@ -1,6 +1,6 @@
 # Selbsteinschätzung digitale Kompetenzen SZ – offene Punkte
 
-Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP · Testinstanz: digitale-kompetenzen-lp.vercel.app
+Stand: 4. November 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP · Testinstanz: digitale-kompetenzen-lp.vercel.app
 
 ## Stand in Kürze
 
@@ -12,6 +12,7 @@ Stand: 5. Oktober 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP �
 - Zugänge per Einladung: Das AVS importiert nur die Schulträger (oberste Ebene). Schulhäuser und weitere Zugänge erfassen Rektorat bzw. Hauptschulleitung selbst.
 - Auswertungen: Netz, Balken, Verteilung, Boxplot, Wer braucht was?, Voraussetzungen, Gruppenvergleiche, Bericht als PDF, Bilder, CSV.
 - Eigene Fragen der Schulen; fobizz-Themenbereiche als Empfehlung.
+- Betrieb über Vercel und Neon (Frankfurt), auch für die Liveversion (Entscheid 4.11.). Ob deren Datensicherung genügt, ist offen (Entscheid 17).
 
 **Sicherheitsprüfung (29.9.):** Befunde umgesetzt: kein Ersatzschlüssel mehr, Sitzungen widerrufbar, Passwort-Links 24 Stunden, Rate Limits mit Warnung, AVS-Auswertung nur pro vorgegebener Erhebung, Protokoll. Die damals eingebaute Mindestgruppe 5 ist am 30.9. wieder entfernt worden (siehe unten).
 
@@ -112,8 +113,7 @@ Insgesamt 153 automatisierte Tests.
 
 | # | Frage | Hinweis |
 |---|---|---|
-| 1 | **Hosting:** Beim AFI anfragen: Betrieb möglich? Welche Technik (Node.js + PostgreSQL)? Adresse, z. B. digitalekompetenzen.sz.ch? | Vercel/Neon sind US-Anbieter (Frankfurt) und nur für den Prototyp gedacht. Die Anwendung ist ohne Umbau portierbar. |
-| 2 | **Betriebsverantwortung:** Wer übernimmt Updates, Sicherheit und Backups? | Ein «kleines PHP-Script» (Idee aus der Teammail) unterschätzt den Umfang. |
+| 2 | **Betriebsverantwortung:** Wer übernimmt Updates, Sicherheit und Backups? | Mit dem Entscheid für Vercel/Neon (4.11.) ist die Plattform geklärt, nicht aber, wer sie im AVS betreut (Konten, Abrechnung, Updates, Sicherheitsmeldungen, Stellvertretung). Ein «kleines PHP-Script» (Idee aus der Teammail) unterschätzt den Umfang. |
 | 3 | **Datenschutz:** Die kantonale Datenschutzstelle früh einbeziehen. | Daten sind pseudonym, nicht anonym (Kontextangaben, Code verknüpft Erhebungen). Die kantonale Auswertung braucht eine klare Information an die Lehrpersonen. |
 | 4 | **Freitext** bei eigenen Fragen behalten oder streichen? Schwelle 3 bestätigen? | In Abklärung mit dem Datenschutz. Heute: möglich, erscheint nur bei der Schule und **seit 5.10. ab drei Antworten** (vorher zehn; `TEXT_MIN`). Risiko: In kleinen Schulhäusern lassen sich drei wörtliche Antworten eher einer Person zuordnen (Schreibstil, Inhalt). Streichen oder Ändern wäre ein kleiner Eingriff. |
 | 5 | **Aufbewahrung und Löschung:** Wie lange bleiben Erhebungen, Protokoll und Zähler gespeichert? Wer löscht? | In Abklärung mit dem Datenschutz. Danach automatische Löschung einbauen. |
@@ -122,13 +122,14 @@ Insgesamt 153 automatisierte Tests.
 | 8 | **Vorgegebene Erhebung:** Zeitraum, Pilotschulen? Kommunikation an Rektorate? | Titel «Erhebung ICT-Kompetenzen Lehrpersonen Schwyz» (4.10.). Im Admin unter «Vorgabe AVS» erfassen bzw. umbenennen. Kommunikation: Eigene Erhebungen erst nach Abschluss der Vorgabe. |
 | 15 | **Zweite Vorgabe später** (z. B. zwei Jahre später, zum Vergleich)? | Technisch schon möglich, Daten bleiben pro Vorgabe getrennt. Vorher nötig: Zustand «Vorgabe abgeschlossen» (schliesst alle zugehörigen Erhebungen, kein Wiederöffnen), sonst ändern sich die Daten der ersten Vorgabe weiter; Vergleichsansicht zweier Vorgaben im AVS-Bereich; Items müssen gleich bleiben (`instrument_version`). |
 | 16 | **Schwelle drei Schulträger** mit dem Datenschutz bestätigen | Umgesetzt 4.10. (`MIN_TRAEGER` in `api/router.js`). Betrifft nur die kantonale AVS-Sicht; Personen-Mindestgruppe bleibt entfallen. |
-| 17 | **Datensicherung:** Speicherort, Aufbewahrung, tragbarer Datenverlust und Verantwortliche festlegen (5.10.) | Heute gibt es kein Backup, nur das «History Window» von Neon (je nach Tarif 6 Stunden bis max. 30 Tage, beim selben Anbieter, also kein Backup). **Pflicht vor dem Start der Vorgabe-Erhebung**, weil diese Daten nicht reproduzierbar sind. Zu entscheiden: (a) Speicherort in der Schweiz – AFI-Speicher oder Schweizer Cloud (z. B. Infomaniak, Exoscale), nicht GitHub; hängt mit Entscheid 1 zusammen; (b) Aufbewahrung, Vorschlag 7 tägliche, 4 wöchentliche, 3 monatliche Stände (kürzer, z. B. 30 Tage, falls der Datenschutz das verlangt); (c) tragbarer Datenverlust, Vorschlag max. 24 Stunden (tägliche Sicherung); (d) wer den Entschlüsselungsschlüssel verwahrt (mind. zwei Personen). Mit dem Datenschutz klären (Entscheid 3/5): Backups enthalten Namen und E-Mails der Zugänge und pseudonyme Antworten; gelöschte Daten bleiben bis zum Ablauf der Aufbewahrung im Backup – gehört in die Datenschutzerklärung. Technische Umsetzung siehe Abschnitt 3. |
+| 17 | **Datensicherung:** Genügt, was Vercel und Neon mitbringen? Sonst Speicherort, Aufbewahrung, tragbarer Datenverlust und Verantwortliche festlegen (5.10., Fragestellung präzisiert 4.11.) | **Zuerst abklären:** Welche Sicherung bietet Neon im gewählten Tarif (History Window, Snapshots, Dauer, Wiederherstellung durch uns selbst)? Vercel speichert keine Daten der Anwendung, nur Code und Umgebungsvariablen. Einschätzung: Das «History Window» von Neon (je nach Tarif 6 Stunden bis max. 30 Tage) liegt beim selben Anbieter und im selben Konto; es schützt vor Fehlern und versehentlichem Löschen, nicht vor Kontoverlust, Kündigung oder einem Ausfall beim Anbieter. Ob das genügt, ist ein Entscheid über das tragbare Risiko. **Pflicht vor dem Start der Vorgabe-Erhebung**, weil diese Daten nicht reproduzierbar sind. Falls nicht ausreichend, zu entscheiden: (a) Speicherort ausserhalb von Neon, z. B. Schweizer Cloud (Infomaniak, Exoscale) oder kantonaler Speicher, nicht GitHub; (b) Aufbewahrung, Vorschlag 7 tägliche, 4 wöchentliche, 3 monatliche Stände (kürzer, z. B. 30 Tage, falls der Datenschutz das verlangt); (c) tragbarer Datenverlust, Vorschlag max. 24 Stunden (tägliche Sicherung); (d) wer den Entschlüsselungsschlüssel verwahrt (mind. zwei Personen). Mit dem Datenschutz klären (Entscheid 3/5): Backups enthalten Namen und E-Mails der Zugänge und pseudonyme Antworten; gelöschte Daten bleiben bis zum Ablauf der Aufbewahrung im Backup – gehört in die Datenschutzerklärung. Technische Umsetzung siehe Abschnitt 3. |
 | 9 | **Wer im AVS** sieht die kantonale Auswertung? Wie viele Admin-Konten? | Heute gibt es ein Admin-Konto aus der Umgebungsvariable. |
-| 10 | Später: **Anmeldung über bestehende Konten** (Edulog, Microsoft 365) | Hängt vom AFI ab |
+| 10 | Später: **Anmeldung über bestehende Konten** (Edulog, Microsoft 365) | Edulog bzw. kantonales Microsoft-365-Konto anbinden; mit dem Entscheid für Vercel/Neon unabhängig vom AFI-Betrieb, braucht aber dessen bzw. Edulogs Zustimmung |
 | 11 | **Kurzfassung der Itemtexte** definitiv übernehmen? | Im Prototyp umgesetzt (30.9.), Texte weiterhin Entwurf. Zusammenlegen auf 3 Stufen wird nicht empfohlen. |
 | – | ~~**E-Mail-Versand der Einladungen vom Server freischalten?** (früher Nr. 12)~~ | Entschieden 5.10.: nein, kein eigener Mailserver. Das Rektorat verschickt Einladungen über das eigene E-Mail-Programm (mailto mit eingesetztem Link), umgesetzt 5.10. («Einladungen ohne Mailserver»). Der eingebaute SMTP-Versand (`lib/mail.js`) bleibt unkonfiguriert. Er liesse sich später ohne Code-Änderung über die Vercel-Variablen `SMTP_*`, `MAIL_FROM`, `APP_URL` aktivieren, setzt dann aber SMTP-Dienst, SPF/DKIM und eine Klärung mit dem Datenschutz voraus. |
 | 13 | **Stufenbox neben den Aussagen** beibehalten? | Umgesetzt (30.9.). Vorteil: Stufenlogik sofort erkennbar, Wiedererkennung im Profil. Risiko: Die sichtbare Rangfolge kann Antworten nach oben ziehen (soziale Erwünschtheit). Im Pilot bzw. beim lauten Denken beobachten; Ausblenden wäre ein kleiner Eingriff. |
 | 14 | **Löschrecht der Lehrpersonen:** Genügt der Weg über die Hilfe? | Umgesetzt (30.9.): Knopf aus der Auswertung entfernt, Funktion in der Hilfe. Beim Gespräch mit dem Datenschutz mitnehmen, ob dieser Weg für das Löschrecht ausreicht und ob er in der Datenschutzerklärung genannt sein muss. |
+| – | ~~**Hosting:** beim AFI oder weiter bei Vercel/Neon? (früher Nr. 1)~~ | Entschieden 4.11.: Betrieb über Vercel und Neon (Region Frankfurt), auch für die Liveversion; kein Umzug zum AFI. Gehört so ins ISDS-Konzept und in die Datenschutzerklärung (US-Anbieter, Datenstandort EU). Eigene Adresse (z. B. Subdomain von sz.ch) weiterhin möglich, wäre separat zu klären. |
 | – | ~~Mindestgruppe 5 beibehalten?~~ | Entschieden 30.9.: entfällt vollständig (Rückmeldung Datenschutz). |
 | – | ~~Offline-Version behalten?~~ | Entschieden 29.9.: bleibt, aber nur für die persönliche Selbsteinschätzung. |
 | – | ~~Schulhäuser durch das AVS vorgeben?~~ | Entschieden 30.9.: nein, das AVS erfasst nur die Schulträger. |
@@ -167,10 +168,10 @@ Insgesamt 153 automatisierte Tests.
 - [ ] **Datensicherung einrichten** (Konzept 5.10., Entscheide siehe Nr. 17). Zu sichern ist nur die Datenbank plus die Schlüssel; Code liegt auf GitHub, Vercel lässt sich neu deployen. Geplante Umsetzung:
   - [ ] **Täglicher Dump:** GitHub-Actions-Workflow mit `pg_dump` gegen Neon, vor dem Hochladen verschlüsselt (z. B. `age`, öffentlicher Schlüssel im Workflow, privater Schlüssel offline beim AVS). Ablage im Speicher gemäss Entscheid 17, nicht als GitHub-Artefakt oder im Repository.
   - [ ] **Aufbewahrungsregel** automatisch (Vorschlag 7 täglich / 4 wöchentlich / 3 monatlich), ältere Stände werden gelöscht.
-  - [ ] **Schlüssel und Konfiguration sichern:** alle Umgebungsvariablen aus Vercel (v. a. `CODE_PEPPER`, `SESSION_SECRET`, Admin-Zugang; nicht nötig: `DATABASE_URL`) im Passwortmanager bzw. beim AFI, mind. zwei berechtigte Personen. Ohne `CODE_PEPPER` ist ein Backup für die persönlichen Codes wertlos: Lehrpersonen könnten ihre Resultate nicht mehr abrufen.
+  - [ ] **Schlüssel und Konfiguration sichern:** alle Umgebungsvariablen aus Vercel (v. a. `CODE_PEPPER`, `SESSION_SECRET`, Admin-Zugang; nicht nötig: `DATABASE_URL`) im Passwortmanager des AVS, mind. zwei berechtigte Personen. Ohne `CODE_PEPPER` ist ein Backup für die persönlichen Codes wertlos: Lehrpersonen könnten ihre Resultate nicht mehr abrufen.
   - [ ] **Wiederherstellung testen:** einmal nach dem Einrichten, danach halbjährlich Dump in leere Test-Datenbank einspielen und eine Auswertung öffnen. Anleitung ins README.
   - [ ] **Datenschutzerklärung** ergänzen: Backups und Dauer, bis gelöschte Daten auch aus Backups und dem Neon-History-Window verschwunden sind.
-  - Hinweis: Beim Umzug zum AFI (Entscheid 1) geht die Sicherung idealerweise in dessen Betriebskonzept über; der Workflow ist dann ein Übergang.
+  - Hinweis: Dieser Plan gilt nur, falls die Abklärung zu Entscheid 17 ergibt, dass die Sicherung von Neon nicht genügt.
 - [ ] **AVS-Konto:** Passwort-Wiederherstellung und mehrere Admin-Konten
 - [ ] **Schemaänderungen:** Migrationswerkzeug statt automatischer Anpassung beim Start
 - [ ] **Screenreader-Test**. Die automatische Prüfung (axe, WCAG 2.1 AA) ist ohne Befund.
@@ -204,6 +205,6 @@ Insgesamt 153 automatisierte Tests.
 ## 6 Kommunikation
 
 - [ ] Gespräch mit der externen Fachperson anhand des Briefings (Fassung 3, Nachtrag Sicherheit, Offline, Schulleitungs- und Rektoratsseiten, Frageformat, Wegfall der Mindestgruppe und der Obergrenze für eigene Fragen, Einladungen ohne Mailserver)
-- [ ] Antwort an den Teamkollegen auf die Mail «lokales HTML oder gehosteter Webdienst»: Vieles ist umgesetzt. Offen sind Hosting beim AFI, Datenschutz und Freitext.
+- [ ] Antwort an den Teamkollegen auf die Mail «lokales HTML oder gehosteter Webdienst»: Vieles ist umgesetzt. Hosting ist entschieden (Vercel/Neon, 4.11.); offen sind Datensicherung, Datenschutz und Freitext.
 - [ ] Rückmeldung des Teams zur Kurzfassung der Itemtexte einholen (jetzt direkt im Fragebogen ansehbar)
-- [ ] **Datensicherung** beim AFI-Gespräch (Entscheid 1/2) und beim Datenschutz (Entscheid 3/5) mit aufnehmen (siehe Entscheid 17)
+- [ ] **Datensicherung** bei der Abklärung mit Neon (Entscheid 17) und beim Datenschutz (Entscheid 3/5) mit aufnehmen (siehe Entscheid 17)
