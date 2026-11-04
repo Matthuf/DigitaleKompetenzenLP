@@ -790,7 +790,3 @@ details.past .stack { gap: 16px; }
 /* Textlinks im Schulhaus-Kasten bündig (sonst wirken sie wegen des Button-Innenabstands eingerückt) */
 .school-card .btn.quiet, .school-card .menu > summary.btn.quiet, .team-people .menu > summary.btn.quiet { padding-left: 0; padding-right: 0; }
 .school-card .person-acts, .team-people .person-acts { gap: 6px 18px; }
-
-/* Demo-Zugang (nur Testinstanz) */
-.demobar { background: #FFF4D6; border-bottom: 1px solid #E0C46C; padding: 8px 0; font-size: 0.95rem; }
-.demobar .wrap { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; }

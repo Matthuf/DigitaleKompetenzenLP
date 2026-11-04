@@ -73,7 +73,7 @@ ADMIN_USERNAME=avs ADMIN_PASSWORD=ein-langes-passwort npm run dev
 
 Ohne `DATABASE_URL` läuft eine Datenbank im Arbeitsspeicher (PGlite); nach einem Neustart ist sie leer. Der lokale Server startet im Testmodus (Mindestgruppe 1) mit einem Entwicklungsschlüssel; beides ist nur lokal möglich. Beim ersten Anmelden verlangt das AVS-Startkonto ein neues Passwort.
 
-Tests: `npm test` startet für jede Testgruppe einen eigenen lokalen Server mit leerer Datenbank (168 Prüfungen, u. a. Rechte, Mindestgrössen, Sitzungen, Einladungen, Missbrauchsschutz).
+Tests: `npm test` startet für jede Testgruppe einen eigenen lokalen Server mit leerer Datenbank (150 Prüfungen, u. a. Rechte, Mindestgrössen, Sitzungen, Einladungen, Missbrauchsschutz).
 
 ## Auf Vercel veröffentlichen
 
@@ -87,16 +87,6 @@ Tests: `npm test` startet für jede Testgruppe einen eigenen lokalen Server mit 
 4. **Deployments → Redeploy**. Danach `/admin` öffnen, anmelden, Schule und Schulleitungszugang erfassen.
 
 Die Serverfunktion läuft in Frankfurt (`regions: fra1` in `vercel.json`).
-
-## Demo-Zugang ohne Passwort (nur Testinstanz)
-
-Zum Testen des Adminbereichs Schule ohne Einladung und Passwort. Unter `/demo` legt ein Klick einen neuen, leeren Demo-Schulträger an (Bezirk oder Gemeinde) und meldet als Rektorat an; danach lässt sich zwischen Rektorat, Schulleitung eines Schulhauses und Lehrperson (Teilnahmelink) wechseln. Jede Person erhält einen eigenen Träger. Demo-Träger werden nach sieben Tagen gelöscht. Auf den Seiten erscheint der Balken «Demo-Zugang · keine echten Daten».
-
-- Aktiv nur mit der Variable `DEMO_ZUGANG=1`.
-- **Nur in einem eigenen Vercel-Projekt mit eigener Datenbank.** Sobald in der Datenbank ein echter (nicht Demo-)Schulträger existiert, bleibt der Zugang gesperrt, auch wenn die Variable gesetzt ist. So öffnet eine versehentlich gesetzte Variable die Liveversion nicht.
-- Einrichten: auf vercel.com ein zweites Projekt aus demselben Repository anlegen (Schritte 1–4 oben, eigene Neon-Datenbank, eigener `SESSION_SECRET`), zusätzlich `DEMO_ZUGANG` = `1`, Redeploy. `ADMIN_USERNAME`/`ADMIN_PASSWORD` sind dort nicht nötig.
-- Abschalten: Variable entfernen und Redeploy, oder das Vercel-Projekt löschen. Der Code ist ohne Variable wirkungslos (`/demo` zeigt «nicht aktiv», die Schnittstelle antwortet 404).
-- Code: Routen `demo/*` am Ende von `api/router.js`, `public/demo.html`, `public/assets/demo.js`, `public/assets/demobar.js`, Spalte `traeger.demo`, Tests `test/demo.test.mjs`.
 
 ## Datenschutz
 
