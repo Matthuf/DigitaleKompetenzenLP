@@ -14,6 +14,8 @@ const SUITES = [
   ['zyklen.test.mjs', {}],
   ['erhebungen.test.mjs', {}],
   ['security.test.mjs', {}],
+  ['demo.test.mjs', { DEMO_ZUGANG: '1' }],
+  ['demo.test.mjs#off', { DEMO_ZUGANG: '' }],
   ['mail.test.mjs', { MAIL_OUTBOX: OUTBOX }],
   ['mail.test.mjs#failing', { SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', MAIL_FROM: 'Test <t@localhost>' }],
 ];

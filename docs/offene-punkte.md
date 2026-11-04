@@ -101,6 +101,8 @@ Stand: 4. November 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP 
 
 Insgesamt 153 automatisierte Tests.
 
+**Demo-Zugang ohne Passwort (4.11.):** Für Tests des Adminbereichs Schule ohne Einladung: `/demo`, nur mit `DEMO_ZUGANG=1` und nur in einer Datenbank ohne echte Schulträger (eigenes Vercel-Projekt, siehe README). Neuer leerer Demo-Träger pro Klick, Wechsel Rektorat/Schulleitung/Lehrperson, Löschung nach sieben Tagen. **Offen:** zweites Vercel-Projekt anlegen; nach den Tests Variable entfernen bzw. Projekt löschen und entscheiden, ob der Code bleibt.
+
 **Offline-Version:** nur noch persönliche Selbsteinschätzung (Profil, Drucken/PDF, Datei für den eigenen Gebrauch). Keine Schulauswertung und keine eigenen Fragen mehr.
 
 **Briefing:** Das Word-Briefing für die externe Fachperson ist nachgeführt (Fassung 3). Die Änderungen ab dem 29.9. sind darin noch nicht enthalten.
