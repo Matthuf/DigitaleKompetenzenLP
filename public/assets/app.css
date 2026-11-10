@@ -470,7 +470,7 @@ table.kv-table thead th:last-child { text-align: left; }
 .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 16px; margin-top: 6px; }
 fieldset.field { border: 0; padding: 0; margin: 0; }
 .grp-table th, .grp-table td { white-space: nowrap; }
-.grp-table thead th:last-child { text-align: right; }
+table.kv-table.grp-table thead th:last-child { text-align: right; }
 
 /* Selbstverwaltung */
 .team-list { display: grid; gap: 0; max-width: 820px; }

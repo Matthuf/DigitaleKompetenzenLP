@@ -462,6 +462,7 @@ ${signature()}`;
       <div class="qr-box"><div class="qr" aria-label="QR-Code zum Link der Erhebung" role="img">${svg}</div>
         <div class="stack" style="gap:10px;max-width:46ch"><p class="small">Für Aushang, Präsentation oder Konferenz. Den Link immer mit abdrucken, damit er auch ohne Scanner nutzbar ist:</p>
           <p class="small"><code>${esc(linkFor(l))}</code></p>
+          <p class="small">Der Fragebogen lässt sich am besten am Computer ausfüllen. Wer mit dem Handy beginnt, kann mit dem persönlichen Code später am Computer weiterfahren.</p>
           <div class="row"><button class="btn secondary" type="button" data-png>Als Bild speichern (PNG)</button><button class="btn quiet" type="button" data-svg>Als SVG speichern</button></div></div></div>`;
     p.querySelector('[data-close]').addEventListener('click', () => { p.hidden = true; });
     const svgEl = p.querySelector('.qr svg');
