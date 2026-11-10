@@ -63,7 +63,17 @@ Stand: 10. November 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP
 - Geprüft als Schulleitung und Rektorat bei 1280, 1920 und 390 Pixel, kein Überlauf, axe ohne Befund.
 - QR-Code: Hinweis «Der Fragebogen lässt sich am besten am Computer ausfüllen …», mit Verweis auf den persönlichen Code zum Weiterfahren am Computer.
 - Behoben: In «Schulen im Vergleich» stand die Spaltenüberschrift «6» neben «5» statt über ihren Zahlen (CSS-Regel für die letzte Spalte war stärker).
-- Offen: Kann eine Person mehrere Schulhäuser leiten? Heute ist ein Zugang genau einem Schulhaus zugeordnet (sonst zwei Zugänge).
+- Offen: Kann eine Person mehrere Schulhäuser leiten?
+
+**Bedienbarkeit am Computer (10.11.):** Durchsicht aller Hauptseiten bei 1280 und 1920 Pixel, umgesetzt:
+- **Fragebogen kompakter:** Stufenschild einzeilig («IV Integrieren») statt zweizeilig, weniger Innenabstand. Eine Antwort ist 46 statt 74 Pixel hoch, eine ganze Frage samt Einleitung bei 1280 Pixel 573–678 statt rund 800 Pixel. Vorher passte auf einem Laptop (1366 × 768) keine Frage ganz auf den Bildschirm. Die Stufe bleibt farbig sichtbar (Entscheid 13 unverändert). Gilt auch für die Offline-Version.
+- **Breitere Seiten:** Inhaltsbreite höchstens 1280 statt 1072 Pixel, Seitenrand wächst mit der Fensterbreite (24–48 Pixel). Die Diagramme bleiben gleich breit (feste Grösse, auch für «Als Bild speichern»).
+- **Schulen im Vergleich:** Spaltenköpfe mit Namen der Bereiche statt nur «1» bis «6» (vorher nur als Tooltip).
+- **AVS-Bereich:** Auswahllisten in Formularzeilen gleich hoch wie Textfelder; Überschriften der Zahlenspalten rechtsbündig.
+- «Wer braucht was?»: Titel der Erklärung nennt alle drei Begriffe («einig», «gemischt», «gespalten»).
+- Geprüft bei 1280, 1920 und 390 Pixel (Startseite, Adminbereich Schule alle Reiter, AVS-Bereich, Start und Fragebogen der Lehrpersonen): kein Überlauf, axe ohne Befund.
+- Nicht angesehen: Assistent, Editor eigene Fragen, Profil der Lehrpersonen, Einladungsseite.
+- Nebenbefund für das Gegenlesen der Kurzfassung: Mehrere Aussagen enthalten «Kollegium» (Begriffsregel: «Lehrpersonen»). Heute ist ein Zugang genau einem Schulhaus zugeordnet (sonst zwei Zugänge).
 
 **Lehrpersonen (30.9.):**
 - Startseite mit einem Hauptweg «Selbsteinschätzung starten»; der Code ist ein aufklappbarer Nebenweg.

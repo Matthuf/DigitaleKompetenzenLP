@@ -118,7 +118,7 @@ window.Analysis = (function () {
         <p class="small muted lead-note">Wie viele Lehrpersonen brauchen einen Einstieg, eine Vertiefung oder können ihr Wissen weitergeben?</p>
         <div class="legend"><span><i style="background:${Charts.NEEDCOL[0]}"></i>Einstieg (I–II)</span><span><i style="background:${Charts.NEEDCOL[1]}"></i>Vertiefung (III–IV)</span><span><i style="background:${Charts.NEEDCOL[2]}"></i>Weitergeben (V–VI)</span><span>Zahl im Balken: Anzahl Lehrpersonen</span></div>
         <figure tabindex="0" class="chart" data-chart="needs" id="chart-needs">${Charts.needs(agg, view.order)}</figure>
-        <details class="howto"><summary>Was heisst «einig» und «gespalten»?</summary>
+        <details class="howto"><summary>Was heissen «einig», «gemischt» und «gespalten»?</summary>
           <p class="small"><b>Gespalten:</b> Mindestens je ein Viertel steht auf I–II und auf V–VI. Hier eignen sich Angebote in verschiedenen Niveaus oder Tandems aus erfahrenen und neuen Kolleginnen und Kollegen. <b>Einig:</b> Die Einschätzungen liegen nahe beieinander (Standardabweichung höchstens 0,8). Ein gemeinsames Angebot für alle passt gut. <b>Gemischt:</b> alles dazwischen.</p></details>
       </section>
 
@@ -134,7 +134,7 @@ window.Analysis = (function () {
         <div class="legend">${Charts.stufenLegend(x.g)}</div>
         <figure tabindex="0" class="chart" data-chart="grp-${x.key}">${Charts.stufen(x.g)}</figure>
         <div class="table-scroll" tabindex="0" role="region" aria-label="${esc(x.title)} als Tabelle"><table class="kv-table grp-table">
-          <thead><tr><th scope="col">Gruppe</th><th scope="col">n</th>${ITEMS.areas.map((a) => `<th scope="col" title="${esc(a.title)}">${a.id}</th>`).join('')}</tr></thead>
+          <thead><tr><th scope="col">Gruppe</th><th scope="col">n</th>${ITEMS.areas.map((a) => `<th scope="col"><span class="grp-head">${a.id} ${esc(a.short || a.title)}</span></th>`).join('')}</tr></thead>
           <tbody>${x.g.map((r) => `<tr><th scope="row">${esc(r.label)}</th><td>${r.n}</td>${r.areas.map((v) => `<td>${fmt(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
       </section>`).join('')}
 
