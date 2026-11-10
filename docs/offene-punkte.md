@@ -1,6 +1,6 @@
 # Selbsteinschätzung digitale Kompetenzen SZ – offene Punkte
 
-Stand: 4. November 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP · Testinstanz: digitale-kompetenzen-lp.vercel.app
+Stand: 10. November 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP · Testinstanz: digitale-kompetenzen-lp.vercel.app
 
 ## Stand in Kürze
 
@@ -52,6 +52,16 @@ Stand: 4. November 2026 · Repository: github.com/Matthuf/DigitaleKompetenzenLP 
 - E-Mail an die Schulleitung: Die Adresse aus einer offenen Einladung (z. B. aus dem Assistenten) steht bereits im Feld «An» und im mailto-Link, die Anrede nutzt den Namen. Der Text enthält den Teilnahmelink zum Weiterleiten, solange kein Zugang besteht.
 - Beide Mail-Vorlagen: «Im E-Mail-Programm öffnen» als Hauptbutton zuerst, «Text kopieren» als schlichter Link.
 - Geprüft bei 1280 und 390 Pixel, axe ohne Befund.
+
+**Computer zuerst (10.11., Entscheid):** Kein «mobile first». Fragebogen und Adminbereich werden vor allem am PC bearbeitet. Gestaltet wird für einen normalen Computerbildschirm (Referenz 1280 Pixel, auch 1920 ansehen); 390 Pixel muss nur bedienbar bleiben. Festgehalten in `CLAUDE.md`.
+
+**Schulleitungsansicht, Teilnahmelink (10.11.):** Nach Durchsicht von UX-Vorschlägen (ChatGPT, auf Basis von Screenshots des Rektorats). Viele Vorschläge waren bereits umgesetzt oder widersprachen Entscheiden (Schulleitung nur zum Verteilen, Mindestgruppe); übernommen:
+- Knopf heisst «Teilnahmelink kopieren» (vorher «Link kopieren»), damit er klar vom Einladungslink unterschieden ist.
+- Hat eine Erhebung nur ein Schulhaus (Sicht der Schulleitung, Träger mit einem Schulhaus), ist der Knopf die rote Hauptaktion; bei mehreren Schulhäusern bleibt er schlicht, sonst stünden viele rote Knöpfe untereinander.
+- Kopieren wird zusätzlich über eine Live-Region angesagt («Teilnahmelink für … kopiert»), gilt für alle Kopierknöpfe. Der Knopftext allein wurde von Screenreadern nicht angesagt.
+- Screenreader-Name beginnt mit dem sichtbaren Text («Teilnahmelink kopieren: Schulhaus …»); axe meldete vorher «label-content-name-mismatch».
+- Geprüft als Schulleitung und Rektorat bei 1280, 1920 und 390 Pixel, kein Überlauf, axe ohne Befund.
+- Offen: Kann eine Person mehrere Schulhäuser leiten? Heute ist ein Zugang genau einem Schulhaus zugeordnet (sonst zwei Zugänge).
 
 **Lehrpersonen (30.9.):**
 - Startseite mit einem Hauptweg «Selbsteinschätzung starten»; der Code ist ein aufklappbarer Nebenweg.

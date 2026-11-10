@@ -78,6 +78,12 @@ Keine Fremdbibliotheken im Frontend. Die Inhaltssicherheitsregel erlaubt nur eig
 1. `npm test` — alle Prüfungen grün.
 2. Bei Änderungen an der Oberfläche: im Browser ansehen, bei 1280 und 390 Pixel Breite,
    auf waagrechten Überlauf achten, axe-core ohne Befund (WCAG 2.1 AA).
+   **Grundsatz: Computer zuerst, nicht «mobile first»** (Entscheid 10.11.2026). Fragebogen
+   und Adminbereich werden vor allem am PC bearbeitet. Gestaltet und optimiert wird für einen
+   normalen Computerbildschirm (Referenz 1280 Pixel, auch bei 1920 ansehen). 390 Pixel
+   prüft nur noch, dass alles bedienbar bleibt (kein waagrechter Überlauf, nichts
+   abgeschnitten), nicht, dass es dort optimal aussieht. Keine Lösung zugunsten des Handys,
+   die am Computer schlechter ist.
 3. Bei Änderungen am Druck: PDF erzeugen und ansehen, nicht nur den Code lesen.
 4. Texte gegenlesen: «ss», «Sie»-Form, keine Fachwörter ohne Erklärung.
 

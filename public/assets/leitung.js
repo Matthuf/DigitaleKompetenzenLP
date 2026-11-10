@@ -101,7 +101,7 @@
         <td class="num" data-label="Abgeschlossen">${l.submitted}</td>
         <td class="num" data-label="In Bearbeitung">${l.drafts}</td>
         <td class="quote" data-label="Rücklauf" data-quote="${l.id}">${quoteHTML(l)}</td>
-        ${open ? `<td class="act"><button class="btn secondary small" type="button" data-copy="${l.id}" aria-label="Link für ${esc(l.school_name)} kopieren">Link kopieren</button>${menuHTML(l)}</td>` : ''}
+        ${open ? `<td class="act"><button class="btn ${c.links.length === 1 ? '' : 'secondary '}small" type="button" data-copy="${l.id}" aria-label="Teilnahmelink kopieren: ${esc(l.school_name)}">Teilnahmelink kopieren</button>${menuHTML(l)}</td>` : ''}
       </tr>
       ${l.expected && l.submitted + l.drafts > l.expected ? `<tr class="s-note"><td colspan="${cols}"><p class="box box--warning small" role="note">Über diesen Link wurden mehr Teilnahmen gestartet (${l.submitted + l.drafts}), als Lehrpersonen erwartet werden (${l.expected}). Möglicherweise wurde der Link über die eigenen Lehrpersonen hinaus weitergegeben. Bei Bedarf die Anzahl anpassen oder die Erhebung schliessen und neu eröffnen.</p></td></tr>` : ''}
       ${open ? `<tr class="s-share"><td colspan="${cols}"><div class="share" data-share="${l.id}" hidden></div></td></tr>` : ''}`).join('');
@@ -252,7 +252,7 @@
     const pb = $('#past-box');
     if (pb) pb.addEventListener('toggle', () => { pastOpen = pb.open; });
 
-    $$('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(linkFor(linkById(b.dataset.copy)), b)));
+    $$('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(linkFor(linkById(b.dataset.copy)), b, `Teilnahmelink für ${linkById(b.dataset.copy).school_name} kopiert`)));
     // Menü «E-Mail oder QR-Code»: höchstens eines offen, schliesst nach der Auswahl
     $$('details[data-menu]').forEach((d) => {
       d.addEventListener('toggle', () => { if (d.open) $$('details[data-menu][open]').forEach((x) => { if (x !== d) x.open = false; }); });

@@ -128,8 +128,24 @@
     });
   }
 
-  async function copyText(text, btn) {
-    try { await navigator.clipboard.writeText(text); const t = btn.textContent; btn.textContent = 'Kopiert'; setTimeout(() => { btn.textContent = t; }, 1500); }
+  // Rückmeldung zusätzlich über eine Live-Region: Der geänderte Knopftext allein wird von Screenreadern
+  // nicht zuverlässig angesagt, bei Knöpfen mit aria-label gar nicht.
+  function announce(msg) {
+    let r = document.getElementById('sr-status');
+    if (!r) {
+      r = document.createElement('div');
+      r.id = 'sr-status'; r.className = 'sr-only'; r.setAttribute('role', 'status');
+      document.body.appendChild(r);
+    }
+    r.textContent = '';
+    setTimeout(() => { r.textContent = msg; }, 50);
+  }
+  async function copyText(text, btn, msg = 'Kopiert') {
+    try {
+      await navigator.clipboard.writeText(text);
+      const t = btn.textContent; btn.textContent = 'Kopiert'; setTimeout(() => { btn.textContent = t; }, 1500);
+      announce(msg);
+    }
     catch { window.prompt('Zum Kopieren markieren:', text); }
   }
 
